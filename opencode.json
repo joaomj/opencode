@@ -24,15 +24,77 @@
     }
   },
   "small_model": "opencode/minimax-m2.5-free",
+  "agent": {
+    "code-review": {
+      "mode": "primary",
+      "model": "openai/gpt-5.3-codex",
+      "temperature": 0.1,
+      "reasoningEffort": "high",
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true
+      },
+      "permission": {
+        "task": {
+          "*": "deny",
+          "code-reviewer-*": "allow"
+        },
+        "bash": {
+          "git *": "allow"
+        }
+      }
+    },
+    "code-reviewer-1": {
+      "mode": "subagent",
+      "model": "openai/gpt-5.3-codex",
+      "temperature": 0.1,
+      "reasoningEffort": "high",
+      "hidden": true,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true
+      },
+      "permission": {
+        "bash": {
+          "git *": "allow"
+        }
+      }
+    },
+    "code-reviewer-2": {
+      "mode": "subagent",
+      "model": "opencode/claude-opus-4.5",
+      "fallbackModel": "zai/glm-4.7",
+      "temperature": 0.1,
+      "hidden": true,
+      "tools": {
+        "write": false,
+        "edit": false,
+        "bash": true
+      },
+      "permission": {
+        "bash": {
+          "git *": "allow"
+        }
+      }
+    }
+  },
   "provider": {
     "openai": {
       "models": {
-        "gpt-5.3-codex": {}
+        "gpt-5.3-codex": {
+          "options": {
+            "reasoningEffort": "high",
+            "textVerbosity": "low"
+          }
+        }
       }
     },
     "opencode": {
       "models": {
-        "minimax-m2.5-free": {}
+        "minimax-m2.5-free": {},
+        "claude-opus-4.5": {}
       }
     }
   }
