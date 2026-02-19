@@ -205,3 +205,18 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Node/Bun
+node_modules/
+bun.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# OpenCode Global Config
+*.backup
+*.backup.*
+
+# Sensitive data
+antigravity-accounts.json
+*.credentials.json
