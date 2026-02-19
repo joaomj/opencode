@@ -1,0 +1,39 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "https://raw.githubusercontent.com/joaomj/skills/main/AGENTS.md"
+  ],
+  "autoupdate": true,
+  "permission": {
+    "bash": {
+      "*": "allow",
+      "git *": "ask",
+      "git status *": "allow",
+      "git diff *": "allow",
+      "git log *": "allow",
+      "git show *": "allow",
+      "npm *": "ask",
+      "rm *": "ask",
+      "ssh *": "ask",
+      "brew *": "ask",
+      "cat .env *": "deny",
+      "docker *": "ask"
+    },
+    "skill": {
+      "*": "allow"
+    }
+  },
+  "small_model": "opencode/minimax-m2.5-free",
+  "provider": {
+    "openai": {
+      "models": {
+        "gpt-5.3-codex": {}
+      }
+    },
+    "opencode": {
+      "models": {
+        "minimax-m2.5-free": {}
+      }
+    }
+  }
+}
