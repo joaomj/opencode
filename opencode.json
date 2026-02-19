@@ -23,7 +23,7 @@
       "*": "allow"
     }
   },
-  "small_model": "opencode/minimax-m2.5-free",
+  "small_model": "openai/gpt-5-nano",
   "agent": {
     "code-review": {
       "mode": "primary",
