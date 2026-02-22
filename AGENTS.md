@@ -1,13 +1,267 @@
-# Development Guidelines|v2.0|root:instructions/
+# Development Guidelines|v3.0|deterministic-triggers
 
 IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 
-## External File Loading
-CRITICAL: When you encounter a file reference (e.g., @instructions/python/type-hints.md), use your WebFetch tool to load it from: instructions/
+---
 
-Instructions:
-- Do NOT preemptively load all references - use lazy loading based on actual need
-- When loaded, treat content as mandatory instructions that override defaults
+## CRITICAL RULES (No Exceptions)
+
+### Zero-Tolerance Actions
+| Trigger | Action | Verification |
+|---------|--------|--------------|
+| User says "review" | `/skill code-review-expert` | Check skill invoked |
+| User says "update docs" | `/skill doc-maintenance` | Check skill invoked |
+| AFTER any code change | Run `/skill doc-maintenance` | Check skill invoked |
+| BEFORE commit | Run `ruff check . && pytest` | Check exit code 0 |
+| See `import X` (X not stdlib) | Fetch Context7 docs for X | Check docs loaded |
+| Context7 fetch fails | Ask user: "Should I proceed without docs?" | User confirmation |
+
+### Python Non-Negotiables
+| Rule | Violation = STOP |
+|------|-----------------|
+| Every function has type hints | Block if missing |
+| No raw dicts for API schemas | Block if detected |
+| No secrets in code | Block if detected |
+| No .env file reading | Block if attempted |
+| Use `pdm add X` for deps | Block if direct pyproject.toml edit |
+
+### Docker Non-Negotiables
+| Rule | Violation = STOP |
+|------|-----------------|
+| Dockerfile has non-root USER | Block if missing |
+| docker-compose has read_only | Block if missing |
+| No privileged: true | Block if detected |
+| No secrets in ENV | Block if detected |
+
+### ML Non-Negotiables
+| Rule | Violation = STOP |
+|------|-----------------|
+| Test set touched ONCE only | Block if multiple accesses |
+| Preprocessing in Pipeline | Block if done manually |
+| Confusion matrix generated | Block if missing |
+| Baseline comparison done | Block if missing |
+
+---
+
+## PRE-FLIGHT CHECKLIST (MANDATORY)
+
+BEFORE writing ANY code, you MUST complete ALL steps:
+
+### Step 1: Context Scan
+- [ ] Read `docs/tech-context.md` if exists (project architecture)
+- [ ] Read `pyproject.toml` or `package.json` (dependencies, versions)
+- [ ] Find existing tests (test patterns, coverage)
+- [ ] Find entry points (main.py, app.py, index.js, etc.)
+
+### Step 2: Task Classification
+Answer: What type of task is this?
+- [ ] New feature → Identify domain, load relevant instruction
+- [ ] Bug fix → Load `error-handling.md`
+- [ ] Test fix/add → Load `testing.md`
+- [ ] Refactoring → Check triggers section
+- [ ] Documentation → Load `doc-maintenance` skill
+- [ ] Debugging → Load `error-handling.md`
+
+### Step 3: External Dependencies Check
+- [ ] Check if task involves external library
+- [ ] If YES: Detect version from package.json/requirements.txt
+- [ ] If YES: Fetch Context7 docs BEFORE coding
+- [ ] If Context7 fails: Ask user before proceeding
+
+### Step 4: Load Instructions
+Based on task classification, load appropriate instruction:
+- [ ] Python task → Load from `instructions/python/`
+- [ ] Docker task → Load from `instructions/docker/`
+- [ ] ML task → Load from `instructions/ml/`
+- [ ] Workflow task → Load from `instructions/workflow/`
+
+**DO NOT PROCEED to Step 5 until ALL 4 steps complete.**
+
+### Step 5: Post-Code Verification
+AFTER writing code, verify:
+- [ ] Type hints added (Python)
+- [ ] Error handling added
+- [ ] Tests written/updated
+- [ ] Lint passes (`ruff check .`)
+- [ ] Tests pass (`pytest`)
+- [ ] `/skill doc-maintenance` ran
+
+---
+
+## USER REQUEST -> ACTION (Exact Match)
+
+### Code Review Triggers
+User says ANY of these phrases:
+- "review"
+- "code review"
+- "review my changes"
+- "check my code"
+- "/review"
+- "PR review"
+- "pull request review"
+
+**ACTION:** RUN `/skill code-review-expert` IMMEDIATELY. No analysis needed.
+
+### Documentation Triggers
+User says ANY of these phrases:
+- "update docs"
+- "prune docs"
+- "clean up docs"
+- "update documentation"
+- "/update-docs"
+
+**ACTION:** RUN `/skill doc-maintenance` IMMEDIATELY. No analysis needed.
+
+### Library-Specific Triggers
+User says ANY of these patterns:
+- "use [library]"
+- "implement with [library]"
+- "using [library]"
+- "with [library]"
+- "add [library]"
+
+**ACTION:** 
+1. Detect version from project files
+2. Fetch Context7 docs for [library] with matching version
+3. If version not found, fetch latest and warn user
+
+---
+
+## AUTOMATIC TASK DETECTION
+
+You MUST classify your task before starting. Apply these detection rules:
+
+### File-Based Detection (Check BEFORE reading file)
+| File Pattern | Auto-Load Instruction | Reason |
+|-------------|----------------------|--------|
+| `test_*.py`, `*_test.py`, `tests/*.py` | `testing.md` | Test file detected |
+| `conftest.py` | `testing.md` | Pytest config detected |
+| `Dockerfile`, `Dockerfile.*` | `dockerfile.md` | Docker build detected |
+| `docker-compose*.yml` | `compose-template.md` | Compose config detected |
+| `train.py`, `model.py`, `pipeline.py` | `ml/crisp-dm.md` | ML training detected |
+| `features.py`, `preprocessing.py` | `ml/leakage-prevention.md` | Feature engineering detected |
+| `*.env.example` | STOP - see `env-files` rule | Never read .env files |
+| `setup.py`, `pyproject.toml` | `ruff-rules.md` | Config reference |
+
+### Import-Based Detection (Check WHILE reading file)
+| Import Statement | Auto-Load Instruction | Reason |
+|-----------------|----------------------|--------|
+| `import pandas`, `import numpy` | `ml/data-splitting.md` | Data manipulation |
+| `from sklearn`, `import torch`, `import tensorflow` | `ml/evaluation.md` + `ml/leakage-prevention.md` | ML framework |
+| `import logging` | `logging.md` | Logging detected |
+| `from pydantic`, `import pydantic` | `pydantic.md` | Pydantic usage |
+| `import pytest`, `import unittest` | `testing.md` | Test framework |
+| `from fastapi`, `from flask`, `from django` | `pydantic.md` + Context7 fetch | API framework |
+| `import react`, `from react` | Context7 fetch React docs | Frontend framework |
+
+### Pattern-Based Detection (Check WHILE reading file)
+| Code Pattern | Issue Detected | Auto-Load | Fix |
+|-------------|----------------|-----------|-----|
+| `def func(...):` without `->` or `: Type` | Missing type hints | `type-hints.md` | Add return type |
+| `def func(x, y):` without `: Type` on args | Missing arg types | `type-hints.md` | Add arg types |
+| `class X(BaseModel):` | Pydantic model | `pydantic.md` | Apply patterns |
+| `try:/except:` without logging or raise | Swallowed exception | `error-handling.md` | Add proper handling |
+| `try:/except Exception:` | Bare except | `error-handling.md` | Specify exception type |
+| `X_train, X_test, y_train, y_test` | Data split detected | `data-splitting.md` | Validate split method |
+| `fit_transform(X)` on full dataset | Leakage risk | `leakage-prevention.md` | Use Pipeline |
+| `logging.info(f"...")` with secrets | Security risk | `logging.md` | Remove secrets |
+| `password=`, `api_key=`, `token=` in code | Hardcoded secret | Security rule | Move to env vars |
+
+### Conversation-Based Detection
+| User Shows / Says | Task Type | Auto-Load |
+|------------------|-----------|-----------|
+| Stack trace / traceback | Debugging | `error-handling.md` |
+| Test failure output | Test fix | `testing.md` |
+| "This is slow" / performance issue | Optimization | Check domain (python/docker/ml) |
+| "This doesn't work" | Debugging | `error-handling.md` |
+| "Add tests for this" | Test creation | `testing.md` |
+| "It's throwing an error" | Exception handling | `error-handling.md` |
+| "Can you refactor this?" | Refactoring | Check refactoring triggers |
+| Shows diff / code snippet | Code review or fix | Ask: "Should I review or fix this?" |
+| Shares error log | Debugging | `error-handling.md` |
+
+### Domain Detection Decision Tree
+```
+IF file contains `def ` or `class `:
+  IF file contains `BaseModel` or `pydantic`:
+    -> Python + Pydantic task
+  ELIF file contains `sklearn` or `torch`:
+    -> Python + ML task
+  ELSE:
+    -> Python task
+    
+IF file is Dockerfile:
+  -> Docker task
+  
+IF file is docker-compose*.yml:
+  -> Docker Compose task
+  
+IF file contains `import react` or `from react`:
+  -> Frontend task (fetch Context7 React docs)
+  
+IF file contains `from fastapi` or `from flask`:
+  -> Backend API task (fetch Context7 docs)
+```
+
+---
+
+## CONTEXT7 API WITH VERSION DETECTION
+
+### When to Use Context7
+Use Context7 for ANY external library:
+- JavaScript: React, Vue, Svelte, Angular, Next.js, Express, etc.
+- Python: FastAPI, Django, Flask, Pydantic, SQLAlchemy, pandas, etc.
+- Any npm package or PyPI package not in stdlib
+
+### Step 1: Detect Library Version
+```bash
+# For npm packages
+cat package.json | grep '"react":'          # e.g., "react": "^19.0.0"
+
+# For Python packages
+cat requirements.txt | grep pandas          # e.g., pandas==2.1.0
+cat pyproject.toml | grep -A2 pandas
+pip show pandas | grep Version              # e.g., Version: 2.1.0
+```
+
+### Step 2: Fetch Version-Matched Docs
+```bash
+# Step 2a: Find library ID
+curl -s "https://context7.com/api/v2/libs/search?libraryName=LIBRARY_NAME&query=USER_QUESTION"
+
+# Step 2b: Fetch documentation
+curl -s "https://context7.com/api/v2/context?libraryId=LIBRARY_ID&query=TOPIC&type=txt"
+```
+
+### Version Matching Rules
+| Scenario | Action |
+|----------|--------|
+| User specifies version: "use React 19" | Fetch React 19 docs |
+| Project has version in package.json | Fetch matching major version docs |
+| Project has version in requirements.txt | Fetch matching major version docs |
+| Cannot detect version | Fetch latest docs, WARN user |
+| Library not found in Context7 | Tell user, proceed with available knowledge |
+
+### Example: React with Version Detection
+```bash
+# User says: "use React for this component"
+# Step 1: Detect version
+cat package.json | grep '"react":'  # Returns: "react": "^18.2.0"
+
+# Step 2: Search for React 18
+curl -s "https://context7.com/api/v2/libs/search?libraryName=react&query=18"
+
+# Step 3: Fetch React 18 docs for hooks
+curl -s "https://context7.com/api/v2/context?libraryId=/websites/react_dev_reference&query=useState+hooks&type=txt"
+```
+
+### Step 3: Verification
+After fetching Context7 docs:
+- Confirm doc version matches expected version
+- If major version mismatch: WARN user "Fetched React 18 docs, project uses React 19. Proceed?"
+- If docs don't load: ASK user "Context7 unavailable. Proceed without docs?"
+
+---
 
 ## Core Principles
 |investigate-first|NEVER edit without approval. Analyze, plan, ask permission.
@@ -18,82 +272,75 @@ Instructions:
 |security|No secrets in code. Use .env + pydantic-settings. Validate all inputs.
 |env-files|NEVER read .env files - only .env.example for schema reference
 |python-deps|When changing/adding Python dependencies, you MUST use `pdm` commands (e.g., `pdm add`), not directly edit `pyproject.toml`.
-|tech-context|MANDATORY: docs/tech-context.md is the single source of truth for current project architecture, technical decisions. Reference: https://docs.cline.bot/prompting/cline-memory-bank#what-is-the-cline-memory-bank
-|ml-reporting|MANDATORY: ML projects must include a CRISP-DM Build Report in docs/tech-context.md. Each phase documented with STAR (Situation, Task, Action, Result) including how/why/what/where for all metrics and tradeoffs.
+|tech-context|MANDATORY: docs/tech-context.md is the single source of truth for current project architecture, technical decisions.
+|ml-reporting|MANDATORY: ML projects must include a CRISP-DM Build Report in docs/tech-context.md. Each phase documented with STAR.
 |doc-maintenance|The final step of your task MUST be: running the "doc-maintenance" skill.
 
-## Skills Reference
-
-| Skill | When to Load | Location |
-|-------|--------------|----------|
-| `code-review-expert` | When user requests code review or says "review my changes" | `/skill code-review-expert` |
-| `doc-maintenance` | When documentation needs pruning, or final step of task | `/skill doc-maintenance` |
-
-## Tools Reference
-
-| Tool | Purpose | Trigger |
-|------|---------|---------|
-| **Context7 API** | Fetch up-to-date library documentation | When implementation involves external libraries (React, FastAPI, etc.) |
-
-## Quality Checks|pre-commit-hooks
-Projects using these guidelines should enforce quality via pre-commit hooks:
-
-|check|tool|purpose|
-|secrets|gitleaks|detects hardcoded secrets in code|
-|file-length|python script|max 300 lines per Python file|
-|formatting|ruff|proper code formatting and linting|
-|dockerfile|hadolint|Dockerfile best practices|
-|no-main|pre-commit|prevents commits to main/master|
-
-Setup: Run this command at the begining of your project:
-```bash
-curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash
-```
-
-This downloads the pre-commit config and installs all hooks automatically.
-
-## Ruff Rules|instructions/pyproject.toml
-|line-length=100|target-version=py311
-|select|E,W,F,I,B,C4,UP,ARG,SIM,PTH,ERA,PL,RUF,S,NPY
-|max-complexity=15|max-args=7|max-statements=50
-
-## Development Philosophy
-|incremental|Build in testable increments. Each phase needs objective verification tests before proceeding.
-|checkpoint-driven|Define testable success criteria before starting each major step.
-|verify-first|Prove the current increment works before building on top of it.
+---
 
 ## Workflow
 |1|Workspace Analysis - scan docs/tech-context.md, pyproject.toml, entry points
 |2|User Interview - ask questions until spec is 100% clear
 |3|Action Plan - step-by-step todos with testable checkpoints between phases
 |4|Approval Gate - wait for explicit "yes" before executing the plan
-|5|Execute - after approval, write a temporary phased todo plan in docs/ with clear testable gates/checkpoints; only advance after gate pass; after each gate passes, commit changes (no pushes)
+|5|Execute - after approval, write phased todo plan in docs/; only advance after gate pass; commit after each gate (no pushes)
+
+---
 
 ## Task Management
 |atomic-units|Break tasks into smallest testable pieces
 |todo-tracking|Use TodoWrite for 3+ steps. Mark complete immediately.
-|phase-plan-file|After plan approval, write the plan as a phased todo list in a temporary markdown file under docs/
-|phase-gates|Define explicit pass/fail gate criteria between phases and block next phase until pass
-|gate-commits|After each gate passes, create a commit (commit only, never push unless explicitly requested)
+|phase-plan-file|After plan approval, write plan as phased todo list in docs/
+|phase-gates|Define explicit pass/fail gate criteria between phases
+|gate-commits|After each gate passes, create a commit (never push unless requested)
 |stop-when|Tests pass, feature works, code documented
 
+---
+
 ## Documentation
-|source-of-truth|docs/tech-context.md - Single-File Memory Bank consolidating Project Brief, Product Context, System Patterns, Tech Context. Mandatory for all projects.
+|source-of-truth|docs/tech-context.md - Single-File Memory Bank. Mandatory for all projects.
 |document-why|Explain decisions and tradeoffs, not just mechanics
 |data-flow|How data moves through components, entry to exit
-|depth-over-brevity|docs/tech-context.md must be a DEEP technical report. Size is not a problem; shallowness is. For every metric, explain: calculation method, why chosen, observed values.
-|no-proactive-docs|Never create README/docs unless explicitly requested, except temporary docs phase-plan files required after approval
+|depth-over-brevity|docs/tech-context.md must be a DEEP technical report. For every metric: calculation method, why chosen, observed values.
+|no-proactive-docs|Never create README/docs unless explicitly requested
 
-## Index (load on demand)
+---
+
+## Instruction Index (Load on Detection)
 |python|@instructions/python/{type-hints.md,pydantic.md,error-handling.md,ruff-rules.md,logging.md,testing.md}
 |docker|@instructions/docker/{dockerfile.md,runtime-security.md,compose-template.md,network-isolation.md}
-|machine learning|@instructions/ml/{crisp-dm.md,data-splitting.md,leakage-prevention.md,evaluation.md,feature-importance.md,mlflow.md}
+|ml|@instructions/ml/{crisp-dm.md,data-splitting.md,leakage-prevention.md,evaluation.md,feature-importance.md,mlflow.md}
 |workflow|@instructions/workflow/{planning.md,task-management.md,pr-description.md}
 |tools|@instructions/tools/up-to-date-docs.md
 
-## Refactoring
-|triggers|Hard to explain, DRY violation, security issue, pattern 3+ times
+---
+
+## Quality Checks|pre-commit-hooks
+|check|tool|purpose|
+|secrets|gitleaks|detects hardcoded secrets|
+|file-length|python script|max 300 lines per Python file|
+|formatting|ruff|code formatting and linting|
+|dockerfile|hadolint|Dockerfile best practices|
+|no-main|pre-commit|prevents commits to main/master|
+
+Setup: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash`
+
+---
+
+## Ruff Rules|instructions/pyproject.toml
+|line-length=100|target-version=py311
+|select|E,W,F,I,B,C4,UP,ARG,SIM,PTH,ERA,PL,RUF,S,NPY
+|max-complexity=15|max-args=7|max-statements=50
+
+---
+
+## Refactoring Triggers
+|triggers|Hard to explain, DRY violation, security issue, pattern appears 3+ times
 |yagni|Don't refactor prematurely. Don't build for hypothetical futures.
 
-## Teacher Mode
-|for-learning|Write a "Start Here" section in README.md explaining project in plain language: architecture, decisions, lessons, pitfalls
+---
+
+## Development Philosophy
+|incremental|Build in testable increments. Each phase needs objective verification.
+|checkpoint-driven|Define testable success criteria before starting each major step.
+|verify-first|Prove the current increment works before building on top of it.
