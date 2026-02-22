@@ -1,9 +1,9 @@
-# Development Guidelines|v2.0|root:https://raw.githubusercontent.com/joaomj/skills/main/instructions/
+# Development Guidelines|v2.0|root:instructions/
 
 IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 
 ## External File Loading
-CRITICAL: When you encounter a file reference (e.g., @https://raw.githubusercontent.com/joaomj/skills/main/instructions/python/type-hints.md), use your WebFetch tool to load it from: https://raw.githubusercontent.com/joaomj/skills/main/
+CRITICAL: When you encounter a file reference (e.g., @instructions/python/type-hints.md), use your WebFetch tool to load it from: instructions/
 
 Instructions:
 - Do NOT preemptively load all references - use lazy loading based on actual need
@@ -18,9 +18,22 @@ Instructions:
 |security|No secrets in code. Use .env + pydantic-settings. Validate all inputs.
 |env-files|NEVER read .env files - only .env.example for schema reference
 |python-deps|When changing/adding Python dependencies, you MUST use `pdm` commands (e.g., `pdm add`), not directly edit `pyproject.toml`.
-|tech-context|MANDATORY: docs/tech-context.md is the Single-File Memory Bank consolidating Cline's core files. Reference: https://docs.cline.bot/prompting/cline-memory-bank#what-is-the-cline-memory-bank
+|tech-context|MANDATORY: docs/tech-context.md is the single source of truth for current project architecture, technical decisions. Reference: https://docs.cline.bot/prompting/cline-memory-bank#what-is-the-cline-memory-bank
 |ml-reporting|MANDATORY: ML projects must include a CRISP-DM Build Report in docs/tech-context.md. Each phase documented with STAR (Situation, Task, Action, Result) including how/why/what/where for all metrics and tradeoffs.
-|doc-maintenance|Review documentation for obsolete content during code reviews, after major refactors, or when explicitly asked. Remove outdated sections, keep detailed current state.
+|doc-maintenance|The final step of your task MUST be: running the "doc-maintenance" skill.
+
+## Skills Reference
+
+| Skill | When to Load | Location |
+|-------|--------------|----------|
+| `code-review-expert` | When user requests code review or says "review my changes" | `/skill code-review-expert` |
+| `doc-maintenance` | When documentation needs pruning, or final step of task | `/skill doc-maintenance` |
+
+## Tools Reference
+
+| Tool | Purpose | Trigger |
+|------|---------|---------|
+| **Context7 API** | Fetch up-to-date library documentation | When implementation involves external libraries (React, FastAPI, etc.) |
 
 ## Quality Checks|pre-commit-hooks
 Projects using these guidelines should enforce quality via pre-commit hooks:
@@ -32,20 +45,20 @@ Projects using these guidelines should enforce quality via pre-commit hooks:
 |dockerfile|hadolint|Dockerfile best practices|
 |no-main|pre-commit|prevents commits to main/master|
 
-Setup: Run one command in your project:
+Setup: Run this command at the begining of your project:
 ```bash
-curl -sSL https://raw.githubusercontent.com/joaomj/skills/main/setup-hooks.sh | bash
+curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash
 ```
 
 This downloads the pre-commit config and installs all hooks automatically.
 
-## Ruff Rules|https://raw.githubusercontent.com/joaomj/skills/main/instructions/pyproject.toml
+## Ruff Rules|instructions/pyproject.toml
 |line-length=100|target-version=py311
 |select|E,W,F,I,B,C4,UP,ARG,SIM,PTH,ERA,PL,RUF,S,NPY
 |max-complexity=15|max-args=7|max-statements=50
 
 ## Development Philosophy
-|incremental|Build in testable increments. Each phase needs clear verification before proceeding.
+|incremental|Build in testable increments. Each phase needs objective verification tests before proceeding.
 |checkpoint-driven|Define testable success criteria before starting each major step.
 |verify-first|Prove the current increment works before building on top of it.
 
@@ -72,11 +85,11 @@ This downloads the pre-commit config and installs all hooks automatically.
 |no-proactive-docs|Never create README/docs unless explicitly requested, except temporary docs phase-plan files required after approval
 
 ## Index (load on demand)
-|python|@https://raw.githubusercontent.com/joaomj/skills/main/instructions/python/{type-hints.md,pydantic.md,error-handling.md,ruff-rules.md,logging.md,testing.md}
-|docker|@https://raw.githubusercontent.com/joaomj/skills/main/instructions/docker/{dockerfile.md,runtime-security.md,compose-template.md,network-isolation.md}
-|machine learning|@https://raw.githubusercontent.com/joaomj/skills/main/instructions/ml/{crisp-dm.md,data-splitting.md,leakage-prevention.md,evaluation.md,feature-importance.md,mlflow.md}
-|workflow|@https://raw.githubusercontent.com/joaomj/skills/main/instructions/workflow/{planning.md,task-management.md,documentation.md,pr-description.md,code-review.md}
-|tools|@https://raw.githubusercontent.com/joaomj/skills/main/instructions/tools/up-to-date-docs.md
+|python|@instructions/python/{type-hints.md,pydantic.md,error-handling.md,ruff-rules.md,logging.md,testing.md}
+|docker|@instructions/docker/{dockerfile.md,runtime-security.md,compose-template.md,network-isolation.md}
+|machine learning|@instructions/ml/{crisp-dm.md,data-splitting.md,leakage-prevention.md,evaluation.md,feature-importance.md,mlflow.md}
+|workflow|@instructions/workflow/{planning.md,task-management.md,pr-description.md}
+|tools|@instructions/tools/up-to-date-docs.md
 
 ## Refactoring
 |triggers|Hard to explain, DRY violation, security issue, pattern 3+ times
