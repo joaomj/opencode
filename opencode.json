@@ -23,7 +23,7 @@
       "*": "allow"
     }
   },
-  "small_model": "zai/glm-4.7",
+  "small_model": "openai/gpt-nano",
   "agent": {
     "code-reviewer-1": {
       "mode": "subagent",
