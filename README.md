@@ -1,14 +1,15 @@
 # opencode-config
 
-Personal [opencode](https://opencode.ai) configuration with custom agents, commands, and skills for enhanced AI-assisted development.
+Personal [opencode](https://opencode.ai) configuration with development guidelines, custom agents, commands, and skills for enhanced AI-assisted development.
 
 ## Overview
 
-This repository contains my personal opencode configuration, extending the base opencode CLI with:
+This repository contains a comprehensive opencode configuration with:
 
+- **Development Guidelines** - Python, Docker, ML, and workflow best practices
 - **Dual-agent code review** using independent AI reviewers
 - **Documentation maintenance** automation
-- **Custom development guidelines** loaded from external sources
+- **Pre-commit hooks** for quality enforcement
 
 ## Prerequisites
 
@@ -19,49 +20,39 @@ This repository contains my personal opencode configuration, extending the base 
 
 ```bash
 # Clone to opencode config directory
-git clone <repo-url> ~/.config/opencode
+git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 
 # Or symlink if you keep configs elsewhere
 ln -s /path/to/this/repo ~/.config/opencode
 ```
 
-## Configuration
-
-### Model Settings
-
-| Setting | Value | Provider | Purpose |
-|---------|-------|----------|---------|
-| `small_model` | `zai/glm-4.7` | Z.ai | Session title generation, lightweight tasks |
-
-The `small_model` handles quick operations that don't require high reasoning capacity.
-
-### Permission Settings
-
-Key permissions configured in `opencode.json`:
-
-| Command Pattern | Permission | Notes |
-|-----------------|------------|-------|
-| `git status`, `git diff`, `git log`, `git show` | allow | Read-only git operations |
-| `git *` (other) | ask | Requires approval |
-| `cat .env *` | deny | Security: never expose secrets |
-| `rm *`, `npm *`, `ssh *`, `brew *`, `docker *` | ask | Destructive/system operations |
-
 ## Project Structure
 
 ```
 ~/.config/opencode/
+├── AGENTS.md              # Main guidelines index (references local instructions/)
 ├── opencode.json          # Main configuration (models, permissions, agents)
-├── AGENTS.md              # Development guidelines (loaded from joaomj/skills)
 ├── README.md              # This file
-├── agents/
-│   ├── code-reviewer-1.md   # GPT-5.3 Codex reviewer (hidden subagent)
-│   └── code-reviewer-2.md   # GLM 4.7 reviewer (hidden subagent)
-├── commands/
-│   ├── review.md            # /review - dual subagent code review
-│   └── update-docs.md       # /update-docs - documentation maintenance
-└── skills/
-    ├── code-review-expert/  # P0-P3 severity checklists
-    └── doc-maintenance/     # Documentation pruning guidelines
+├── CHANGELOG.md           # Version history
+├── setup-hooks.sh         # Pre-commit hooks installer
+├── instructions/          # Development guidelines (self-contained)
+│   ├── python/            # Python best practices (6 files)
+│   ├── docker/            # Docker security (4 files)
+│   ├── ml/                # Machine learning methodology (6 files)
+│   ├── workflow/          # Development workflows (3 files)
+│   ├── tools/             # External tool usage (1 file)
+│   ├── pyproject.toml     # Ruff configuration template
+│   ├── .pre-commit-config.yaml  # Pre-commit hooks template
+│   └── check_file_length.py     # File length validation script
+├── skills/                # OpenCode native skills
+│   ├── code-review-expert/
+│   └── doc-maintenance/
+├── agents/                # Subagent configurations
+│   ├── code-reviewer-1.md
+│   └── code-reviewer-2.md
+└── commands/              # OpenCode commands
+    ├── review.md
+    └── update-docs.md
 ```
 
 ## Available Commands
@@ -91,14 +82,6 @@ Performs dual-agent code review with P0-P3 severity classification.
 2. Each reviewer returns findings as structured JSON
 3. Results are consolidated into `CODE_REVIEW.md`
 
-**Review Coverage:**
-
-- SOLID principles (SRP, OCP, LSP, ISP, DIP)
-- Security risks (XSS, injection, SSRF, race conditions)
-- Performance issues (N+1 queries, CPU, memory)
-- Error handling (swallowed exceptions, async errors)
-- Boundary conditions (null, empty, numeric limits)
-
 ### `/update-docs`
 
 Automated documentation maintenance that prunes obsolete content.
@@ -109,43 +92,90 @@ Automated documentation maintenance that prunes obsolete content.
 /update-docs
 ```
 
-**Checks performed:**
-
-- Outdated date references
-- References to non-existent components
-- Deprecated patterns or APIs
-- Data flow mismatches in documentation
-
-## Agents
-
-| Agent | Mode | Model | Temperature | Purpose |
-|-------|------|-------|-------------|---------|
-| `code-reviewer-1` | subagent (hidden) | `openai/gpt-5.3-codex` | 0.1 | Security and performance focus |
-| `code-reviewer-2` | subagent (hidden) | `zai/glm-4.7` | 0.1 | Architecture and SOLID focus |
-
-Both agents:
-- Cannot see each other's findings (independent analysis)
-- Have write/edit disabled (read-only review)
-- Can execute bash commands (limited to `git *` operations)
-
 ## Skills
 
-| Skill | Purpose |
-|-------|---------|
-| `code-review-expert` | Provides P0-P3 severity checklists covering SOLID principles, security, performance |
-| `doc-maintenance` | Guidelines for identifying and pruning obsolete documentation |
+| Skill | Purpose | Invoke |
+|-------|---------|--------|
+| `code-review-expert` | P0-P3 severity checklists covering SOLID principles, security, performance | `/skill code-review-expert` |
+| `doc-maintenance` | Guidelines for identifying and pruning obsolete documentation | `/skill doc-maintenance` |
+
+## Pre-Commit Hooks
+
+Enable automatic quality checks in any project:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash
+```
+
+This installs hooks that check for:
+- **Secrets** - gitleaks detects hardcoded secrets
+- **File length** - max 300 lines per Python file
+- **Formatting** - ruff ensures proper code formatting
+- **Dockerfile** - hadolint enforces best practices
+- **No main commits** - prevents direct commits to main/master
 
 ## Development Guidelines
 
-This configuration references external development guidelines from:
+The `instructions/` directory contains detailed guidelines organized by domain:
 
-- `https://raw.githubusercontent.com/joaomj/skills/main/AGENTS.md`
+### Python (`instructions/python/`)
+- Type hints and Pydantic patterns
+- Error handling strategies
+- Ruff configuration and rules
+- Structured logging requirements
+- Comprehensive testing guidelines
 
-These guidelines cover:
-- Code quality and best practices
-- Security requirements
-- Performance optimization
-- Documentation standards
+### Docker (`instructions/docker/`)
+- Dockerfile security best practices
+- Runtime security flags
+- Compose templates
+- Network isolation strategies
+
+### Machine Learning (`instructions/ml/`)
+- CRISP-DM methodology
+- Data splitting strategies
+- Leakage prevention
+- Evaluation metrics
+- Feature importance analysis
+- MLflow experiment tracking
+
+### Workflow (`instructions/workflow/`)
+- Investigation and planning
+- Task management with testable checkpoints
+- PR description templates
+
+### Tools (`instructions/tools/`)
+- Context7 API for up-to-date library documentation
+
+## Multi-Machine Setup
+
+This repo is designed to work consistently across multiple machines. After cloning to `~/.config/opencode/` on each machine, all instances will automatically use the same guidelines and configurations.
+
+To update all machines after making changes:
+
+```bash
+cd ~/.config/opencode
+git pull origin main
+```
+
+## Configuration
+
+### Model Settings
+
+| Setting | Value | Provider | Purpose |
+|---------|-------|----------|---------|
+| `small_model` | `zai/glm-4.7` | Z.ai | Session title generation, lightweight tasks |
+
+### Permission Settings
+
+Key permissions configured in `opencode.json`:
+
+| Command Pattern | Permission | Notes |
+|-----------------|------------|-------|
+| `git status`, `git diff`, `git log`, `git show` | allow | Read-only git operations |
+| `git *` (other) | ask | Requires approval |
+| `cat .env *` | deny | Security: never expose secrets |
+| `rm *`, `npm *`, `ssh *`, `brew *`, `docker *` | ask | Destructive/system operations |
 
 ## Troubleshooting
 
