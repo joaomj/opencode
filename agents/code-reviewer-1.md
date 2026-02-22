@@ -1,6 +1,7 @@
 ---
 description: Independent code reviewer using GPT-5.3 Codex (high effort)
 mode: subagent
+model: openai/gpt-5.3-codex
 temperature: 0.1
 hidden: true
 tools:

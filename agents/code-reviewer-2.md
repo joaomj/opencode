@@ -1,7 +1,7 @@
 ---
 description: Independent code reviewer using GLM 4.7
 mode: subagent
-model: glm-4-plus
+model: zai/glm-4.7
 temperature: 0.1
 hidden: true
 tools:

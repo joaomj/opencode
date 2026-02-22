@@ -19,6 +19,16 @@ Personal opencode configuration with custom agents, commands, and skills.
     doc-maintenance/     # Documentation pruning guidelines
 ```
 
+## Configuration
+
+### Model Settings
+
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| `small_model` | `zai/glm-4.7` | Lightweight tasks: session title generation |
+
+The `small_model` is used for quick, low-cost operations like generating session names/titles.
+
 ## Commands
 
 ### /review
