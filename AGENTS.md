@@ -11,8 +11,9 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |---------|--------|--------------|
 | User says "review" | `/skill code-review-expert` | Check skill invoked |
 | User says "update docs" | `/skill doc-maintenance` | Check skill invoked |
+| User asks for CI/CD pipeline on GitHub | `/skill github-cicd-lite` | Check skill invoked |
 | AFTER any code change | Run `/skill doc-maintenance` | Check skill invoked |
-| BEFORE commit | Run `ruff check . && pytest` | Check exit code 0 |
+| BEFORE commit | Ensure hook setup exists (`setup-hooks.sh`), install if missing, then run `pre-commit run --all-files` | Check all verification pass |
 | See `import X` (X not stdlib) | Fetch Context7 docs for X | Check docs loaded |
 | Context7 fetch fails | Ask user: "Should I proceed without docs?" | User confirmation |
 
@@ -52,15 +53,17 @@ BEFORE writing ANY code, you MUST complete ALL steps:
 - [ ] Read `pyproject.toml` or `package.json` (dependencies, versions)
 - [ ] Find existing tests (test patterns, coverage)
 - [ ] Find entry points (main.py, app.py, index.js, etc.)
+- [ ] Check for existing CI workflows in `.github/workflows/*.yml` or `.yaml`
+- [ ] If `setup-hooks.sh` is missing in the current codebase, install it: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh -o setup-hooks.sh && chmod +x setup-hooks.sh`
 
 ### Step 2: Task Classification
 Answer: What type of task is this?
 - [ ] New feature → Identify domain, load relevant instruction
-- [ ] Bug fix → Load `error-handling.md`
-- [ ] Test fix/add → Load `testing.md`
+- [ ] Bug fix → Load `@instructions/python/error-handling.md`
+- [ ] Test fix/add → Load `@instructions/python/testing.md`
 - [ ] Refactoring → Check triggers section
 - [ ] Documentation → Load `doc-maintenance` skill
-- [ ] Debugging → Load `error-handling.md`
+- [ ] Debugging → Load `@instructions/python/error-handling.md`
 
 ### Step 3: External Dependencies Check
 - [ ] Check if task involves external library
@@ -70,10 +73,10 @@ Answer: What type of task is this?
 
 ### Step 4: Load Instructions
 Based on task classification, load appropriate instruction:
-- [ ] Python task → Load from `instructions/python/`
-- [ ] Docker task → Load from `instructions/docker/`
-- [ ] ML task → Load from `instructions/ml/`
-- [ ] Workflow task → Load from `instructions/workflow/`
+- [ ] Python task → Load from `@instructions/python/`
+- [ ] Docker task → Load from `@instructions/docker/`
+- [ ] ML task → Load from `@instructions/ml/`
+- [ ] Workflow task → Load from `@instructions/workflow/`
 
 **DO NOT PROCEED to Step 5 until ALL 4 steps complete.**
 
@@ -84,6 +87,7 @@ AFTER writing code, verify:
 - [ ] Tests written/updated
 - [ ] Lint passes (`ruff check .`)
 - [ ] Tests pass (`pytest`)
+- [ ] Pre-commit hooks pass (`pre-commit run --all-files`)
 - [ ] `/skill doc-maintenance` ran
 
 ---
@@ -112,6 +116,18 @@ User says ANY of these phrases:
 
 **ACTION:** RUN `/skill doc-maintenance` IMMEDIATELY. No analysis needed.
 
+### CI/CD Triggers (GitHub)
+User says ANY of these phrases:
+- "write a cicd pipeline"
+- "write a ci/cd pipeline"
+- "write a ci pipeline"
+- "github actions pipeline"
+- "set up github actions"
+- "create github workflow"
+- "/cicd"
+
+**ACTION:** RUN `/skill github-cicd-lite` IMMEDIATELY. No analysis needed.
+
 ### Library-Specific Triggers
 User says ANY of these patterns:
 - "use [library]"
@@ -134,51 +150,52 @@ You MUST classify your task before starting. Apply these detection rules:
 ### File-Based Detection (Check BEFORE reading file)
 | File Pattern | Auto-Load Instruction | Reason |
 |-------------|----------------------|--------|
-| `test_*.py`, `*_test.py`, `tests/*.py` | `testing.md` | Test file detected |
-| `conftest.py` | `testing.md` | Pytest config detected |
-| `Dockerfile`, `Dockerfile.*` | `dockerfile.md` | Docker build detected |
-| `docker-compose*.yml` | `compose-template.md` | Compose config detected |
-| `train.py`, `model.py`, `pipeline.py` | `ml/crisp-dm.md` | ML training detected |
-| `features.py`, `preprocessing.py` | `ml/leakage-prevention.md` | Feature engineering detected |
+| `test_*.py`, `*_test.py`, `tests/*.py` | `@instructions/python/testing.md` | Test file detected |
+| `conftest.py` | `@instructions/python/testing.md` | Pytest config detected |
+| `Dockerfile`, `Dockerfile.*` | `@instructions/docker/dockerfile.md` | Docker build detected |
+| `docker-compose*.yml` | `@instructions/docker/compose-template.md` | Compose config detected |
+| `train.py`, `model.py`, `pipeline.py` | `@instructions/ml/crisp-dm.md` | ML training detected |
+| `features.py`, `preprocessing.py` | `@instructions/ml/leakage-prevention.md` | Feature engineering detected |
 | `*.env.example` | STOP - see `env-files` rule | Never read .env files |
-| `setup.py`, `pyproject.toml` | `ruff-rules.md` | Config reference |
+| `setup.py`, `pyproject.toml` | `@instructions/python/ruff-rules.md` | Config reference |
 
 ### Import-Based Detection (Check WHILE reading file)
 | Import Statement | Auto-Load Instruction | Reason |
 |-----------------|----------------------|--------|
-| `import pandas`, `import numpy` | `ml/data-splitting.md` | Data manipulation |
-| `from sklearn`, `import torch`, `import tensorflow` | `ml/evaluation.md` + `ml/leakage-prevention.md` | ML framework |
-| `import logging` | `logging.md` | Logging detected |
-| `from pydantic`, `import pydantic` | `pydantic.md` | Pydantic usage |
-| `import pytest`, `import unittest` | `testing.md` | Test framework |
-| `from fastapi`, `from flask`, `from django` | `pydantic.md` + Context7 fetch | API framework |
+| `import pandas`, `import numpy` | `@instructions/ml/data-splitting.md` | Data manipulation |
+| `from sklearn`, `import torch`, `import tensorflow` | `@instructions/ml/evaluation.md` + `@instructions/ml/leakage-prevention.md` | ML framework |
+| `import logging` | `@instructions/python/logging.md` | Logging detected |
+| `from pydantic`, `import pydantic` | `@instructions/python/pydantic.md` | Pydantic usage |
+| `import pytest`, `import unittest` | `@instructions/python/testing.md` | Test framework |
+| `from fastapi`, `from flask`, `from django` | `@instructions/python/pydantic.md` + Context7 fetch | API framework |
 | `import react`, `from react` | Context7 fetch React docs | Frontend framework |
 
 ### Pattern-Based Detection (Check WHILE reading file)
 | Code Pattern | Issue Detected | Auto-Load | Fix |
 |-------------|----------------|-----------|-----|
-| `def func(...):` without `->` or `: Type` | Missing type hints | `type-hints.md` | Add return type |
-| `def func(x, y):` without `: Type` on args | Missing arg types | `type-hints.md` | Add arg types |
-| `class X(BaseModel):` | Pydantic model | `pydantic.md` | Apply patterns |
-| `try:/except:` without logging or raise | Swallowed exception | `error-handling.md` | Add proper handling |
-| `try:/except Exception:` | Bare except | `error-handling.md` | Specify exception type |
-| `X_train, X_test, y_train, y_test` | Data split detected | `data-splitting.md` | Validate split method |
-| `fit_transform(X)` on full dataset | Leakage risk | `leakage-prevention.md` | Use Pipeline |
-| `logging.info(f"...")` with secrets | Security risk | `logging.md` | Remove secrets |
+| `def func(...):` without `->` or `: Type` | Missing type hints | `@instructions/python/type-hints.md` | Add return type |
+| `def func(x, y):` without `: Type` on args | Missing arg types | `@instructions/python/type-hints.md` | Add arg types |
+| `class X(BaseModel):` | Pydantic model | `@instructions/python/pydantic.md` | Apply patterns |
+| `try:/except:` without logging or raise | Swallowed exception | `@instructions/python/error-handling.md` | Add proper handling |
+| `try:/except Exception:` | Bare except | `@instructions/python/error-handling.md` | Specify exception type |
+| `X_train, X_test, y_train, y_test` | Data split detected | `@instructions/ml/data-splitting.md` | Validate split method |
+| `fit_transform(X)` on full dataset | Leakage risk | `@instructions/ml/leakage-prevention.md` | Use Pipeline |
+| `logging.info(f"...")` with secrets | Security risk | `@instructions/python/logging.md` | Remove secrets |
 | `password=`, `api_key=`, `token=` in code | Hardcoded secret | Security rule | Move to env vars |
 
 ### Conversation-Based Detection
 | User Shows / Says | Task Type | Auto-Load |
 |------------------|-----------|-----------|
-| Stack trace / traceback | Debugging | `error-handling.md` |
-| Test failure output | Test fix | `testing.md` |
+| Stack trace / traceback | Debugging | `@instructions/python/error-handling.md` |
+| Test failure output | Test fix | `@instructions/python/testing.md` |
 | "This is slow" / performance issue | Optimization | Check domain (python/docker/ml) |
-| "This doesn't work" | Debugging | `error-handling.md` |
-| "Add tests for this" | Test creation | `testing.md` |
-| "It's throwing an error" | Exception handling | `error-handling.md` |
+| "This doesn't work" | Debugging | `@instructions/python/error-handling.md` |
+| "Add tests for this" | Test creation | `@instructions/python/testing.md` |
+| "It's throwing an error" | Exception handling | `@instructions/python/error-handling.md` |
 | "Can you refactor this?" | Refactoring | Check refactoring triggers |
 | Shows diff / code snippet | Code review or fix | Ask: "Should I review or fix this?" |
-| Shares error log | Debugging | `error-handling.md` |
+| Shares error log | Debugging | `@instructions/python/error-handling.md` |
+| No `.github/workflows/*.yml` found in a GitHub repo | CI gap detection | Ask: "I don't see a GitHub CI workflow here. Want me to add a lean, secure CI pipeline for this repo?"; if yes run `/skill github-cicd-lite` |
 
 ### Domain Detection Decision Tree
 ```
@@ -323,11 +340,11 @@ After fetching Context7 docs:
 |dockerfile|hadolint|Dockerfile best practices|
 |no-main|pre-commit|prevents commits to main/master|
 
-Setup: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash`
+Setup: if `setup-hooks.sh` is missing in the current codebase, install it with `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh -o setup-hooks.sh && chmod +x setup-hooks.sh`, then run `./setup-hooks.sh`.
 
 ---
 
-## Ruff Rules|instructions/pyproject.toml
+## Ruff Rules|@instructions/pyproject.toml
 |line-length=100|target-version=py311
 |select|E,W,F,I,B,C4,UP,ARG,SIM,PTH,ERA,PL,RUF,S,NPY
 |max-complexity=15|max-args=7|max-statements=50

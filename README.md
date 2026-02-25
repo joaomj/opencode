@@ -9,6 +9,7 @@ This configuration enhances opencode with:
 - **Development Guidelines** - Best practices for Python, Docker, ML, and general workflows
 - **Dual-agent code review** - Two independent AI reviewers cross-check code changes
 - **Documentation maintenance** - Automated detection of outdated documentation
+- **Lean GitHub CI skill** - Fast, secure CI pipelines for small Python repos
 - **Pre-commit hooks** - Quality checks for any project
 
 ## Prerequisites
@@ -37,7 +38,8 @@ git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 │   └── tools/             # External tool usage
 ├── skills/                # Reusable skill definitions
 │   ├── code-review-expert/
-│   └── doc-maintenance/
+│   ├── doc-maintenance/
+│   └── github-cicd-lite/
 ├── agents/                # Subagent configurations
 └── commands/              # Custom commands
 ```
@@ -69,6 +71,7 @@ Identifies and removes obsolete documentation content.
 |-------|---------|
 | `code-review-expert` | Checklists for SOLID principles, security, performance, code quality |
 | `doc-maintenance` | Guidelines for identifying and pruning outdated documentation |
+| `github-cicd-lite` | Lean GitHub Actions CI pattern (Python-first, speed + security, deploy optional) |
 
 ## Pre-Commit Hooks
 

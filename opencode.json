@@ -17,13 +17,14 @@
       "ssh *": "ask",
       "brew *": "ask",
       "cat .env *": "deny",
+      "* .env *": "deny",
       "docker *": "ask"
     },
     "skill": {
       "*": "allow"
     }
   },
-  "small_model": "openai/gpt-nano",
+  "small_model": "openai/gpt-5.1-codex-mini",
   "agent": {
     "code-reviewer-1": {
       "mode": "subagent",
@@ -70,11 +71,13 @@
         }
       }
     },
-    "opencode": {
-      "models": {
-        "minimax-m2.5-free": {},
-        "claude-opus-4.5": {}
-      }
+    "llama.cpp": {
+        "npm": "@ai-sdk/openai-compatible",
+        "name": "llama-server (local)",
+        "options": { "baseURL": "http://127.0.0.1:8080/v1" },
+        "models": {
+          "qwen3.5-27b-q2k": { "name": "Qwen3.5-27B Q2_K (local)"}
+        }
     }
   }
 }
