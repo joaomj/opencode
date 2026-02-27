@@ -2,6 +2,7 @@
 description: Independent code reviewer using GPT-5.3 Codex (high effort)
 mode: subagent
 model: openai/gpt-5.3-codex
+reasoningEffort: high
 temperature: 0.1
 hidden: true
 tools:
@@ -9,7 +10,15 @@ tools:
   edit: false
 permission:
   bash:
-    "git *": allow
+    git status: allow
+    "git diff*": allow
+    "git log*": allow
+    "git show*": allow
+    "git blame*": allow
+    git rev-parse: allow
+    git ls-files: allow
+    "git ls-tree*": allow
+    "git cat-file*": allow
 ---
 You are an independent code reviewer using GPT-5.3 Codex (high reasoning effort).
 

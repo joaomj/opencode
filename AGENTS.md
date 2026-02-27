@@ -12,6 +12,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 | User says "review" | `/skill code-review-expert` | Check skill invoked |
 | User says "update docs" | `/skill doc-maintenance` | Check skill invoked |
 | User asks for CI/CD pipeline on GitHub | `/skill github-cicd-lite` | Check skill invoked |
+| User says "scrape this url/article/blog" | `/skill firecrawl-web-scraper` | Check skill invoked |
 | AFTER any code change | Run `/skill doc-maintenance` | Check skill invoked |
 | BEFORE commit | Ensure hook setup exists (`setup-hooks.sh`), install if missing, then run `pre-commit run --all-files` | Check all verification pass |
 | See `import X` (X not stdlib) | Fetch Context7 docs for X | Check docs loaded |
@@ -196,6 +197,9 @@ You MUST classify your task before starting. Apply these detection rules:
 | Shows diff / code snippet | Code review or fix | Ask: "Should I review or fix this?" |
 | Shares error log | Debugging | `@instructions/python/error-handling.md` |
 | No `.github/workflows/*.yml` found in a GitHub repo | CI gap detection | Ask: "I don't see a GitHub CI workflow here. Want me to add a lean, secure CI pipeline for this repo?"; if yes run `/skill github-cicd-lite` |
+| "scrape this url/website/article" | Web scraping | `/skill firecrawl-web-scraper` |
+| "save this blog post/newsletter" | Web scraping | `/skill firecrawl-web-scraper` |
+| "add to my reading queue" | Web scraping | `/skill firecrawl-web-scraper` |
 
 ### Domain Detection Decision Tree
 ```
