@@ -1,11 +1,32 @@
 ---
 description: Perform dual-subagent code review with P0-P3 severity levels
 ---
-Use the Task tool to invoke BOTH subagents in parallel:
-- code-reviewer-1 (GPT-5.3 Codex - high reasoning effort)
-- code-reviewer-2 (GLM 4.7)
 
-Pass identical scope to both reviewers.
+## Execution Flow
+
+1. **Invoke Both Subagents in Parallel**
+   - code-reviewer-1 (GPT-5.3 Codex - high reasoning effort, or session model as fallback)
+   - code-reviewer-2 (GLM 4.7, or session model as fallback)
+   - Pass identical scope to both reviewers
+
+2. **Handle Availability**
+   - **Both succeed** → Proceed with dual-reviewer workflow
+   - **Only one succeeds** → Continue with single reviewer
+   - **Both fail** → Perform review yourself using session model
+
+3. **Process Results**
+   - Merge findings from successful reviewers (deduplicate by file, line, severity, issue)
+   - Group by file, prioritize P0 > P1 > P2 > P3
+   - Write CODE_REVIEW.md at project root with consolidated report
+
+4. **Document Execution**
+   - Include execution note in CODE_REVIEW.md (2 reviewers / 1 reviewer / main agent)
+
+## Fallback Behavior
+
+- Subagents automatically fall back to session model if primary is unavailable (no API key, quota exceeded, etc.)
+- Main agent only performs review if BOTH subagents fail
+- Review process never blocks - always completes with available reviewers
 
 Default scope: git diff origin/main...HEAD
 

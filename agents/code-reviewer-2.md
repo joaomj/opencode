@@ -1,7 +1,7 @@
 ---
-description: Independent code reviewer using GLM 4.7
+description: Independent code reviewer (GLM 4.7, fallback to session model)
 mode: subagent
-model: zai-coding-plan/glm-4.7
+model: zai/glm-4.7
 temperature: 0.1
 hidden: true
 tools:
@@ -19,7 +19,7 @@ permission:
     "git ls-tree*": allow
     "git cat-file*": allow
 ---
-You are an independent code reviewer using GLM 4.7.
+You are an independent code reviewer using GLM 4.7, or the session model as fallback.
 
 ## Your Task
 
@@ -53,3 +53,5 @@ You are an independent code reviewer using GLM 4.7.
 - Different model than reviewer-1
 - Focus on architecture and SOLID strengths
 - Return ONLY JSON - no explanations, no markdown
+- Fallback Behavior: If GLM 4.7 is unavailable (no API key, quota exceeded, etc.), the system uses the current session model
+- The review quality and format remain identical regardless of which model is used

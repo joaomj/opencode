@@ -1,11 +1,23 @@
 ---
 name: code-review-expert
-description: Expert code review with P0-P3 severity levels, covering SOLID principles, security risks, performance issues, and code quality
+description: Expert code review with P0-P3 severity levels, covering SOLID principles, security risks, performance issues, and code quality. Uses independent sub-agents with automatic fallback to session model. Execution: Try both subagents → proceed with available reviewers → main agent fallback only if both fail.
 license: MIT
 ---
 # Code Review Expert
 
 Comprehensive checklists for thorough code reviews with actionable severity levels.
+
+## Model Availability & Fallback
+
+This skill uses independent sub-agents (code-reviewer-1, code-reviewer-2) for thorough code review:
+
+- **code-reviewer-1**: GPT-5.3 Codex (high reasoning effort), or session model as fallback
+- **code-reviewer-2**: GLM 4.7, or session model as fallback
+- **Fallback Behavior**: If a primary model is unavailable (no API key, quota exceeded, provider unreachable), the system automatically uses the current session's model
+- **No Manual Intervention Required**: The review process continues seamlessly regardless of model availability
+- **Consistent Quality**: Both primary and fallback models follow the same review framework
+
+**Note**: You don't need to configure anything - fallback is automatic and transparent.
 
 ## Severity Levels
 
@@ -77,14 +89,88 @@ Before deleting code:
 - Verify no dynamic references
 - Create removal PR with clear rationale
 
-### 7. CODE_REVIEW.md Output Format
+### 7. Model Fallback Behavior
+
+When a reviewer sub-agent cannot use its configured model (e.g., no API key, quota exceeded, provider unreachable):
+
+1. **Automatic Detection**: The agent detects model unavailability during initialization
+2. **Graceful Degradation**: The current session's model is used instead
+3. **Transparent Operation**: The review proceeds with the same checklists and output format
+4. **Quality Assurance**: All models (primary or fallback) apply identical review criteria
+
+**What this means for you**:
+- No action required if a reviewer model is unavailable
+- Code review continues without interruption
+- Multiple independent reviews still happen (ensuring diverse perspectives)
+- Output format and severity classification remain consistent
+
+**Edge cases**:
+- If ALL reviewer models fail to initialize, the skill uses the session model for both reviewers
+- This maintains the dual-reviewer requirement while ensuring availability
+
+## Review Execution Flow (For Main Agent)
+
+When invoking the code-review-expert skill, follow this exact execution flow:
+
+### Step 1: Try to Invoke Both Subagents (Parallel)
+
+Always attempt to invoke BOTH subagents in parallel:
+- `task(subagent_type="code-reviewer-1", ...)` with the review scope
+- `task(subagent_type="code-reviewer-2", ...)` with the review scope
+
+**Do NOT check model availability beforehand** - let the subagents handle their own fallback.
+
+### Step 2: Determine Available Reviewers
+
+After invocation, determine how many reviewers succeeded:
+
+| Scenario | Action |
+|----------|--------|
+| **Both succeed** | Proceed with dual-reviewer workflow |
+| **Only reviewer-1 succeeds** | Continue with single reviewer (reviewer-1) |
+| **Only reviewer-2 succeeds** | Continue with single reviewer (reviewer-2) |
+| **Both fail** | Perform the review yourself using the current session model |
+
+### Step 3: Process Reviewer Output
+
+If 1 or 2 reviewers succeed:
+1. Collect JSON arrays from all successful reviewers
+2. Merge findings, deduplicating by (file, line, severity, issue_title)
+3. Group by file, prioritize P0 > P1 > P2 > P3
+4. Write CODE_REVIEW.md with consolidated report
+
+If both reviewers fail:
+1. Load the code-review-expert skill checklists yourself
+2. Perform the review against all checklists
+3. Generate findings in the same JSON format
+4. Write CODE_REVIEW.md with the consolidated report
+
+### Step 4: Report Execution
+
+In CODE_REVIEW.md, include:
+
+**Review Execution Note** (add after Review Scope line):
+- If 2 reviewers: "Dual reviewer execution completed"
+- If 1 reviewer: "Single reviewer execution (reviewer-X unavailable)"
+- If 0 reviewers: "All subagents unavailable, review performed by main agent using session model"
+
+### Key Principles
+
+- **Never block the review** - proceed with whatever reviewers are available
+- **Prefer subagents** - only do the review yourself if both subagents fail
+- **Maintain quality** - use the same checklists regardless of who performs the review
+- **Transparency** - clearly document in the report how the review was executed
+
+## CODE_REVIEW.md Output Format
 
 ```markdown
 # Code Review Report
 
 **Review Scope**: `<git-diff-scope>`
 **Iteration**: `N` of `3`
-**Reviewers**: code-reviewer-1 (GPT-5.3 Codex), code-reviewer-2 (Claude Opus 4.5)
+**Execution**: `<execution-note>`
+**Reviewers**: code-reviewer-1 (GPT-5.3 Codex), code-reviewer-2 (GLM 4.7)
+*Note: Models shown are primary choices; fallback to session model may occur automatically if primary is unavailable.*
 
 ## Summary
 
