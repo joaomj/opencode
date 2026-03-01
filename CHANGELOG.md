@@ -2,6 +2,53 @@
 
 All notable changes to the OpenCode Agent Guidelines.
 
+## [4.0.0] - 2026-03-01
+
+### Added
+
+- **Skill-Based Architecture** - Converted all `@instructions/` files to reusable skills
+  - `python-best-practices` - Consolidates type-hints, error-handling, logging, testing, pydantic, ruff-rules into single skill
+  - `docker-best-practices` - Consolidates dockerfile, runtime-security, compose-template, network-isolation into single skill
+  - `ml-best-practices` - Consolidates crisp-dm, data-splitting, leakage-prevention, evaluation, feature-importance, mlflow into single skill
+  - `workflow-development` - Consolidates planning, task-management, pr-description into single skill with TDD emphasis
+
+- **Vercel-Style Decision Index** (AGENTS.md)
+  - Refactored from 370 lines to 177 lines (52% compression)
+  - Pipe-delimited tables for fast scanning and decision-making
+  - Deterministic skill triggers with clear IF-THEN rules
+  - No ambiguity about WHEN to load skills
+  - `IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning`
+  - Separation of concerns: AGENTS.md handles decisions, skills provide knowledge
+
+### Changed
+
+- **AGENTS.md** - Complete refactor following Vercel's approach
+  - Removed Pre-Flight Checklist (replaced with deterministic triggers)
+  - Removed `@instructions/` references (all content now in skills)
+  - Removed detailed detection tables (replaced with compressed triggers)
+  - Added clear "Deterministic Skill Triggers" section
+  - Compressed "Skill Index" to load-on-demand format
+  - Pre-commit hooks now marked OPTIONAL (must ask user before installing)
+
+- **Skills** - Enhanced with non-negotiable rules and checklists
+  - All skills now include "Non-Negotiable Rules" section
+  - Pre-commit hooks explicitly marked as OPTIONAL with user consent requirement
+  - Clarified AGENT restrictions: "AGENT must never read .env files" (application code can load .env)
+  - Added completion checklists to all skills
+
+- **Documentation** - Updated README.md
+  - Updated project structure to reflect skills directory
+  - Updated skills table to show all 8 skills
+  - Added retrieval-led reasoning explanation
+  - Updated pre-commit hooks section to note optional status
+
+### Philosophy Updates
+
+- **Decision Over Instruction** - AGENTS.md provides clear decision rules, removing ambiguity that caused skills to not be triggered reliably
+- **Retrieval-Led Reasoning** - Agents prefer loading skills/docs over relying on potentially outdated training data
+- **Load-on-Demand** - Skills are indexed but not loaded upfront; loaded only when deterministic triggers fire
+- **Optional Safety** - Pre-commit hooks require user opt-in, not automatic installation
+
 ## [2.4.0] - 2026-02-15
 
 ### Added
