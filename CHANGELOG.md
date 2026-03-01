@@ -21,6 +21,12 @@ All notable changes to the OpenCode Agent Guidelines.
 - **Environment setup**
   - Persisted Exa enablement in shell profile via `OPENCODE_ENABLE_EXA=1` for websearch availability in OpenCode sessions
 
+- **Instructions Directory Cleanup**
+  - Removed old instruction subdirectories: python/, docker/, ml/, workflow/, tools/
+  - Kept essential files for setup-hooks.sh: .pre-commit-config.yaml, check_file_length.py
+  - Kept reference file: pyproject.toml (Ruff configuration example)
+  - All instruction content now consolidated into 4 new skills
+
 ## [4.0.0] - 2026-03-01
 
 ### Added
