@@ -13,6 +13,7 @@ This configuration enhances opencode with:
 - **Documentation maintenance** - Automated detection of outdated documentation
 - **Lean GitHub CI skill** - Fast, secure CI pipelines for small Python repos
 - **Optional pre-commit hooks** - Quality checks for any project (user must opt-in)
+- **Anti-mock-abuse guardrail** - Optional hook flags internal/mock-heavy test patterns
 
 ## Prerequisites
 
@@ -31,7 +32,7 @@ git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 
 ```
 ~/.config/opencode/
-├── AGENTS.md              # Decision-index with skill triggers (v4.1)
+├── AGENTS.md              # Decision-index with skill triggers (v4.1.1)
 ├── opencode.json          # Configuration (agents, permissions)
 ├── skills/                # Domain-specific skills (load on-demand)
 │   ├── python-best-practices/      # Type hints, error handling, testing, security
@@ -108,9 +109,15 @@ curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh 
 Checks include:
 - **Secrets** - Detects hardcoded secrets
 - **File length** - Limits Python files to 300 lines
+- **Test mock policy** - Flags internal/mock-heavy test patterns unless justified
 - **Formatting** - Ensures proper code style (ruff)
 - **Dockerfile** - Validates Dockerfile best practices (hadolint)
 - **Branch protection** - Prevents direct commits to main/master
+
+Mock policy customization:
+- Add `.test-mock-external-allowlist` in your repo to allow external module prefixes (one per line)
+- Start from `.test-mock-external-allowlist.example` for Python-heavy repos
+- Use `mock-allow-internal: <reason>` only for rare exceptions
 
 ## Development Guidelines
 
@@ -121,7 +128,7 @@ The `skills/` directory contains domain-specific skills loaded on-demand based o
 | Python | `python-best-practices` | Type hints, error handling, Pydantic patterns, testing (pytest), logging, Ruff rules, security, dependency management (pdm) |
 | Docker | `docker-best-practices` | Dockerfile patterns (non-root USER), Docker Compose (read_only), runtime security, network isolation, secrets handling |
 | Machine Learning | `ml-best-practices` | CRISP-DM phases with STAR documentation, data quality (test set ONCE), preprocessing in Pipeline, evaluation metrics, MLflow tracking |
-| Workflow | `workflow-development` | TDD (tests before implementation), chronological document order (PRD→Design→Specs→Plan), approval gates, todo tracking |
+| Workflow | `workflow-development` | Test-first where it fits (verify-first always), chronological document order (PRD→Design→Specs→Plan), approval gates, todo tracking |
 
 **Key Features:**
 - **Retrieval-led reasoning** - Skills loaded based on explicit triggers, not model decisions

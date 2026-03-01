@@ -14,8 +14,16 @@ mkdir -p .hooks
 curl -sSL "$RAW_URL/instructions/check_file_length.py" -o .hooks/check_file_length.py
 chmod +x .hooks/check_file_length.py
 
+echo "Downloading check_test_mock_abuse.py..."
+curl -sSL "$RAW_URL/instructions/check_test_mock_abuse.py" -o .hooks/check_test_mock_abuse.py
+chmod +x .hooks/check_test_mock_abuse.py
+
+echo "Downloading mock allowlist template..."
+curl -sSL "$RAW_URL/.test-mock-external-allowlist.example" -o .test-mock-external-allowlist.example
+
 echo "Updating config to use local hook..."
 sed -i.bak 's|python instructions/check_file_length.py|python .hooks/check_file_length.py|' .pre-commit-config.yaml
+sed -i.bak 's|python instructions/check_test_mock_abuse.py|python .hooks/check_test_mock_abuse.py|' .pre-commit-config.yaml
 rm -f .pre-commit-config.yaml.bak
 
 echo "Installing pre-commit..."

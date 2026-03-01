@@ -33,6 +33,13 @@ repos:
         types: [python]
         pass_filenames: true
 
+      - id: check-test-mock-abuse
+        name: Check test mock abuse policy
+        entry: python instructions/check_test_mock_abuse.py
+        language: system
+        files: (^tests/|^test/|^__tests__/|test_|_test\.|\.test\.|\.spec\.)
+        pass_filenames: true
+
   # Prevent commits to main/master
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0

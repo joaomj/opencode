@@ -1,4 +1,4 @@
-# AGENTS.md|v4.1|decision-index
+# AGENTS.md|v4.1.1|decision-index
 
 IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 
@@ -85,6 +85,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |`X_train, X_test, y_train, y_test`|Data split detected|`/skill ml-best-practices`|
 |`fit_transform(X)` on full dataset|Leakage risk|`/skill ml-best-practices`|
 |`logging.info(f"...")` with secrets OR `password=`/`api_key=`/`token=` in code|Secret exposure|`/skill python-best-practices`|
+|`patch(` OR `patch.object(` OR `MagicMock(` OR `jest.mock(` OR `vi.mock(`|Potential mock abuse|`/skill python-best-practices`|
 
 ### Conversation Triggers
 |User Shows/Says|Task Type|Load Skill|
@@ -170,6 +171,7 @@ If hooks installed: `pre-commit run --all-files`
 |simplicity|Prefer fewest moving parts. Ask "is this overkill?" before abstractions.|
 |no-emojis|Never use emojis in code, docs, or communication.|
 |security|No secrets in code. Use .env + pydantic-settings. Validate all inputs.|
+|testing-policy|Prefer behavior/state assertions and real integrations; mock only external boundaries by default.|
 |env-files|AGENT must NEVER read .env files - only .env.example for schema reference. Application code can load .env.|
 |python-deps|When changing/adding Python dependencies, you MUST use `pdm add`, not direct pyproject.toml edit.|
 |tech-context|MANDATORY: docs/tech-context.md is single source of truth for current project architecture, technical decisions.|

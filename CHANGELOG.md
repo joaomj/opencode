@@ -2,6 +2,39 @@
 
 All notable changes to the OpenCode Agent Guidelines.
 
+## [4.1.1] - 2026-03-01
+
+### Added
+
+- **Anti-Mock-Abuse Hook** (`instructions/check_test_mock_abuse.py`)
+  - Added pre-commit guardrail to flag internal/mock-heavy test patterns in test files
+  - Supports explicit exception marker `mock-allow-internal: <reason>`
+  - Supports optional external boundary allowlist via `.test-mock-external-allowlist`
+
+- **Checker Self-Tests** (`instructions/tests/test_check_test_mock_abuse.py`)
+  - Added Python unittest-based validation for internal-mock detection, allow markers, disable marker, JS local mocks, and custom allowlist behavior
+
+- **Python Allowlist Template** (`.test-mock-external-allowlist.example`)
+  - Added starter allowlist for common Python external boundaries
+
+### Changed
+
+- **Python Testing Guidance** (`skills/python-best-practices/SKILL.md`)
+  - Replaced implementation-coupled private method example with public behavior testing
+  - Added strict mock policy: mock external boundaries only by default
+  - Added test double decision table and LLM anti-pattern checklist
+
+- **Workflow TDD Guidance** (`skills/workflow-development/SKILL.md`)
+  - Relaxed absolute TDD rules to "prefer test-first" with explicit exceptions
+  - Kept verify-first and bug-regression test requirements
+
+- **Hook Installer** (`setup-hooks.sh`, `instructions/.pre-commit-config.yaml`)
+  - Installer now downloads and wires mock policy hook into local `.hooks/`
+  - Pre-commit config now includes `check-test-mock-abuse` local hook
+
+- **Mock Policy Defaults** (`instructions/check_test_mock_abuse.py`)
+  - Expanded built-in Python external boundary prefixes (HTTP clients, DB clients, queues, SMTP/socket)
+
 ## [4.1.0] - 2026-03-01
 
 ### Added

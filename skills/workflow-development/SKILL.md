@@ -509,9 +509,10 @@ def test_token_refresh():
 3. **REFACTOR**: Improve the code while keeping tests green
 
 ### Rules
-- **NEVER write code without a test first**
-- **NEVER write tests after implementation**
-- **ALWAYS write the test that exposes the bug before fixing it**
+- **Prefer test-first** for business logic, domain rules, and bug fixes
+- **Test-after is acceptable** for spikes, config-only work, and refactors with existing coverage
+- **For bug fixes**, add a regression test that reproduces the bug before finalizing
+- **Verify-first always**: prove behavior with automated checks before building further
 
 ### Example
 ```python

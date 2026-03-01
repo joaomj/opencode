@@ -1,0 +1,15 @@
+# External module prefixes allowed for mock patch targets in tests.
+# One prefix per line. Examples:
+requests
+httpx
+aiohttp
+boto3
+botocore
+google.cloud
+openai
+stripe
+sqlalchemy
+redis
+pymongo
+psycopg
+asyncpg
