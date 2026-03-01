@@ -9,6 +9,7 @@ This configuration enhances opencode with:
 - **Skill-based architecture** - 8 domain-specific skills loaded on-demand for Python, Docker, ML, and workflows
 - **Decision-index approach** - AGENTS.md provides deterministic skill triggers (following Vercel's pattern)
 - **Dual-agent code review** - Two independent AI reviewers cross-check code changes
+- **Deep research agent suite** - Hidden `dr-*` subagents with orchestrated evidence-first reporting
 - **Documentation maintenance** - Automated detection of outdated documentation
 - **Lean GitHub CI skill** - Fast, secure CI pipelines for small Python repos
 - **Optional pre-commit hooks** - Quality checks for any project (user must opt-in)
@@ -17,6 +18,7 @@ This configuration enhances opencode with:
 
 - [opencode CLI](https://opencode.ai) installed
 - API keys for your preferred model providers
+- `websearch` support via OpenCode provider or Exa (`OPENCODE_ENABLE_EXA=1`)
 
 ## Installation
 
@@ -29,7 +31,7 @@ git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 
 ```
 ~/.config/opencode/
-├── AGENTS.md              # Decision-index with skill triggers (v4.0)
+├── AGENTS.md              # Decision-index with skill triggers (v4.1)
 ├── opencode.json          # Configuration (agents, permissions)
 ├── skills/                # Domain-specific skills (load on-demand)
 │   ├── python-best-practices/      # Type hints, error handling, testing, security
@@ -41,6 +43,10 @@ git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 │   ├── github-cicd-lite/            # Lean GitHub CI pipelines
 │   └── firecrawl-web-scraper/       # Web scraping with Firecrawl
 ├── agents/                # Subagent configurations
+│   ├── code-reviewer-1.md         # Hidden reviewer (GPT-5.3 Codex)
+│   ├── code-reviewer-2.md         # Hidden reviewer (GLM 4.7)
+│   ├── dr-orchestrator.md         # Hidden deep-research orchestrator
+│   └── dr-*.md                    # Hidden deep-research pipeline subagents
 ├── commands/              # Custom commands
 └── setup-hooks.sh        # Pre-commit hooks installer (optional)
 ```
@@ -57,6 +63,16 @@ Performs dual-agent code review with severity classification (P0-P3).
 ```
 
 Two independent reviewers analyze the same code and findings are consolidated into a review report.
+
+## Deep Research Agents
+
+Deep research is implemented with hidden global subagents in `~/.config/opencode/agents/`.
+
+- Entry point: `@dr-orchestrator`
+- Pipeline: `dr-gate` -> `dr-planner` -> `dr-query-builder` -> `dr-websearch-highrep` -> `dr-source-triage` -> `dr-evidence-extractor` -> `dr-section-writer` -> `dr-editor-integrator` -> `dr-citation-auditor`
+- Safety model: JSON-only contracts where required, no file edits, and web tools enabled only for high-reputation search/retrieval
+
+If you rely on web discovery, ensure `OPENCODE_ENABLE_EXA=1` is exported in your shell profile before starting OpenCode.
 
 ### `/update-docs`
 
@@ -110,8 +126,9 @@ The `skills/` directory contains domain-specific skills loaded on-demand based o
 **Key Features:**
 - **Retrieval-led reasoning** - Skills loaded based on explicit triggers, not model decisions
 - **Decision-index format** - AGENTS.md provides clear IF-THEN rules for skill loading (following Vercel's pattern)
-- **Compressed context** - AGENTS.md reduced to 177 lines with pipe-delimited tables for fast scanning
+- **Compressed context** - AGENTS.md uses pipe-delimited tables for fast scanning and deterministic routing
 - **Optional hooks** - Pre-commit hooks require user confirmation before installation
+- **Hidden orchestration agents** - Deep research agents run as hidden subagents to keep TUI autocomplete clean
 
 ## Multi-Machine Setup
 

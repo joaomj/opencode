@@ -2,6 +2,25 @@
 
 All notable changes to the OpenCode Agent Guidelines.
 
+## [4.1.0] - 2026-03-01
+
+### Added
+
+- **Deep Research Subagent Suite** (`agents/dr-*.md`)
+  - Added 10 hidden global subagents: `dr-gate`, `dr-planner`, `dr-query-builder`, `dr-websearch-highrep`, `dr-source-triage`, `dr-evidence-extractor`, `dr-section-writer`, `dr-editor-integrator`, `dr-citation-auditor`, and `dr-orchestrator`
+  - Added strict output contracts (JSON-only where required, citation discipline, insufficient-evidence fallback)
+  - Added orchestrated staged pipeline for evidence-first long-form research synthesis
+
+### Changed
+
+- **README.md**
+  - Documented deep research architecture and hidden subagent usage
+  - Added `websearch` prerequisite clarification (`OPENCODE_ENABLE_EXA=1` when not using OpenCode provider)
+  - Updated project structure to include `dr-*` agents and `dr-orchestrator`
+
+- **Environment setup**
+  - Persisted Exa enablement in shell profile via `OPENCODE_ENABLE_EXA=1` for websearch availability in OpenCode sessions
+
 ## [4.0.0] - 2026-03-01
 
 ### Added
