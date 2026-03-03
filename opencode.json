@@ -24,7 +24,6 @@
       "*": "allow"
     }
   },
-  "model": "lmstudio/qwen3.5-9b-mlx",
   "small_model": "openai/gpt-5.1-codex-mini",
   "agent": {
     "code-reviewer-1": {
@@ -62,17 +61,7 @@
     }
   },
   "provider": {
-    "openai": {
-      "models": {
-        "gpt-5.3-codex": {
-          "options": {
-            "reasoningEffort": "high",
-            "textVerbosity": "low"
-          }
-        }
-      }
-    },
-    "lmstudio": {
+    "lmstudio-local": {
       "npm": "@ai-sdk/openai-compatible",
       "name": "LM Studio (local)",
       "options": { "baseURL": "http://127.0.0.1:1234/v1" },
