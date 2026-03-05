@@ -6,7 +6,7 @@ Personal [opencode](https://opencode.ai) configuration with development guidelin
 
 This configuration enhances opencode with:
 
-- **Skill-based architecture** - 8 domain-specific skills loaded on-demand for Python, Docker, ML, and workflows
+- **Skill-based architecture** - 9 domain-specific skills loaded on-demand for Python, Docker, ML, workflows, and daily standups
 - **Decision-index approach** - AGENTS.md provides deterministic skill triggers (following Vercel's pattern)
 - **Dual-agent code review** - Two independent AI reviewers cross-check code changes
 - **Deep research agent suite** - Hidden `dr-*` subagents with orchestrated evidence-first reporting
@@ -42,7 +42,8 @@ git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 │   ├── code-review-expert/          # Dual-agent code review
 │   ├── doc-maintenance/             # Documentation pruning
 │   ├── github-cicd-lite/            # Lean GitHub CI pipelines
-│   └── firecrawl-web-scraper/       # Web scraping with Firecrawl
+│   ├── firecrawl-web-scraper/       # Web scraping with Firecrawl
+│   └── standup-prep/                # Generate daily standup summaries
 ├── agents/                # Subagent configurations
 │   ├── code-reviewer-1.md         # Hidden reviewer (GPT-5.3 Codex)
 │   ├── code-reviewer-2.md         # Hidden reviewer (GLM 4.7)
@@ -83,6 +84,16 @@ Identifies and removes obsolete documentation content.
 /update-docs
 ```
 
+### `/standup-prep`
+
+Generates daily standup summaries from git activity for team meetings.
+
+```bash
+/standup-prep              # Generate standup summary for yesterday
+```
+
+Analyzes your git activity (GitHub CLI or local git), detects potential blockers (failed CI, stale PRs, TODOs), and creates a markdown report at `docs/activity-log/activities-YYYY-MM-DD.md`.
+
 ## Skills
 
 | Skill | Purpose |
@@ -95,6 +106,7 @@ Identifies and removes obsolete documentation content.
 | `doc-maintenance` | Guidelines for identifying and pruning outdated documentation |
 | `github-cicd-lite` | Lean GitHub Actions CI pattern (Python-first, speed + security, deploy optional) |
 | `firecrawl-web-scraper` | Web scraping to save blog posts, articles, Arxiv papers |
+| `standup-prep` | Generate daily standup summaries from git activity |
 
 ## Pre-Commit Hooks (Optional)
 
@@ -129,6 +141,7 @@ The `skills/` directory contains domain-specific skills loaded on-demand based o
 | Docker | `docker-best-practices` | Dockerfile patterns (non-root USER), Docker Compose (read_only), runtime security, network isolation, secrets handling |
 | Machine Learning | `ml-best-practices` | CRISP-DM phases with STAR documentation, data quality (test set ONCE), preprocessing in Pipeline, evaluation metrics, MLflow tracking |
 | Workflow | `workflow-development` | Test-first where it fits (verify-first always), chronological document order (PRD→Design→Specs→Plan), approval gates, todo tracking |
+| Standup | `standup-prep` | Daily standup summaries from git activity, blocker detection, markdown report generation |
 
 **Key Features:**
 - **Retrieval-led reasoning** - Skills loaded based on explicit triggers, not model decisions
