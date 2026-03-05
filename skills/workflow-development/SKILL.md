@@ -563,7 +563,7 @@ def register(self, email: str, password: str) -> User:
 ### After Each Phase
 1. **Run all tests**: `pytest`
 2. **Verify gate criteria** are met
-3. **Commit changes**: `git commit -m "Phase X: <description>"`
+3. **Commit changes**: Use `/commit` command to automatically generate conventional commit message
 4. **Ask for approval**: "Phase X complete. Proceed to Phase X+1?"
 
 ## Todo Tracking
@@ -597,6 +597,7 @@ todowrite([
 5. **Tests pass**: `pytest`
 6. **Pre-commit hooks**: `pre-commit run --all-files` (if installed)
 7. **Documentation updated**: `/skill doc-maintenance`
+8. **Changes committed**: Use `/commit` command for automatic conventional commit message generation
 
 ### Pre-Commit Hooks (OPTIONAL)
 If `setup-hooks.sh` is missing, ask user before installing:
@@ -626,7 +627,7 @@ Only run `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup
 5. Get user approval
 6. Implement Phase 1 (TDD: write tests FIRST)
 7. Verify Phase 1 gate criteria
-8. Commit Phase 1
+8. Commit Phase 1 using `/commit` command
 9. Get approval for Phase 2
 10. Repeat 6-9 for all phases
 11. Run post-code verification

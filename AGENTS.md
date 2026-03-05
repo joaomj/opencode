@@ -15,7 +15,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |User says "scrape this url/article/blog"|`/skill firecrawl-web-scraper`|
 |User asks for deep research/literature review/5-20 page report|Invoke `@dr-orchestrator`; require explicit confirmation before deep mode|
 |AFTER any code change|`/skill doc-maintenance`|
-|BEFORE commit|If hooks installed: `pre-commit run --all-files`; if not: ask user: "Pre-commit hooks not configured. Install?"|
+|User says "commit" OR "/commit"|Run `/commit` command with semantic filtering and conventional commits|
 |Before using websearch in deep research|Ensure OpenCode provider or `OPENCODE_ENABLE_EXA=1`; if unavailable, ask user to enable|
 |See `import X` (X not stdlib)|Fetch Context7 docs for X|
 |Context7 fetch fails|Ask user: "Proceed without docs?"|
@@ -160,6 +160,48 @@ Only run if user confirms "yes": `curl -sSL https://raw.githubusercontent.com/jo
 
 ### Before Committing
 If hooks installed: `pre-commit run --all-files`
+
+---
+
+## COMMIT PROTOCOL
+
+### When to Invoke `/commit`
+- After completing a logical unit of work
+- At phase gates in implementation plans
+- Before switching to a different task
+- When user explicitly requests to save progress
+- After user says "commit" or types "/commit"
+
+### Commit Rules
+|Rule|Requirement|
+|------|-----------|
+|Agent generates message|User does NOT write commit messages|
+|Respect .gitignore|Automatically excludes gitignored files|
+|Exclude planning files|Files with PLAN/TODO/DRAFT/WIP/TEMP/BACKUP/OLD in name|
+|Auto-detect type|feat/fix/docs/style/refactor/test/chore based on changes|
+|One-line only|Maximum 72 characters, no body text|
+|No scope|Format: `type: description` (no parentheses)|
+|Imperative mood|"Add" not "Added", "Fix" not "Fixed"|
+|Hooks|Ask before installing; run if already installed|
+|User interruption|Only when uncertain about file classification|
+
+### Commit Type Detection
+|Type|When to Use|
+|------|-----------|
+|`feat:`|New features, added functionality, new endpoints, new components|
+|`fix:`|Bug fixes, corrections, patches|
+|`docs:`|Documentation changes (README, docs/, comments)|
+|`style:`|Formatting, whitespace, semicolons, quotes (no logic change)|
+|`refactor:`|Code restructuring without behavior change|
+|`test:`|Test files, testing infrastructure, test utilities|
+|`chore:`|Dependencies, build process, configuration, misc tasks|
+
+### Examples
+- `feat: add user authentication endpoints`
+- `fix: resolve null pointer in login flow`
+- `docs: update API reference for v2`
+- `test: add unit tests for auth service`
+- `refactor: simplify error handling logic`
 
 ---
 
