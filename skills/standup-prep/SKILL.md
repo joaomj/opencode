@@ -1,0 +1,295 @@
+---
+name: standup-prep
+description: Generate standup-ready summaries from git activity for daily team meetings
+license: MIT
+---
+
+# Standup Prep
+
+Generate daily standup summaries from git activity, analyzing your work to create concise reports for team meetings.
+
+## Scope
+
+- Platform: GitHub CLI (primary) with local git fallback
+- Output: Markdown files in `docs/activity-log/`
+- Timeframe: Last 24 hours (configurable, handles weekends)
+- Detection: Aggressive blocker detection + manual input
+
+## Workflow
+
+### Step 1: Date Range Detection
+
+Always verify the date - NEVER assume.
+
+```bash
+# Get current date
+date +%Y-%m-%d
+```
+
+**Weekend Handling:**
+- If today is Monday, ask: "Review Friday's work or the entire weekend?"
+- Default: last 24 hours
+- User can specify custom date range if needed
+
+**Date Calculation:**
+```bash
+# Yesterday (macOS)
+date -v-1d +%Y-%m-%d
+
+# Yesterday (Linux)
+date -d "yesterday" +%Y-%m-%d
+
+# Last 24 hours
+date -d "1 day ago" +%Y-%m-%d
+```
+
+### Step 2: Git Activity Collection
+
+#### Primary: GitHub CLI
+
+Check if `gh` is available and authenticated:
+
+```bash
+gh --version
+gh auth status
+```
+
+**If available, collect:**
+
+```bash
+# Commits
+gh search commits --author=@me --committer-date=YYYY-MM-DD --limit 50
+
+# Pull Requests (authored)
+gh pr list --author=@me --state all --search "updated:>=YYYY-MM-DD" --limit 20
+
+# Pull Requests (reviewed)
+gh pr list --reviewer=@me --state all --search "updated:>=YYYY-MM-DD" --limit 20
+
+# Issues assigned
+gh issue list --assignee=@me --state open --limit 20
+```
+
+#### Fallback: Local Git
+
+If `gh` is not available or not authenticated:
+
+```bash
+# Get user name
+git config user.name
+
+# Commits in date range
+git log --author="$(git config user.name)" \
+  --since="YYYY-MM-DD 00:00:00" \
+  --until="YYYY-MM-DD 23:59:59" \
+  --pretty=format:"%h|%s|%ad" \
+  --date=short
+
+# For all branches (more comprehensive)
+git log --all --author="$(git config user.name)" \
+  --since="YYYY-MM-DD 00:00:00" \
+  --pretty=format:"%h|%s|%ad|%D" \
+  --date=short
+```
+
+### Step 3: Work Categorization
+
+Group activity into simple categories:
+
+| Category | Detection Rules |
+|----------|----------------|
+| **Completed** | Merged PRs, closed issues, commits with keywords: `fix\|feat\|close\|resolve\|implement\|add\|update` |
+| **In Progress** | Draft PRs, WIP commits, open PRs, commits with: `WIP\|wip\|work in progress\|in progress` |
+| **Reviews** | PRs you reviewed, review comments submitted |
+
+**Categorization Logic:**
+
+1. Parse commit messages for keywords
+2. Check PR status (merged = completed, draft = in progress, open = in progress)
+3. Identify review activity
+4. Group by project/feature if possible
+
+### Step 4: Blocker Detection (Aggressive)
+
+Scan for potential blockers:
+
+| Blocker Type | Detection Pattern | Priority |
+|--------------|-------------------|----------|
+| **Failed CI** | PR checks with failed status | High |
+| **Stale PRs** | PRs open >3 days with no activity | Medium |
+| **TODOs/FIXMEs** | `TODO\|FIXME\|XXX\|HACK` in recent commits | Medium |
+| **WIP Commits** | Commit messages with `WIP\|wip\|work in progress` | Low |
+| **Draft PRs** | PRs in draft state >1 day | Medium |
+| **Waiting for Review** | PRs waiting for review >1 day | Medium |
+| **Blocked Issues** | Issues with `blocked\|waiting\|stuck` labels | High |
+
+**Detection Commands:**
+
+```bash
+# Check for TODOs/FIXMEs in recent commits (GitHub CLI)
+gh search code "TODO OR FIXME OR XXX" --author=@me --committer-date=YYYY-MM-DD
+
+# Check for TODOs/FIXMEs (local git)
+git diff HEAD~10 HEAD | grep -E "^\+.*TODO|^\+.*FIXME|^\+.*XXX"
+
+# Check PR checks status (GitHub CLI)
+gh pr checks <pr-number>
+
+# List stale PRs (GitHub CLI)
+gh pr list --author=@me --state open --search "created:<$(date -v-3d +%Y-%m-%d)"
+
+# Find WIP commits (local git)
+git log --author="$(git config user.name)" --since="YYYY-MM-DD" --grep="WIP\|wip\|work in progress"
+```
+
+### Step 5: User Input Collection
+
+Ask questions **one at a time** (conversational approach):
+
+1. **Blockers Check:**
+   ```
+   "I found these blockers from your code:
+   - [list detected blockers]
+   
+   Any additional blockers not captured here?"
+   ```
+
+2. **Other Activities:**
+   ```
+   "What activities did you do that aren't in git?
+   (meetings, planning, research, mentoring, documentation, etc.)"
+   ```
+
+3. **Next Steps:**
+   ```
+   "What are you planning to work on next?"
+   ```
+
+**Important:** Wait for user response before moving to next question.
+
+### Step 6: Output Generation
+
+**Directory Setup:**
+
+```bash
+# Create directory if it doesn't exist
+mkdir -p docs/activity-log
+```
+
+**File Naming:**
+- Format: `activities-YYYY-MM-DD.md`
+- Example: `activities-2026-03-05.md`
+
+**Output Template:**
+
+```markdown
+# Daily Activity - YYYY-MM-DD
+
+## Completed
+- [item 1]
+- [item 2]
+
+## In Progress
+- [item 1]
+- [item 2]
+
+## Reviews
+- [item 1]
+- [item 2]
+
+## Blockers
+- [blocker 1]
+- [blocker 2]
+
+## Other Activities
+- [activity 1]
+- [activity 2]
+
+## Next Steps
+- [plan 1]
+- [plan 2]
+
+---
+Generated by standup-prep skill on [timestamp]
+```
+
+**File Handling:**
+- If file exists: Ask user "File already exists. Overwrite or append?"
+- If overwrite: Replace entire file
+- If append: Add new section with timestamp
+
+## Error Handling
+
+| Scenario | Action |
+|----------|--------|
+| `gh` not installed | Use local git fallback, inform user |
+| `gh` not authenticated | Use local git fallback, inform user |
+| No git activity found | Ask: "No activity found for [date]. Check different date?" |
+| `docs/activity-log/` doesn't exist | Create it automatically |
+| Git repository not found | Error: "Not in a git repository. Run this in a git project." |
+| File already exists | Ask: "Overwrite or append to existing file?" |
+
+## Tool Permissions
+
+Allowed tools:
+- `Bash(gh:*)` - GitHub CLI commands
+- `Bash(git:*)` - Git commands
+- `Bash(date)` - Date operations
+- `Bash(mkdir)` - Directory creation
+- `Read` - Read existing files
+- `Write` - Create new files
+- `Edit` - Modify existing files
+- `Glob` - Find files
+
+## Example Session
+
+```
+User: /standup-prep
+
+Agent: Analyzing your git activity from 2026-03-05...
+[Collects commits, PRs, reviews]
+
+Agent: I found these potential blockers:
+- PR #42 has failing CI checks (tests failing)
+- PR #45 has been waiting for review for 2 days
+- 3 TODO comments in recent commits
+
+Any additional blockers not captured here?
+
+User: Yes, I'm also waiting for API credentials from DevOps.
+
+Agent: Got it. What activities did you do that aren't in git?
+(meetings, planning, research, mentoring, etc.)
+
+User: Had a 1-hour architecture planning meeting and mentored a junior dev on testing.
+
+Agent: Perfect. What are you planning to work on next?
+
+User: Continue the password reset feature and review the outstanding PR from Sarah.
+
+Agent: Generated your standup summary at docs/activity-log/activities-2026-03-05.md
+
+[Shows preview of the file content]
+```
+
+## Non-Negotiable Rules
+
+| Rule | Violation = STOP |
+|------|------------------|
+| Always verify date | Block if date is assumed |
+| Ask questions one at a time | Block if multiple questions asked |
+| Create output directory if missing | Auto-create `docs/activity-log/` |
+| Handle file exists gracefully | Ask before overwriting |
+| Use local git fallback | Never fail if `gh` unavailable |
+
+## Completion Checklist
+
+- [ ] Date verified (not assumed)
+- [ ] Git activity collected (GitHub CLI or local git)
+- [ ] Work categorized into Completed/In Progress/Reviews
+- [ ] Blockers detected (aggressive scan)
+- [ ] User asked about additional blockers
+- [ ] User asked about other activities
+- [ ] User asked about next steps
+- [ ] Output file created at `docs/activity-log/activities-YYYY-MM-DD.md`
+- [ ] File content shown to user for review
