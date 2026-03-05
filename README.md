@@ -105,7 +105,7 @@ Analyzes your git activity (GitHub CLI or local git), detects potential blockers
 | `code-review-expert` | Dual-agent code review with P0-P3 severity classification |
 | `doc-maintenance` | Guidelines for identifying and pruning outdated documentation |
 | `github-cicd-lite` | Lean GitHub Actions CI pattern (Python-first, speed + security, deploy optional) |
-| `firecrawl-web-scraper` | Web scraping to save blog posts, articles, Arxiv papers |
+| `firecrawl-web-scraper` | Single-URL web scraping with dynamic-page actions and structured JSON output |
 | `standup-prep` | Generate daily standup summaries from git activity |
 
 ## Pre-Commit Hooks (Optional)

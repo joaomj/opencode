@@ -1,12 +1,18 @@
 ---
 name: firecrawl-web-scraper
-description: Scrape websites to markdown using Firecrawl API, saving blog posts, articles, Arxiv papers, and newsletters to local files
+description: Scrape single web pages with Firecrawl to markdown and structured JSON, with dynamic-page actions and local .firecrawl output
 license: MIT
 ---
 
 # Firecrawl Web Scraper
 
-Scrape websites to clean markdown using Firecrawl API. Saves content locally with metadata frontmatter.
+Scrape a single URL with Firecrawl and save results to local files.
+
+This skill is intentionally narrow to avoid overengineering:
+- Single URL scraping only
+- Dynamic pages supported with browser actions
+- Structured extraction supported with JSON schema
+- Output saved under `.firecrawl/`
 
 ## When to Use This Skill
 
@@ -19,188 +25,245 @@ Use when user says:
 - "save this article"
 - "save this newsletter"
 - "add to my reading queue"
-- "download this arxiv paper"
+
+## Scope
+
+In scope:
+- Single URL scraping
+- JavaScript-heavy pages (cookie banners, load-more, infinite scroll)
+- Structured JSON extraction from a single page
+
+Out of scope:
+- PDF scraping
+- Site crawling (`crawl`)
+- URL discovery (`map`)
+- Web search (`search`)
 
 ## Requirements
 
 - `FIRECRAWL_API_KEY` environment variable
 - Firecrawl Python SDK: `pip install firecrawl-py`
+- Add `.firecrawl/` to `.gitignore`
 
-## Usage
+## Workflow
 
-### Basic Scraping
+Use this escalation path:
+1. Basic scrape (`formats=["markdown"]`)
+2. Add dynamic-page options (`waitFor`, `actions`)
+3. Add structured extraction (`{"type": "json", ...}`)
 
-```python
-import os
-from firecrawl import Firecrawl
+Keep requests single-URL and only add options when needed.
 
-app = Firecrawl(api_key=os.environ.get("FIRECRAWL_API_KEY"))
-
-# Scrape URL to markdown (always fresh)
-doc = app.scrape(
-    url="https://example.com/article",
-    formats=["markdown"],
-    only_main_content=True,
-    max_age=0
-)
-
-print(doc.markdown)
-print(doc.metadata)
-```
-
-### With Retry for Protected Sites
+## Shared Helpers
 
 ```python
-from firecrawl import Firecrawl
-import os
-
-app = Firecrawl(api_key=os.environ.get("FIRECRAWL_API_KEY"))
-
-def scrape_with_retry(url: str) -> dict:
-    try:
-        doc = app.scrape(url, formats=["markdown"], max_age=0)
-        return doc
-    except Exception as e:
-        if "403" in str(e) or "401" in str(e) or "cloudflare" in str(e).lower():
-            doc = app.scrape(
-                url,
-                formats=["markdown"],
-                max_age=0,
-                proxy="stealth"
-            )
-            return doc
-        raise
-```
-
-### Save to File with Metadata
-
-```python
-import os
-from firecrawl import Firecrawl
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlparse
+import json
+import os
 import re
 
-app = Firecrawl(api_key=os.environ.get("FIRECRAWL_API_KEY"))
+from firecrawl import Firecrawl
 
-def slugify(title: str) -> str:
-    title = title.lower()
-    title = re.sub(r'[^a-z0-9\s-]', '', title)
-    title = re.sub(r'\s+', '-', title)
-    words = title.split('-')
-    if len(words) > 6:
-        title = '-'.join(words[:6])
-    return title.strip('-')
+app = Firecrawl(api_key=os.environ["FIRECRAWL_API_KEY"])
 
-def save_scraped_content(url: str) -> str:
-    doc = app.scrape(url, formats=["markdown"], only_main_content=True, max_age=0)
-    
-    domain = url.split('/')[2]
-    title = doc.metadata.get('title', 'untitled')
+
+def slugify(value: str) -> str:
+    cleaned = re.sub(r"[^a-z0-9\s-]", "", value.lower())
+    words = [w for w in re.sub(r"\s+", "-", cleaned).split("-") if w]
+    if not words:
+        return "untitled"
+    return "-".join(words[:6])
+
+
+def output_paths(url: str, title: str) -> tuple[Path, Path]:
+    domain = urlparse(url).netloc or "unknown-domain"
     slug = slugify(title)
-    
-    output_dir = Path("scraped-content") / domain
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    output_path = output_dir / f"{slug}.md"
-    
-    if output_path.exists():
-        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        output_path = output_dir / f"{slug}-{timestamp}.md"
-    
-    frontmatter = f"""---
-url: {url}
-title: {title}
-author: {doc.metadata.get('author', 'Unknown')}
-published: {doc.metadata.get('publishedDate', 'Unknown')}
-description: {doc.metadata.get('description', '')}
-captured_at: {datetime.now().isoformat()}Z
----
+    root = Path(".firecrawl") / domain
+    root.mkdir(parents=True, exist_ok=True)
 
-{doc.markdown}
-"""
-    
-    output_path.write_text(frontmatter)
-    return str(output_path)
+    md_path = root / f"{slug}.md"
+    json_path = root / f"{slug}.json"
 
-# Usage
-path = save_scraped_content("https://example.com/article")
-print(f"Saved to: {path}")
+    if md_path.exists() or json_path.exists():
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        md_path = root / f"{slug}-{stamp}.md"
+        json_path = root / f"{slug}-{stamp}.json"
+
+    return md_path, json_path
+
+
+def get_value(doc: object, key: str, default: object = None) -> object:
+    if isinstance(doc, dict):
+        return doc.get(key, default)
+    return getattr(doc, key, default)
+```
+
+## Recipe 1: Basic Single-URL Scrape
+
+```python
+url = "https://example.com/article"
+
+doc = app.scrape(
+    url,
+    {
+        "formats": ["markdown"],
+        "onlyMainContent": True,
+        "maxAge": 0,
+    },
+)
+
+metadata = get_value(doc, "metadata", {}) or {}
+title = metadata.get("title", "untitled")
+markdown = get_value(doc, "markdown", "") or ""
+
+md_path, _ = output_paths(url, title)
+captured_at = datetime.now(timezone.utc).isoformat()
+
+frontmatter = (
+    "---\n"
+    f"url: {url}\n"
+    f"title: {title}\n"
+    f"captured_at: {captured_at}\n"
+    "---\n\n"
+)
+
+md_path.write_text(frontmatter + markdown, encoding="utf-8")
+print(f"Saved markdown: {md_path}")
+```
+
+## Recipe 2: Dynamic Page Scrape
+
+Use this for cookie banners, delayed rendering, and infinite scroll.
+
+```python
+url = "https://example.com/news"
+
+doc = app.scrape(
+    url,
+    {
+        "formats": ["markdown"],
+        "onlyMainContent": True,
+        "waitFor": 2000,
+        "timeout": 30000,
+        "actions": [
+            {"type": "click", "selector": "#accept-cookies"},
+            {"type": "wait", "milliseconds": 1000},
+            {"type": "scroll", "direction": "down"},
+            {"type": "wait", "selector": "article"},
+        ],
+    },
+)
+
+print(get_value(doc, "markdown", ""))
+```
+
+Action limits from Firecrawl docs:
+- Maximum 50 actions per request
+- Total wait time (`wait` actions + `waitFor`) must stay under 60 seconds
+
+## Recipe 3: Markdown + Structured JSON
+
+Use JSON extraction when you need consistent fields from one page.
+
+```python
+url = "https://example.com/article"
+
+doc = app.scrape(
+    url,
+    {
+        "formats": [
+            "markdown",
+            {
+                "type": "json",
+                "prompt": "Extract title, author, publishedDate, tags, and summary.",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "title": {"type": "string"},
+                        "author": {"type": "string"},
+                        "publishedDate": {"type": "string"},
+                        "tags": {"type": "array", "items": {"type": "string"}},
+                        "summary": {"type": "string"},
+                    },
+                    "required": ["title", "summary"],
+                },
+            },
+        ],
+        "onlyMainContent": True,
+        "maxAge": 0,
+    },
+)
+
+metadata = get_value(doc, "metadata", {}) or {}
+title = metadata.get("title", "untitled")
+markdown = get_value(doc, "markdown", "") or ""
+json_data = get_value(doc, "json", {}) or {}
+
+md_path, json_path = output_paths(url, title)
+captured_at = datetime.now(timezone.utc).isoformat()
+
+md_frontmatter = (
+    "---\n"
+    f"url: {url}\n"
+    f"title: {title}\n"
+    f"captured_at: {captured_at}\n"
+    "---\n\n"
+)
+
+md_path.write_text(md_frontmatter + markdown, encoding="utf-8")
+json_path.write_text(json.dumps(json_data, indent=2), encoding="utf-8")
+
+print(f"Saved markdown: {md_path}")
+print(f"Saved structured data: {json_path}")
+```
+
+## Content Filtering
+
+Use tag filtering when page output is noisy.
+
+```python
+doc = app.scrape(
+    "https://example.com/article",
+    {
+        "formats": ["markdown"],
+        "onlyMainContent": False,
+        "includeTags": ["article", "h1", "p", ".content"],
+        "excludeTags": ["#sidebar", "#comments", ".ad"],
+    },
+)
 ```
 
 ## Storage Pattern
 
 ```
-scraped-content/<domain>/<slug>.md
+.firecrawl/<domain>/<slug>.md
+.firecrawl/<domain>/<slug>.json
 ```
 
-- `<domain>`: Extracted from URL (e.g., `example.com`)
-- `<slug>`: Page title → kebab-case, 2-6 words
-- Conflict: Append timestamp `<slug>-YYYYMMDD-HHMMSS.md`
+- `<domain>`: URL domain
+- `<slug>`: title in kebab-case (up to 6 words)
+- If file exists: append timestamp `-YYYYMMDD-HHMMSS`
 
-## Frontmatter Format
+## Minimal Triage
 
-Every saved file includes YAML frontmatter:
+If content is empty or incomplete:
+1. Increase `waitFor` (for delayed rendering)
+2. Add a `wait` action with a selector for the main content
+3. Add `click`/`scroll` actions for gates like cookie banners or load-more
 
-```yaml
----
-url: https://example.com/article
-title: Article Title
-author: Author Name
-published: 2026-01-20
-description: Article description
-captured_at: 2026-02-25T15:30:00Z
----
-```
-
-## Error Handling
-
-| Error | Cause | Solution |
-|-------|-------|----------|
-| DNS resolution failure | Invalid domain | Check URL, retry |
-| Cloudflare/bot detection | Anti-scraping | Use `proxy="stealth"` |
-| Timeout | Slow page | Increase `timeout` |
-| Rate limit exceeded | Too many requests | Wait and retry |
-| Empty content | JS not loaded | Add `wait_for` parameter |
-
-## Common Issues
-
-### Stealth Mode Pricing
-
-Stealth mode costs **5 credits per request**. Only use it when basic scraping fails:
-
-```python
-# Default - auto retries with stealth only if needed
-doc = app.scrape(url, formats=["markdown"])
-
-# Or manually retry only on specific errors
-try:
-    doc = app.scrape(url, formats=["markdown"], proxy="basic")
-except Exception as e:
-    if e.status_code in [401, 403, 500]:
-        doc = app.scrape(url, formats=["markdown"], proxy="stealth")
-```
-
-### Job Status Race Condition
-
-When checking async jobs, wait 1-3 seconds before first status check:
-
-```python
-import time
-job = app.start_crawl(url="https://example.com")
-time.sleep(2)  # Wait before checking status
-status = app.get_crawl_status(job.id)
-```
-
-## Firecrawl API Reference
-
-- **Documentation**: https://docs.firecrawl.dev
-- **Python SDK**: https://docs.firecrawl.dev/sdks/python
-- **API Reference**: https://docs.firecrawl.dev/api-reference
+If still failing, the page likely requires heavier interaction or authentication.
 
 ## Notes
 
-- Always use `max_age=0` for fresh scrapes (no cache)
-- Use `only_main_content=True` to avoid navigation/sidebar clutter
+- Use `maxAge=0` when freshness is required; otherwise allow cache for speed
+- Keep requests single-URL and avoid crawl/map/search for this skill
+- Always quote URLs when passing them in shell commands
 - Validate URL format before scraping
-- Check for existing files before writing to avoid overwrites
+
+## Firecrawl References
+
+- Docs: https://docs.firecrawl.dev
+- Advanced Scraping Guide: https://docs.firecrawl.dev/advanced-scraping-guide
+- Python SDK: https://docs.firecrawl.dev/sdks/python

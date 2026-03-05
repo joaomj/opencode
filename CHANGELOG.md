@@ -2,6 +2,20 @@
 
 All notable changes to the OpenCode Agent Guidelines.
 
+## [4.1.2] - 2026-03-05
+
+### Changed
+
+- **Firecrawl Skill Scope** (`skills/firecrawl-web-scraper/SKILL.md`)
+  - Narrowed the skill to single-URL website scraping only
+  - Removed PDF/crawl/map/search guidance to avoid overengineering
+  - Added focused recipes for dynamic content (`waitFor`, `actions`) and structured JSON extraction
+  - Switched output convention to `.firecrawl/<domain>/<slug>.{md,json}`
+  - Removed undocumented stealth proxy retry guidance and aligned examples with current docs
+
+- **README Skill Description** (`README.md`)
+  - Updated `firecrawl-web-scraper` row to reflect single-URL, dynamic-page, and structured JSON behavior
+
 ## [4.1.1] - 2026-03-01
 
 ### Added
