@@ -2,6 +2,34 @@
 
 All notable changes to the OpenCode Agent Guidelines.
 
+## [4.1.3] - 2026-03-08
+
+### Added
+
+- **Code Simplifier Skill** (`skills/code-simplifier/SKILL.md`)
+  - Pre-commit code simplification that applies project standards
+  - Enforces type hints, no raw dicts, explicit code over clever one-liners
+  - Validates changes with lint/typecheck before staging
+  - Integrated into commit protocol as automatic step
+
+- **Codebase Diagrams Skill** (`skills/codebase-diagrams/SKILL.md`)
+  - Generate Excalidraw diagrams for architecture, data flow, and sequence diagrams
+  - Optimized for onboarding and system design explanations
+  - Basic shapes only (no icon library complexity), max 15 elements per diagram
+  - Outputs to `docs/diagrams/` directory
+
+### Changed
+
+- **AGENTS.md Commit Protocol**
+  - Added explicit rule: ALWAYS use one-line commit messages (max 72 chars, no body text)
+  - Changed pre-commit hooks policy: Do NOT install by default (only on explicit request)
+  - Added code-simplifier as step 1 in before-committing workflow
+
+- **README.md**
+  - Updated skill count from 9 to 11
+  - Added code-simplifier and codebase-diagrams to skills table and project structure
+  - Updated Development Guidelines table with new skill entries
+
 ## [4.1.2] - 2026-03-05
 
 ### Changed

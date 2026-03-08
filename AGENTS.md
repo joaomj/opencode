@@ -56,6 +56,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |"update docs" OR "prune docs" OR "clean up docs" OR "update documentation" OR "/update-docs"|`/skill doc-maintenance`|
 |"write a cicd pipeline" OR "write a ci/cd pipeline" OR "write a ci pipeline" OR "github actions pipeline" OR "set up github actions" OR "create github workflow" OR "/cicd"|`/skill github-cicd-lite`|
 |"scrape this url/website/article" OR "save this blog post/newsletter" OR "add to my reading queue"|`/skill firecrawl-web-scraper`|
+|"diagram the architecture" OR "show data flow" OR "create sequence diagram" OR "/diagram"|`/skill codebase-diagrams`|
 |"deep research" OR "literature review" OR "5-20 page report" OR "evidence-based report"|Invoke `@dr-orchestrator` (confirm deep mode first)|
 |"use [library]" OR "implement with [library]" OR "using [library]" OR "with [library]" OR "add [library]"|Detect version → Fetch Context7 docs|
 
@@ -110,6 +111,8 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |Documentation maintenance|`/skill doc-maintenance`|
 |GitHub CI/CD|`/skill github-cicd-lite`|
 |Web scraping|`/skill firecrawl-web-scraper`|
+|Code simplification|`/skill code-simplifier`|
+|Codebase diagrams|`/skill codebase-diagrams`|
 
 ---
 
@@ -153,13 +156,14 @@ Use Context7 for ANY external library (React, Vue, Next.js, FastAPI, Django, Fla
 ## PRE-COMMIT HOOKS (OPTIONAL)
 
 ### Installation Rule
-If `setup-hooks.sh` is missing, ASK USER before installing:
-"Pre-commit hooks not configured. Would you like me to install them?"
+Do NOT install pre-commit hooks by default.
 
-Only run if user confirms "yes": `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh -o setup-hooks.sh && chmod +x setup-hooks.sh && ./setup-hooks.sh`
+Only install if user explicitly requests: "Install pre-commit hooks" or "/setup-hooks"
+Installation command: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh -o setup-hooks.sh && chmod +x setup-hooks.sh && ./setup-hooks.sh`
 
 ### Before Committing
-If hooks installed: `pre-commit run --all-files`
+1. Run code-simplifier: `/skill code-simplifier` on modified files
+2. If hooks installed: `pre-commit run --all-files`
 
 ---
 
@@ -179,7 +183,7 @@ If hooks installed: `pre-commit run --all-files`
 |Respect .gitignore|Automatically excludes gitignored files|
 |Exclude planning files|Files with PLAN/TODO/DRAFT/WIP/TEMP/BACKUP/OLD in name|
 |Auto-detect type|feat/fix/docs/style/refactor/test/chore based on changes|
-|One-line only|Maximum 72 characters, no body text|
+|One-line only|ALWAYS use one-line commit messages. Maximum 72 characters, no body text, no multi-line|
 |No scope|Format: `type: description` (no parentheses)|
 |Imperative mood|"Add" not "Added", "Fix" not "Fixed"|
 |Hooks|Ask before installing; run if already installed|
