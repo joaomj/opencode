@@ -1,7 +1,7 @@
 ---
-description: Independent code reviewer (GPT-5.3 Codex with high reasoning, fallback to session model)
+description: Independent code reviewer
 mode: subagent
-model: openai/gpt-5.3-codex
+model: openai/gpt-5.4
 reasoningEffort: high
 temperature: 0.1
 hidden: true
@@ -20,7 +20,6 @@ permission:
     "git ls-tree*": allow
     "git cat-file*": allow
 ---
-You are an independent code reviewer using GPT-5.3 Codex (high reasoning effort), or the session model as fallback.
 
 ## Your Task
 
@@ -54,5 +53,4 @@ You are an independent code reviewer using GPT-5.3 Codex (high reasoning effort)
 - Different model than reviewer-2
 - Focus on security and performance strengths
 - Return ONLY JSON - no explanations, no markdown
-- Fallback Behavior: If GPT-5.3 Codex is unavailable (no API key, quota exceeded, etc.), the system uses the current session model
 - The review quality and format remain identical regardless of which model is used

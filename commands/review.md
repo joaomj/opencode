@@ -5,8 +5,8 @@ description: Perform dual-subagent code review with P0-P3 severity levels
 ## Execution Flow
 
 1. **Invoke Both Subagents in Parallel**
-   - code-reviewer-1 (GPT-5.3 Codex - high reasoning effort, or session model as fallback)
-   - code-reviewer-2 (GLM 4.7, or session model as fallback)
+   - code-reviewer-1
+   - code-reviewer-2
    - Pass identical scope to both reviewers
 
 2. **Handle Availability**
