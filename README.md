@@ -6,7 +6,7 @@ Personal [opencode](https://opencode.ai) configuration with development guidelin
 
 This configuration enhances opencode with:
 
-- **Skill-based architecture** - 11 domain-specific skills loaded on-demand for Python, Docker, ML, workflows, daily standups, code simplification, and diagram generation
+- **Skill-based architecture** - 10 domain-specific skills loaded on-demand for Python, Docker, ML, workflows, daily standups, and code simplification
 - **Decision-index approach** - AGENTS.md provides deterministic skill triggers (following Vercel's pattern)
 - **Dual-agent code review** - Two independent AI reviewers cross-check code changes
 - **Deep research agent suite** - Hidden `dr-*` subagents with orchestrated evidence-first reporting
@@ -44,8 +44,7 @@ git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 │   ├── github-cicd-lite/            # Lean GitHub CI pipelines
 │   ├── firecrawl-web-scraper/       # Web scraping with Firecrawl
 │   ├── standup-prep/                # Generate daily standup summaries
-│   ├── code-simplifier/             # Pre-commit code simplification
-│   └── codebase-diagrams/           # Architecture and data flow diagrams
+│   └── code-simplifier/             # Pre-commit code simplification
 ├── agents/                # Subagent configurations
 │   ├── code-reviewer-1.md         # Hidden reviewer (GPT-5.3 Codex)
 │   ├── code-reviewer-2.md         # Hidden reviewer (GLM 4.7)
@@ -110,7 +109,6 @@ Analyzes your git activity (GitHub CLI or local git), detects potential blockers
 | `firecrawl-web-scraper` | Single-URL web scraping with dynamic-page actions and structured JSON output |
 | `standup-prep` | Generate daily standup summaries from git activity |
 | `code-simplifier` | Pre-commit code simplification with project standards enforcement |
-| `codebase-diagrams` | Generate Excalidraw architecture, data flow, and sequence diagrams |
 
 ## Pre-Commit Hooks (Optional)
 
@@ -147,7 +145,6 @@ The `skills/` directory contains domain-specific skills loaded on-demand based o
 | Workflow | `workflow-development` | Test-first where it fits (verify-first always), chronological document order (PRD→Design→Specs→Plan), approval gates, todo tracking |
 | Standup | `standup-prep` | Daily standup summaries from git activity, blocker detection, markdown report generation |
 | Code Quality | `code-simplifier` | Pre-commit simplification with type hints, no raw dicts, explicit code enforcement |
-| Documentation | `codebase-diagrams` | Architecture, data flow, and sequence diagrams for onboarding and system design |
 
 **Key Features:**
 - **Retrieval-led reasoning** - Skills loaded based on explicit triggers, not model decisions

@@ -11,13 +11,6 @@ All notable changes to the OpenCode Agent Guidelines.
   - Enforces type hints, no raw dicts, explicit code over clever one-liners
   - Validates changes with lint/typecheck before staging
   - Integrated into commit protocol as automatic step
-
-- **Codebase Diagrams Skill** (`skills/codebase-diagrams/SKILL.md`)
-  - Generate Excalidraw diagrams for architecture, data flow, and sequence diagrams
-  - Optimized for onboarding and system design explanations
-  - Basic shapes only (no icon library complexity), max 15 elements per diagram
-  - Outputs to `docs/diagrams/` directory
-
 ### Changed
 
 - **AGENTS.md Commit Protocol**
@@ -27,7 +20,7 @@ All notable changes to the OpenCode Agent Guidelines.
 
 - **README.md**
   - Updated skill count from 9 to 11
-  - Added code-simplifier and codebase-diagrams to skills table and project structure
+  - Added code-simplifier to skills table and project structure
   - Updated Development Guidelines table with new skill entries
 
 ## [4.1.2] - 2026-03-05

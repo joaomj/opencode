@@ -56,7 +56,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |"update docs" OR "prune docs" OR "clean up docs" OR "update documentation" OR "/update-docs"|`/skill doc-maintenance`|
 |"write a cicd pipeline" OR "write a ci/cd pipeline" OR "write a ci pipeline" OR "github actions pipeline" OR "set up github actions" OR "create github workflow" OR "/cicd"|`/skill github-cicd-lite`|
 |"scrape this url/website/article" OR "save this blog post/newsletter" OR "add to my reading queue"|`/skill firecrawl-web-scraper`|
-|"diagram the architecture" OR "show data flow" OR "create sequence diagram" OR "/diagram"|`/skill codebase-diagrams`|
+
 |"deep research" OR "literature review" OR "5-20 page report" OR "evidence-based report"|Invoke `@dr-orchestrator` (confirm deep mode first)|
 |"use [library]" OR "implement with [library]" OR "using [library]" OR "with [library]" OR "add [library]"|Detect version → Fetch Context7 docs|
 
@@ -112,7 +112,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |GitHub CI/CD|`/skill github-cicd-lite`|
 |Web scraping|`/skill firecrawl-web-scraper`|
 |Code simplification|`/skill code-simplifier`|
-|Codebase diagrams|`/skill codebase-diagrams`|
+
 
 ---
 
