@@ -72,6 +72,7 @@ Analyzes your git activity (GitHub CLI or local git), detects potential blockers
 | `firecrawl-web-scraper` | Single-URL web scraping with dynamic-page actions and structured JSON output |
 | `standup-prep` | Generate daily standup summaries from git activity |
 | `code-simplifier` | Pre-commit code simplification with project standards enforcement |
+| `jira-issues` | Search assigned Jira issues and update status or description |
 
 ## Pre-Commit Hooks (Optional)
 
