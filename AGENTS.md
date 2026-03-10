@@ -13,10 +13,8 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |User says "update docs"|`/skill doc-maintenance`|
 |User asks for CI/CD pipeline on GitHub|`/skill github-cicd-lite`|
 |User says "scrape this url/article/blog"|`/skill firecrawl-web-scraper`|
-|User asks for deep research/literature review/5-20 page report|Invoke `@dr-orchestrator`; require explicit confirmation before deep mode|
 |AFTER any code change|`/skill doc-maintenance`|
 |User says "commit" OR "/commit"|Run `/commit` command with semantic filtering and conventional commits|
-|Before using websearch in deep research|Ensure OpenCode provider or `OPENCODE_ENABLE_EXA=1`; if unavailable, ask user to enable|
 |See `import X` (X not stdlib)|Fetch Context7 docs for X|
 |Context7 fetch fails|Ask user: "Proceed without docs?"|
 
@@ -56,8 +54,6 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |"update docs" OR "prune docs" OR "clean up docs" OR "update documentation" OR "/update-docs"|`/skill doc-maintenance`|
 |"write a cicd pipeline" OR "write a ci/cd pipeline" OR "write a ci pipeline" OR "github actions pipeline" OR "set up github actions" OR "create github workflow" OR "/cicd"|`/skill github-cicd-lite`|
 |"scrape this url/website/article" OR "save this blog post/newsletter" OR "add to my reading queue"|`/skill firecrawl-web-scraper`|
-
-|"deep research" OR "literature review" OR "5-20 page report" OR "evidence-based report"|Invoke `@dr-orchestrator` (confirm deep mode first)|
 |"use [library]" OR "implement with [library]" OR "using [library]" OR "with [library]" OR "add [library]"|Detect version → Fetch Context7 docs|
 
 ### File Pattern Triggers (BEFORE reading file)
@@ -113,23 +109,6 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |Web scraping|`/skill firecrawl-web-scraper`|
 |Code simplification|`/skill code-simplifier`|
 
-
----
-
-## DEEP RESEARCH AGENT INDEX (HIDDEN SUBAGENTS)
-
-|Agent|Purpose|
-|-----|-------|
-|`@dr-orchestrator`|Stages full research pipeline and returns final audited report payload|
-|`@dr-gate`|Classifies effort: `quick`, `sourced`, `deep`; requests deep confirmation when needed|
-|`@dr-planner`|Builds report outline, section goals, and evidence needs|
-|`@dr-query-builder`|Generates high-reputation search query variants by section|
-|`@dr-websearch-highrep`|Performs source discovery/retrieval with Tier A/B prioritization|
-|`@dr-source-triage`|Ranks/selects sources and reports coverage gaps|
-|`@dr-evidence-extractor`|Extracts anchored evidence units with deterministic evidence IDs|
-|`@dr-section-writer`|Drafts one section using only provided evidence IDs|
-|`@dr-editor-integrator`|Integrates sections into final report and references|
-|`@dr-citation-auditor`|Flags uncited claims and weak evidence with P0-P2 issues|
 
 ---
 

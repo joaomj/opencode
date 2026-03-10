@@ -9,7 +9,6 @@ This configuration enhances opencode with:
 - **Skill-based architecture** - 10 domain-specific skills loaded on-demand for Python, Docker, ML, workflows, daily standups, and code simplification
 - **Decision-index approach** - AGENTS.md provides deterministic skill triggers (following Vercel's pattern)
 - **Dual-agent code review** - Two independent AI reviewers cross-check code changes
-- **Deep research agent suite** - Hidden `dr-*` subagents with orchestrated evidence-first reporting
 - **Documentation maintenance** - Automated detection of outdated documentation
 - **Lean GitHub CI skill** - Fast, secure CI pipelines for small Python repos
 - **Optional pre-commit hooks** - Quality checks for any project (user must opt-in)
@@ -40,16 +39,6 @@ Performs dual-agent code review with severity classification (P0-P3).
 ```
 
 Two independent reviewers analyze the same code and findings are consolidated into a review report.
-
-## Deep Research Agents
-
-Deep research is implemented with hidden global subagents in `~/.config/opencode/agents/`.
-
-- Entry point: `@dr-orchestrator`
-- Pipeline: `dr-gate` -> `dr-planner` -> `dr-query-builder` -> `dr-websearch-highrep` -> `dr-source-triage` -> `dr-evidence-extractor` -> `dr-section-writer` -> `dr-editor-integrator` -> `dr-citation-auditor`
-- Safety model: JSON-only contracts where required, no file edits, and web tools enabled only for high-reputation search/retrieval
-
-If you rely on web discovery, ensure `OPENCODE_ENABLE_EXA=1` is exported in your shell profile before starting OpenCode.
 
 ### `/update-docs`
 
@@ -125,7 +114,6 @@ The `skills/` directory contains domain-specific skills loaded on-demand based o
 - **Decision-index format** - AGENTS.md provides clear IF-THEN rules for skill loading (following Vercel's pattern)
 - **Compressed context** - AGENTS.md uses pipe-delimited tables for fast scanning and deterministic routing
 - **Optional hooks** - Pre-commit hooks require user confirmation before installation
-- **Hidden orchestration agents** - Deep research agents run as hidden subagents to keep TUI autocomplete clean
 
 ## Multi-Machine Setup
 
