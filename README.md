@@ -28,32 +28,6 @@ This configuration enhances opencode with:
 git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 ```
 
-## Project Structure
-
-```
-~/.config/opencode/
-├── AGENTS.md              # Decision-index with skill triggers (v4.1.1)
-├── opencode.json          # Configuration (agents, permissions)
-├── skills/                # Domain-specific skills (load on-demand)
-│   ├── python-best-practices/      # Type hints, error handling, testing, security
-│   ├── docker-best-practices/      # Dockerfile, Compose, security, networking
-│   ├── ml-best-practices/           # CRISP-DM, data quality, evaluation, MLflow
-│   ├── workflow-development/          # TDD, document ordering, approval gates
-│   ├── code-review-expert/          # Dual-agent code review
-│   ├── doc-maintenance/             # Documentation pruning
-│   ├── github-cicd-lite/            # Lean GitHub CI pipelines
-│   ├── firecrawl-web-scraper/       # Web scraping with Firecrawl
-│   ├── standup-prep/                # Generate daily standup summaries
-│   └── code-simplifier/             # Pre-commit code simplification
-├── agents/                # Subagent configurations
-│   ├── code-reviewer-1.md         # Hidden reviewer (GPT-5.3 Codex)
-│   ├── code-reviewer-2.md         # Hidden reviewer (GLM 4.7)
-│   ├── dr-orchestrator.md         # Hidden deep-research orchestrator
-│   └── dr-*.md                    # Hidden deep-research pipeline subagents
-├── commands/              # Custom commands
-└── setup-hooks.sh        # Pre-commit hooks installer (optional)
-```
-
 ## Commands
 
 ### `/review`
@@ -160,6 +134,9 @@ Clone to `~/.config/opencode/` on each machine for consistent configuration. Upd
 ```bash
 cd ~/.config/opencode && git pull
 ```
+
+## Disclaimer
+This is not built by the [OpenCode](https://github.com/anomalyco/opencode) team and is not affiliated with them in any way.
 
 ## License
 
