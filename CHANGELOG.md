@@ -11,7 +11,19 @@ All notable changes to the OpenCode Agent Guidelines.
   - Enforces type hints, no raw dicts, explicit code over clever one-liners
   - Validates changes with lint/typecheck before staging
   - Integrated into commit protocol as automatic step
+
 ### Changed
+
+- **Commit Command Enforces Atomic Commits** (`commands/commit.md`)
+  - Removed `git add -A` - now requires selective staging per logical group
+  - Added "CRITICAL: ATOMIC COMMITS ONLY" section with explicit rules
+  - Added step to analyze and group files by purpose
+  - Added iterative commit loop for multiple logical changes
+  - Updated notes to emphasize atomic commits are mandatory
+
+- **README Simplification** (`README.md`)
+  - Removed Project Structure section (reduces documentation bloat)
+  - Maintained focus on actual usage and features
 
 - **AGENTS.md Commit Protocol**
   - Added explicit rule: ALWAYS use one-line commit messages (max 72 chars, no body text)
