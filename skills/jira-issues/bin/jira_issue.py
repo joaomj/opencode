@@ -4,6 +4,7 @@ import argparse
 import base64
 import json
 import os
+from pathlib import Path
 import re
 import sys
 import urllib.error
@@ -23,7 +24,95 @@ class ADFDocument(TypedDict):
     version: int
     content: list[dict[str, Any]]
 
+
+REQUIRED_ENV_KEYS: tuple[str, ...] = (
+    "JIRA_BASE_URL",
+    "JIRA_EMAIL",
+    "JIRA_API_KEY",
+    "JIRA_PROJECT_KEY",
+)
+
+ENV_ALIASES: dict[str, tuple[str, ...]] = {
+    "JIRA_BASE_URL": ("JIRA_URL",),
+    "JIRA_EMAIL": ("JIRA_USER_EMAIL", "ATLASSIAN_EMAIL"),
+    "JIRA_API_KEY": ("JIRA_API_TOKEN", "JIRA_TOKEN", "ATLASSIAN_API_TOKEN"),
+    "JIRA_PROJECT_KEY": ("JIRA_PROJECT",),
+}
+
+
+def _strip_wrapped_quotes(value: str) -> str:
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+        return value[1:-1]
+    return value
+
+
+def _parse_dotenv(path: Path) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export ") :].strip()
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key:
+            continue
+        result[key] = _strip_wrapped_quotes(value.strip())
+    return result
+
+
+def load_required_env_fallbacks() -> None:
+    for target_key, aliases in ENV_ALIASES.items():
+        if os.environ.get(target_key):
+            continue
+        for alias in aliases:
+            alias_value = os.environ.get(alias)
+            if alias_value:
+                os.environ[target_key] = alias_value
+                break
+
+    missing_keys = [key for key in REQUIRED_ENV_KEYS if not os.environ.get(key)]
+    if not missing_keys:
+        return
+
+    candidates: list[Path] = []
+    explicit_env_file = os.environ.get("JIRA_ENV_FILE")
+    if explicit_env_file:
+        candidates.append(Path(explicit_env_file).expanduser())
+
+    cwd = Path.cwd()
+    candidates.extend([cwd / ".env", cwd.parent / ".env"])
+
+    loaded: dict[str, str] = {}
+    for candidate in candidates:
+        if not candidate.is_file():
+            continue
+        try:
+            loaded = _parse_dotenv(candidate)
+            break
+        except OSError:
+            continue
+
+    if not loaded:
+        return
+
+    for key in REQUIRED_ENV_KEYS:
+        if os.environ.get(key):
+            continue
+        if key in loaded and loaded[key]:
+            os.environ[key] = loaded[key]
+            continue
+        for alias in ENV_ALIASES.get(key, ()):  # pragma: no branch - tiny alias set
+            value = loaded.get(alias)
+            if value:
+                os.environ[key] = value
+                break
+
 def load_config(args: argparse.Namespace) -> JiraConfig:
+    load_required_env_fallbacks()
     email: str = args.jira_email or os.environ.get("JIRA_EMAIL", "")
     api_key: str = os.environ.get("JIRA_API_KEY", "")
     if not email:
@@ -36,6 +125,10 @@ def load_config(args: argparse.Namespace) -> JiraConfig:
     if not base_url:
         raise JiraError("Missing JIRA_BASE_URL in environment. Set it to your Jira instance URL.")
     project_key = os.environ.get("JIRA_PROJECT_KEY", "").upper()
+    if not project_key:
+        raw_issue_key = getattr(args, "issue_key", "")
+        if isinstance(raw_issue_key, str) and "-" in raw_issue_key:
+            project_key = raw_issue_key.split("-", 1)[0].upper()
     if not project_key:
         raise JiraError("Missing JIRA_PROJECT_KEY in environment. Set it to your Jira project key.")
     return JiraConfig(
@@ -137,24 +230,67 @@ def adf_from_text(text: str) -> ADFDocument:
 def adf_to_text(raw: Any) -> str:
     if not isinstance(raw, dict):
         return ""
-    content: Any = raw.get("content")
-    if not isinstance(content, list):
-        return ""
-    paragraphs: list[str] = []
-    for node in content:
-        if not isinstance(node, dict) or node.get("type") != "paragraph":
-            continue
-        children: Any = node.get("content")
+
+    def inline_text(children: Any) -> str:
         if not isinstance(children, list):
-            continue
-        text: str = "".join(
-            child.get("text", "")
-            for child in children
-            if isinstance(child, dict) and child.get("type") == "text"
-        )
-        if text:
-            paragraphs.append(text)
-    return "\n\n".join(paragraphs)
+            return ""
+        parts: list[str] = []
+        for child in children:
+            if not isinstance(child, dict):
+                continue
+            child_type = child.get("type")
+            if child_type == "text":
+                parts.append(str(child.get("text", "")))
+            elif child_type == "hardBreak":
+                parts.append("\n")
+            elif isinstance(child.get("content"), list):
+                nested = inline_text(child.get("content"))
+                if nested:
+                    parts.append(nested)
+        return "".join(parts).strip()
+
+    lines: list[str] = []
+
+    def walk(node: Any) -> None:
+        if not isinstance(node, dict):
+            return
+        node_type = node.get("type")
+        content = node.get("content")
+
+        if node_type in {"paragraph", "heading"}:
+            text = inline_text(content)
+            if text:
+                lines.append(text)
+            return
+
+        if node_type in {"bulletList", "orderedList"} and isinstance(content, list):
+            for item in content:
+                item_text_parts: list[str] = []
+                item_content = item.get("content") if isinstance(item, dict) else None
+                if isinstance(item_content, list):
+                    for part in item_content:
+                        if isinstance(part, dict) and part.get("type") in {"paragraph", "heading"}:
+                            text = inline_text(part.get("content"))
+                            if text:
+                                item_text_parts.append(text)
+                        else:
+                            before = len(lines)
+                            walk(part)
+                            appended = lines[before:]
+                            if appended:
+                                item_text_parts.extend(appended)
+                                del lines[before:]
+                item_text = " ".join(part.strip() for part in item_text_parts if part.strip())
+                if item_text:
+                    lines.append(f"- {item_text}")
+            return
+
+        if isinstance(content, list):
+            for child in content:
+                walk(child)
+
+    walk(raw)
+    return "\n\n".join(lines)
 
 
 def build_jql(project_key: str, extra_jql: str | None, include_done: bool) -> str:
