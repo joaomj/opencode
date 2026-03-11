@@ -1,7 +1,7 @@
 ---
 description: Independent code reviewer
 mode: subagent
-model: opencode-co/glm-5
+model: opencode-go/glm-5
 temperature: 0.1
 hidden: true
 tools:
