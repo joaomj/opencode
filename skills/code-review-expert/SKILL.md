@@ -11,13 +11,15 @@ Comprehensive checklists for thorough code reviews with actionable severity leve
 
 This skill uses independent sub-agents (code-reviewer-1, code-reviewer-2) for thorough code review:
 
-- **code-reviewer-1**: GPT-5.3 Codex (high reasoning effort), or session model as fallback
-- **code-reviewer-2**: GLM 4.7, or session model as fallback
+- **code-reviewer-1**: Primary reviewer, or session model as fallback
+- **code-reviewer-2**: Secondary reviewer (different model than reviewer-1), or session model as fallback
 - **Fallback Behavior**: If a primary model is unavailable (no API key, quota exceeded, provider unreachable), the system automatically uses the current session's model
 - **No Manual Intervention Required**: The review process continues seamlessly regardless of model availability
 - **Consistent Quality**: Both primary and fallback models follow the same review framework
 
 **Note**: You don't need to configure anything - fallback is automatic and transparent.
+
+The specific models used by each subagent are defined in their respective agent configuration files (`agents/code-reviewer-1.md` and `agents/code-reviewer-2.md`).
 
 ## Severity Levels
 
@@ -169,8 +171,8 @@ In CODE_REVIEW.md, include:
 **Review Scope**: `<git-diff-scope>`
 **Iteration**: `N` of `3`
 **Execution**: `<execution-note>`
-**Reviewers**: code-reviewer-1 (GPT-5.3 Codex), code-reviewer-2 (GLM 4.7)
-*Note: Models shown are primary choices; fallback to session model may occur automatically if primary is unavailable.*
+**Reviewers**: code-reviewer-1, code-reviewer-2
+*Note: Models are configured in agents/code-reviewer-*.md; fallback to session model may occur automatically if primary is unavailable.*
 
 ## Summary
 
