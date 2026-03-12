@@ -20,7 +20,12 @@ metadata:
 - Never create, delete, reassign, comment, or edit any other fields.
 
 ## Command runner
-Use the helper script below for every Jira action:
+ALWAYS run this first to load environment variables:
+```bash
+(set -a; source .env; set +a)
+```
+
+Then use the helper script for every Jira action:
 
 ```bash
 python3 ".opencode/skills/jira-issues/bin/jira_issue.py" search --limit 20
