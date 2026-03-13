@@ -144,6 +144,49 @@ Installation command: `curl -sSL https://raw.githubusercontent.com/joaomj/openco
 
 ## COMMIT PROTOCOL
 
+### Before First Git Operation
+
+**CRITICAL: Verify git identity BEFORE any git commands**
+
+1. **Check git identity:**
+   ```bash
+   git config user.name && git config user.email
+   ```
+
+2. **Check GitHub account (if remote is GitHub):**
+   ```bash
+   git remote -v  # Check if remote is github.com
+   gh auth status  # If GitHub remote, check GitHub account
+   ```
+
+3. **Present accounts to user:**
+   - Show detected git user.name and user.email
+   - If GitHub remote: show authenticated GitHub account
+   - If multiple accounts available: list all options
+
+4. **Ask user to confirm or select:**
+   ```
+   Detected git identity:
+   - user.name: [detected name]
+   - user.email: [detected email]   - GitHub: [detected account] (if applicable)
+   
+   Use this identity for git operations? [Y/n]
+   
+   If multiple accounts:
+   Which account should I use?
+   1. [account 1]
+   2. [account 2]
+   ```
+
+5. **Only proceed after user confirmation**
+
+|Rule|Requirement|
+|------|-----------|
+|Always verify first|NEVER run git commands without confirming identity|
+|GitHub check|Only if remote URL contains github.com|
+|Present options|Show all available accounts/identities|
+|User selects|Agent does NOT choose - user must confirm or select|
+
 ### When to Invoke `/commit`
 - After completing a logical unit of work
 - At phase gates in implementation plans
