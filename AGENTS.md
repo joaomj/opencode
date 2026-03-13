@@ -24,7 +24,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |Every function has type hints|Block if missing|
 |No raw dicts for API schemas|Block if detected|
 |No secrets in code|Block if detected|
-|Never use Read tool on .env files|Block if attempted|
+|Never view .env content (Read tool, cat, scripts printing envs)|Block if attempted|
 |Use `pdm add X` for deps|Block if direct pyproject.toml edit|
 
 ### Docker Non-Negotiables
@@ -193,7 +193,7 @@ Installation command: `curl -sSL https://raw.githubusercontent.com/joaomj/openco
 |no-emojis|Never use emojis in code, docs, or communication.|
 |security|No secrets in code. Use .env + pydantic-settings. Validate all inputs.|
 |testing-policy|Prefer behavior/state assertions and real integrations; mock only external boundaries by default.|
-|env-files|Never use Read tool on .env files. Application code and scripts CAN load .env. Use .env.example for schema reference. Can run scripts that load envs internally.|
+|env-files|Never view .env content. Read tool, cat, scripts printing envs are FORBIDDEN. Scripts can LOAD .env internally. Use .env.example for schema reference.|
 |python-deps|When changing/adding Python dependencies, you MUST use `pdm add`, not direct pyproject.toml edit.|
 |tech-context|MANDATORY: docs/tech-context.md is single source of truth for current project architecture, technical decisions.|
 |ml-reporting|MANDATORY: ML projects must include CRISP-DM Build Report in docs/tech-context.md. Each phase documented with STAR.|
