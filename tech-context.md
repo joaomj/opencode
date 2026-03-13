@@ -116,7 +116,7 @@ Add `.test-mock-external-allowlist` in your repo to allow external module prefix
 | simplicity | Prefer fewest moving parts. Ask "is this overkill?" before abstractions. |
 | no-emojis | Never use emojis in code, docs, or communication. |
 | security | No secrets in code. Use .env + pydantic-settings. Validate all inputs. |
-| env-files | NEVER read .env files - only .env.example for schema reference. |
+| env-files | Never use Read tool on .env files. Application code and scripts CAN load .env. Use .env.example for schema reference. Can run scripts that load envs internally. |
 | python-deps | When changing/adding Python dependencies, you MUST use `pdm` commands, not directly edit `pyproject.toml`. |
 | tech-context | docs/tech-context.md is the Single-File Memory Bank. |
 | ml-reporting | ML projects must include a CRISP-DM Build Report in docs/tech-context.md. Each phase documented with STAR. |
