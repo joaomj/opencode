@@ -13,9 +13,9 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |User says "update docs"|`/skill doc-maintenance`|
 |User asks for CI/CD pipeline on GitHub|`/skill github-cicd-lite`|
 |User says "scrape this url/article/blog"|`/skill firecrawl-web-scraper`|
-|AFTER any code change|`/skill doc-maintenance`|
+|AFTER any code change|ASK: "Update documentation?" → if yes: `/skill doc-maintenance`|
 |User says "commit" OR "/commit"|Run `/commit` command with semantic filtering and conventional commits|
-|See `import X` (X not stdlib)|Fetch Context7 docs for X|
+|See `import X` (X not stdlib)|ASK: "Fetch up-to-date docs for X?" → if yes: Fetch Context7 docs|
 |Context7 fetch fails|Ask user: "Proceed without docs?"|
 
 ### Python Non-Negotiables
@@ -54,41 +54,38 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |"update docs" OR "prune docs" OR "clean up docs" OR "update documentation" OR "/update-docs"|`/skill doc-maintenance`|
 |"write a cicd pipeline" OR "write a ci/cd pipeline" OR "write a ci pipeline" OR "github actions pipeline" OR "set up github actions" OR "create github workflow" OR "/cicd"|`/skill github-cicd-lite`|
 |"scrape this url/website/article" OR "save this blog post/newsletter" OR "add to my reading queue"|`/skill firecrawl-web-scraper`|
-|"use [library]" OR "implement with [library]" OR "using [library]" OR "with [library]" OR "add [library]"|Detect version → Fetch Context7 docs|
+|"use [library]" OR "implement with [library]" OR "using [library]" OR "with [library]" OR "add [library]"|ASK: "Fetch up-to-date docs for [library]?"|
 
 ### File Pattern Triggers (BEFORE reading file)
-|File Pattern|Load Skill|
+|File Pattern|Action|
 |-----------|----------|
-|`test_*.py` OR `*_test.py` OR `tests/*.py` OR `conftest.py`|`/skill python-best-practices`|
-|`Dockerfile` OR `Dockerfile.*` OR `docker-compose*.yml`|`/skill docker-best-practices`|
-|`train.py` OR `model.py` OR `pipeline.py` OR `features.py` OR `preprocessing.py`|`/skill ml-best-practices`|
+|`Dockerfile` OR `Dockerfile.*` OR `docker-compose*.yml`|ASK: "Load Docker best practices?"|
+|`train.py` OR `model.py` OR `pipeline.py` OR `features.py` OR `preprocessing.py`|ASK: "Load ML best practices?"|
 |`*.env.example`|STOP - see env-files rule|
-|`setup.py` OR `pyproject.toml`|`/skill python-best-practices`|
+|`setup.py` OR `pyproject.toml`|ASK: "Load Python best practices?"|
 
 ### Import Statement Triggers (WHILE reading file)
-|Import Statement|Load Skill|
+|Import Statement|Action|
 |--------------|----------|
-|`import pandas` OR `import numpy` OR `from sklearn` OR `import torch` OR `import tensorflow`|`/skill ml-best-practices`|
-|`import logging` OR `from pydantic` OR `import pydantic` OR `import pytest` OR `import unittest`|`/skill python-best-practices`|
-|`from fastapi` OR `from flask` OR `from django`|`/skill python-best-practices` + Context7 fetch|
-|`import react` OR `from react`|Context7 fetch React docs|
+|`import pandas` OR `import numpy` OR `from sklearn` OR `import torch` OR `import tensorflow`|ASK: "Load ML best practices?"|
+|`from pydantic` OR `import pydantic` OR `import pytest`|ASK: "Load Python best practices?"|
+|`from fastapi` OR `from flask` OR `from django`|ASK: "Load Python best practices + fetch up-to-date docs?"|
+|`import react` OR `from react`|ASK: "Fetch up-to-date React docs?"|
 
 ### Code Pattern Triggers (WHILE reading file)
-|Code Pattern|Issue Detected|Load Skill|
+|Code Pattern|Issue Detected|Action|
 |-----------|--------------|----------|
-|`def func(...):` without `->` or `: Type` OR `def func(x, y):` without `: Type` on args|Missing type hints|`/skill python-best-practices`|
-|`class X(BaseModel):`|Pydantic model|`/skill python-best-practices`|
-|`try:/except:` without logging/raise OR `try:/except Exception:`|Swallowed/bare exception|`/skill python-best-practices`|
-|`X_train, X_test, y_train, y_test`|Data split detected|`/skill ml-best-practices`|
-|`fit_transform(X)` on full dataset|Leakage risk|`/skill ml-best-practices`|
-|`logging.info(f"...")` with secrets OR `password=`/`api_key=`/`token=` in code|Secret exposure|`/skill python-best-practices`|
-|`patch(` OR `patch.object(` OR `MagicMock(` OR `jest.mock(` OR `vi.mock(`|Potential mock abuse|`/skill python-best-practices`|
+|`def func(...):` without `->` or `: Type` OR `def func(x, y):` without `: Type` on args|Missing type hints|ASK: "Load Python best practices?"|
+|`X_train, X_test, y_train, y_test`|Data split detected|ASK: "Load ML best practices?"|
+|`fit_transform(X)` on full dataset|Leakage risk|ASK: "Load ML best practices?"|
+|`logging.info(f"...")` with secrets OR `password=`/`api_key=`/`token=` in code|Secret exposure|ASK: "Load Python best practices?"|
+|`patch(` OR `patch.object(` OR `MagicMock(` OR `jest.mock(` OR `vi.mock(`|Potential mock abuse|ASK: "Load Python best practices?"|
 
 ### Conversation Triggers
-|User Shows/Says|Task Type|Load Skill|
+|User Shows/Says|Task Type|Action|
 |---------------|----------|----------|
-|Stack trace/traceback OR test failure OR "This doesn't work" OR "It's throwing an error" OR error log|Debugging|`/skill python-best-practices`|
-|"Add tests for this"|Test creation|`/skill python-best-practices`|
+|Stack trace/traceback OR test failure OR "This doesn't work" OR "It's throwing an error" OR error log|Debugging|ASK: "Load Python best practices?"|
+|"Add tests for this"|Test creation|ASK: "Load Python best practices for testing guidance?"|
 |"Can you refactor this?"|Refactoring|Check refactoring triggers|
 |Shows diff/code snippet|Code review or fix|Ask: "Review or fix?"|
 |No `.github/workflows/*.yml` found in GitHub repo|CI gap|Ask: "Add GitHub CI?" if yes: `/skill github-cicd-lite`|
@@ -141,8 +138,7 @@ Only install if user explicitly requests: "Install pre-commit hooks" or "/setup-
 Installation command: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh -o setup-hooks.sh && chmod +x setup-hooks.sh && ./setup-hooks.sh`
 
 ### Before Committing
-1. Run code-simplifier: `/skill code-simplifier` on modified files
-2. If hooks installed: `pre-commit run --all-files`
+1. If hooks installed: `pre-commit run --all-files`
 
 ---
 
@@ -201,7 +197,7 @@ Installation command: `curl -sSL https://raw.githubusercontent.com/joaomj/openco
 |python-deps|When changing/adding Python dependencies, you MUST use `pdm add`, not direct pyproject.toml edit.|
 |tech-context|MANDATORY: docs/tech-context.md is single source of truth for current project architecture, technical decisions.|
 |ml-reporting|MANDATORY: ML projects must include CRISP-DM Build Report in docs/tech-context.md. Each phase documented with STAR.|
-|doc-maintenance|The final step of your task MUST be: running `/skill doc-maintenance`.|
+|doc-maintenance|After completing a task, ASK: "Update documentation?" → if yes: `/skill doc-maintenance`.|
 
 ---
 
