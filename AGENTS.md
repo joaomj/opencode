@@ -146,46 +146,70 @@ Installation command: `curl -sSL https://raw.githubusercontent.com/joaomj/openco
 
 ### Before First Git Operation
 
-**CRITICAL: Verify git identity BEFORE any git commands**
+**CRITICAL: Verify identities BEFORE any git commands**
 
 1. **Check git identity:**
    ```bash
    git config user.name && git config user.email
    ```
 
-2. **Check GitHub account (if remote is GitHub):**
+2. **Check remote URL:**
    ```bash
-   git remote -v  # Check if remote is github.com
-   gh auth status  # If GitHub remote, check GitHub account
+   git remote -v
    ```
 
-3. **Present accounts to user:**
-   - Show detected git user.name and user.email
-   - If GitHub remote: show authenticated GitHub account
-   - If multiple accounts available: list all options
+3. **If remote is GitHub (contains github.com):**
 
-4. **Ask user to confirm or select:**
+   a. Try GitHub CLI auth check:
+   ```bash
+   gh auth status
    ```
-   Detected git identity:
-   - user.name: [detected name]
-   - user.email: [detected email]   - GitHub: [detected account] (if applicable)
-   
+
+   b. If GitHub CLI unavailable or failed, test SSH authentication:
+   ```bash
+   # Extract host from remote URL (e.g., github.com or github.com-alias)
+   ssh -T git@<host>
+   ```
+
+4. **If remote uses SSH:**
+   ```bash
+   ssh-add -l
+   ```
+   - If no keys loaded: warn user to run `ssh-add` before proceeding
+   - Note: Agent does NOT automatically add keys
+
+5. **Check for identity mismatch:**
+   - Compare git config user with GitHub/SSH authenticated user
+   - If mismatch detected (e.g., git config says `alice` but auth shows `bob`):
+     - Present both identities
+     - Ask user which to use
+
+6. **Present findings to user:**
+   ```
+   Detected identities:
+   - Git config: user.name=[name], user.email=[email]
+   - GitHub auth: [username] (if available)
+   - SSH key: [key fingerprint] (if applicable)
+
+   Identity match: [YES/NO - user@github matches git config email]
+
    Use this identity for git operations? [Y/n]
-   
-   If multiple accounts:
+
+   If mismatch or multiple accounts:
    Which account should I use?
-   1. [account 1]
-   2. [account 2]
+   1. [identity 1 - git config]
+   2. [identity 2 - GitHub auth]
    ```
 
-5. **Only proceed after user confirmation**
+7. **Only proceed after user confirmation**
 
 |Rule|Requirement|
 |------|-----------|
 |Always verify first|NEVER run git commands without confirming identity|
-|GitHub check|Only if remote URL contains github.com|
-|Present options|Show all available accounts/identities|
-|User selects|Agent does NOT choose - user must confirm or select|
+|GitHub CLI optional|Fallback to SSH auth test if gh unavailable|
+|SSH key check|Warn if no keys loaded; do NOT auto-add|
+|Identity mismatch|Present all detected identities, let user choose|
+|User selects|Agent does NOT choose - user must confirm|
 
 ### When to Invoke `/commit`
 - After completing a logical unit of work
