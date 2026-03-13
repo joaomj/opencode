@@ -10,13 +10,14 @@ Comprehensive guide for ML development with focus on reproducibility, data quali
 
 ## Non-Negotiable Rules (STOP if violated)
 
+Core rules defined in AGENTS.md. ML-specific additions:
+
 | Rule | Violation = STOP |
 |------|-----------------|
 | Test set touched ONCE only | Block if multiple accesses |
 | Preprocessing in Pipeline | Block if done manually |
 | Confusion matrix generated | Block if missing |
 | Baseline comparison done | Block if missing |
-| AGENT must never read .env files | Block if attempted |
 
 ## CRISP-DM Framework
 
@@ -426,21 +427,6 @@ with mlflow.start_run():
     })
 ```
 
-## Pre-Commit Hooks (OPTIONAL)
-
-### Installation
-If `setup-hooks.sh` is missing, ask user before installing:
-
-```
-"Pre-commit hooks are not configured. Would you like me to install them?
-This will add file length checks and other quality checks for ML code."
-```
-
-Only run `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash` if user confirms "yes".
-
-### Before Committing
-If hooks are installed, run: `pre-commit run --all-files`
-
 ## Completion Checklist
 
 - [ ] All CRISP-DM phases documented in tech-context.md with STAR format
@@ -452,5 +438,3 @@ If hooks are installed, run: `pre-commit run --all-files`
 - [ ] MLflow tracking enabled
 - [ ] Random seeds set for reproducibility
 - [ ] Cross-validation performed
-- [ ] AGENT never read `.env` files
-- [ ] Pre-commit hooks installed only with user consent

@@ -10,12 +10,13 @@ TDD-driven development process with strict document ordering, approval gates, an
 
 ## Non-Negotiable Rules (STOP if violated)
 
+Core rules defined in AGENTS.md. Workflow-specific additions:
+
 | Rule | Violation = STOP |
 |------|-----------------|
 | Test Driven Development (TDD) | Block if tests written AFTER implementation |
 | Chronological document order | Block if order violated |
 | Approval gates required | Block if skipped |
-| AGENT must never read .env files | Block if attempted |
 
 ## Chronological Document Order for New Features
 
@@ -599,24 +600,6 @@ todowrite([
 7. **Documentation updated**: `/skill doc-maintenance`
 8. **Changes committed**: Use `/commit` command for automatic conventional commit message generation
 
-### Pre-Commit Hooks (OPTIONAL)
-If `setup-hooks.sh` is missing, ask user before installing:
-
-```
-"Pre-commit hooks are not configured. Would you like me to install them?
-This will add quality checks (linting, secrets detection, file length) to your git workflow."
-```
-
-Only run `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash` if user confirms "yes".
-
-## AGENT Restrictions
-
-### Never Read .env Files
-- AGENT must never use Read tool on `.env` files
-- Application code can load `.env` files
-- Use environment variables for configuration
-- Keep secrets secure
-
 ## Workflow Summary
 
 ### For New Features:
@@ -652,5 +635,3 @@ Only run `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup
 - [ ] Type hints added
 - [ ] Error handling proper
 - [ ] Documentation updated
-- [ ] Pre-commit hooks installed only with user consent
-- [ ] AGENT never read `.env` files

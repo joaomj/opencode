@@ -1,17 +1,33 @@
 ---
 name: code-simplifier
-description: Apply project standards to simplify code before commits while preserving exact functionality. Runs automatically as pre-commit step to ensure code meets project quality standards.
+description: Apply project standards to simplify code when explicitly requested. Pre-commit hooks handle automatic quality enforcement.
 license: MIT
 ---
 # Code Simplifier
 
-Apply project standards to simplify code before commits while preserving exact functionality.
+Apply project standards to simplify code when explicitly requested by the user.
 
 ## When to Run
 
-- **Primary**: Before committing (integrated into `/commit` command)
-- **Secondary**: When user requests "/simplify" or "simplify this code"
-- **Scope**: Only files modified in current session
+- **Primary**: When user requests "/simplify" or "simplify this code"
+- **Implicit**: Pre-commit hooks automatically handle linting, formatting, and type checking
+- **Scope**: Only files specified by user or modified in current session
+
+## Pre-commit Hook Integration
+
+The following checks are handled automatically by pre-commit hooks:
+
+| Check | Pre-commit Tool |
+|-------|-----------------|
+| Linting | ruff |
+| Formatting | ruff-format |
+| Type checking | mypy |
+| Secret detection | gitleaks |
+| Dockerfile linting | hadolint |
+| File length | check_file_length.py |
+| Mock abuse | check_test_mock_abuse.py |
+
+This skill complements those hooks by applying higher-level simplifications that require intelligent code restructuring.
 
 ## Non-Negotiables
 
@@ -101,16 +117,17 @@ Apply project standards to simplify code before commits while preserving exact f
 
 ## Integration with Commit Protocol
 
-This skill is automatically invoked by the `/commit` command:
+Pre-commit hooks run automatically during `git commit`. This skill is reserved for:
 
-```markdown
-### Commit Protocol Steps
-1. Check pre-commit hooks (if installed)
-2. **Run code-simplifier on modified files** ← NEW
-3. Run lint/typecheck validation
-4. Generate commit message
-5. Create commit
-```
+1. **User-requested simplification**: When user explicitly asks to simplify code
+2. **Complex refactoring**: Changes that require intelligent restructuring beyond linting
+3. **Before code review**: Optionally run to clean up code before submission
+
+## How to Use
+
+When user requests:
+- "/simplify" or "simplify this code" → Run this skill
+- "/commit" → Pre-commit hooks handle quality enforcement automatically
 
 ## Output Report
 

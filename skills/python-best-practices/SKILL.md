@@ -10,12 +10,12 @@ Comprehensive guide for Python development with focus on type safety, error hand
 
 ## Non-Negotiable Rules (STOP if violated)
 
+Core rules defined in AGENTS.md. Python-specific additions:
+
 | Rule | Violation = STOP |
 |------|-----------------|
 | Every function has type hints | Block if missing |
 | No raw dicts for API schemas | Block if detected |
-| No secrets in code | Block if detected |
-| AGENT must never read .env files | Block if attempted |
 | Use `pdm add X` for dependencies | Block if direct pyproject.toml edit |
 
 ## Type Hints
@@ -236,8 +236,6 @@ def test_process_calculation_behavior(processor, input, expected):
 ### Secrets Management
 - Never hardcode secrets in code
 - Never commit `.env` files
-- AGENT must never Read `.env` files
-- Application code can load `.env` using python-dotenv or pydantic-settings
 - Use environment variables for configuration
 
 ### Input Validation
@@ -267,21 +265,6 @@ pdm remove package-name
 - NEVER manually edit `pyproject.toml` to add dependencies
 - NEVER use `pip install` for persistent dependencies
 
-## Pre-Commit Hooks (OPTIONAL)
-
-### Installation
-If `setup-hooks.sh` is missing in the codebase, you MUST ask the user before installing:
-
-```
-"Pre-commit hooks are not configured. Would you like me to install them?
-This will add quality checks (linting, secrets detection, etc.) to your git workflow."
-```
-
-Only proceed with `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash` if the user explicitly confirms "yes".
-
-### Before Committing
-If hooks are installed, run: `pre-commit run --all-files`
-
 ## File Organization
 
 ### Maximum File Length
@@ -302,10 +285,8 @@ Use `ruff check . --fix` to auto-format imports.
 - [ ] All arguments have type hints
 - [ ] Error handling is specific (no bare except)
 - [ ] Secrets are not hardcoded
-- [ ] AGENT never read `.env` files
 - [ ] Tests written for new functionality
 - [ ] Tests assert behavior/state (not implementation internals)
 - [ ] Internal mocks only used with explicit `mock-allow-internal` justification
 - [ ] `ruff check .` passes
 - [ ] Dependencies added via `pdm add` (not manual edit)
-- [ ] Pre-commit hooks installed only with user consent

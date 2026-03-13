@@ -10,13 +10,14 @@ Comprehensive guide for containerization with focus on security, minimalism, and
 
 ## Non-Negotiable Rules (STOP if violated)
 
+Core rules defined in AGENTS.md. Docker-specific additions:
+
 | Rule | Violation = STOP |
 |------|-----------------|
 | Dockerfile has non-root USER | Block if missing |
 | Docker Compose has read_only | Block if missing |
 | No privileged: true | Block if detected |
 | No secrets in ENV | Block if detected |
-| AGENT must never read .env files | Block if attempted |
 
 ## Dockerfile Best Practices
 
@@ -204,12 +205,6 @@ services:
       - api_key
 ```
 
-### AGENT Restrictions
-- AGENT must never Read `.env` files
-- Application code can load `.env` files
-- Use Docker secrets for production secrets
-- Never commit `.env` files
-
 ## Network Isolation
 
 ### Separate Networks
@@ -388,21 +383,6 @@ secrets:
     file: ./secrets/db_password.txt
 ```
 
-## Pre-Commit Hooks (OPTIONAL)
-
-### Installation
-If `setup-hooks.sh` is missing, ask user before installing:
-
-```
-"Pre-commit hooks are not configured. Would you like me to install them?
-This will add Dockerfile linting (hadolint) and other quality checks."
-```
-
-Only run `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash` if user confirms "yes".
-
-### Before Committing
-If hooks are installed, run: `pre-commit run --all-files`
-
 ## Completion Checklist
 
 - [ ] Dockerfile uses non-root USER
@@ -410,8 +390,6 @@ If hooks are installed, run: `pre-commit run --all-files`
 - [ ] Docker Compose uses read_only filesystem
 - [ ] No privileged: true in any service
 - [ ] No secrets in ENV (use secrets:)
-- [ ] AGENT never read `.env` files
 - [ ] Internal networks for backend services
 - [ ] Health checks defined
 - [ ] Resource limits configured
-- [ ] Pre-commit hooks installed only with user consent
