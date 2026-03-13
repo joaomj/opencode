@@ -7,12 +7,11 @@ metadata:
 ---
 
 ## What I do
-- Search Jira issues in the configured project assigned to the authenticated user.
+- Search Jira issues assigned to the authenticated user.
 - Read one assigned issue by key.
 - Update assigned issues by either transitioning status or replacing description.
 
 ## Hard limits
-- Only operate on issues in the project specified by `JIRA_PROJECT_KEY`.
 - Only operate on issues assigned to `currentUser()`.
 - Allowed writes are only:
   - status transitions
@@ -20,12 +19,7 @@ metadata:
 - Never create, delete, reassign, comment, or edit any other fields.
 
 ## Command runner
-ALWAYS run this first to load environment variables:
-```bash
-(set -a; source .env; set +a)
-```
-
-Then use the helper script for every Jira action:
+Use the helper script for every Jira action:
 
 ```bash
 python3 ".opencode/skills/jira-issues/bin/jira_issue.py" search --limit 20
@@ -46,7 +40,6 @@ All variables are required:
 - `JIRA_BASE_URL` - Your Jira instance URL (e.g., `https://yourcompany.atlassian.net`)
 - `JIRA_EMAIL` - Your Jira account email (or pass `--jira-email` to the helper)
 - `JIRA_API_KEY` - Your Jira API key
-- `JIRA_PROJECT_KEY` - The project key to operate within (e.g., `PROJ`)
 
 ## Error handling
 - If `JIRA_EMAIL` is missing, ask the user for their Jira email and rerun using `--jira-email`.

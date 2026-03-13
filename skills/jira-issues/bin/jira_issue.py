@@ -18,7 +18,7 @@ class JiraConfig:
     base_url: str
     email: str
     api_key: str
-    project_key: str
+    project_key: str = ""
 class ADFDocument(TypedDict):
     type: str
     version: int
@@ -29,14 +29,12 @@ REQUIRED_ENV_KEYS: tuple[str, ...] = (
     "JIRA_BASE_URL",
     "JIRA_EMAIL",
     "JIRA_API_KEY",
-    "JIRA_PROJECT_KEY",
 )
 
 ENV_ALIASES: dict[str, tuple[str, ...]] = {
     "JIRA_BASE_URL": ("JIRA_URL",),
     "JIRA_EMAIL": ("JIRA_USER_EMAIL", "ATLASSIAN_EMAIL"),
     "JIRA_API_KEY": ("JIRA_API_TOKEN", "JIRA_TOKEN", "ATLASSIAN_API_TOKEN"),
-    "JIRA_PROJECT_KEY": ("JIRA_PROJECT",),
 }
 
 
@@ -124,25 +122,17 @@ def load_config(args: argparse.Namespace) -> JiraConfig:
     base_url = os.environ.get("JIRA_BASE_URL", "").rstrip("/")
     if not base_url:
         raise JiraError("Missing JIRA_BASE_URL in environment. Set it to your Jira instance URL.")
-    project_key = os.environ.get("JIRA_PROJECT_KEY", "").upper()
-    if not project_key:
-        raw_issue_key = getattr(args, "issue_key", "")
-        if isinstance(raw_issue_key, str) and "-" in raw_issue_key:
-            project_key = raw_issue_key.split("-", 1)[0].upper()
-    if not project_key:
-        raise JiraError("Missing JIRA_PROJECT_KEY in environment. Set it to your Jira project key.")
     return JiraConfig(
         base_url=base_url,
         email=email,
         api_key=api_key,
-        project_key=project_key,
     )
 
 def parse_issue_key(project_key: str, raw_key: str) -> str:
     key: str = raw_key.strip().upper()
     if not re.match(r"^[A-Z]+-\d+$", key):
         raise JiraError(f"Issue key must match PROJECTKEY-<number> (got: {raw_key})")
-    if not key.startswith(f"{project_key}-"):
+    if project_key and not key.startswith(f"{project_key}-"):
         raise JiraError(f"Issue key must be in project {project_key} (got: {key})")
     return key
 
@@ -206,10 +196,11 @@ def ensure_assigned_issue(issue: dict[str, Any], project_key: str, account_id: s
     fields: Any = issue.get("fields")
     if not isinstance(fields, dict):
         raise JiraError("Unexpected Jira payload: missing fields")
-    project: Any = fields.get("project")
-    issue_project_key: Any = project.get("key") if isinstance(project, dict) else None
-    if not isinstance(issue_project_key, str) or issue_project_key.upper() != project_key:
-        raise JiraError(f"Issue is outside allowed project {project_key}")
+    if project_key:
+        project: Any = fields.get("project")
+        issue_project_key: Any = project.get("key") if isinstance(project, dict) else None
+        if not isinstance(issue_project_key, str) or issue_project_key.upper() != project_key:
+            raise JiraError(f"Issue is outside allowed project {project_key}")
     assignee: Any = fields.get("assignee")
     assignee_id: Any = assignee.get("accountId") if isinstance(assignee, dict) else None
     if assignee_id != account_id:
@@ -294,7 +285,9 @@ def adf_to_text(raw: Any) -> str:
 
 
 def build_jql(project_key: str, extra_jql: str | None, include_done: bool) -> str:
-    clauses: list[str] = [f'project = "{project_key}"', "assignee = currentUser()"]
+    clauses: list[str] = ["assignee = currentUser()"]
+    if project_key:
+        clauses.insert(0, f'project = "{project_key}"')
     if not include_done:
         clauses.append("resolution = Unresolved")
     if extra_jql:
