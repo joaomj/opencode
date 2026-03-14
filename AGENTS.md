@@ -17,6 +17,8 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |User says "commit" OR "/commit"|Run `/commit` command with semantic filtering and conventional commits|
 |See `import X` (X not stdlib)|ASK: "Fetch up-to-date docs for X?" → if yes: Fetch Context7 docs|
 |Context7 fetch fails|Ask user: "Proceed without docs?"|
+|Task completed|ASK: "Update daily activity log?" → if yes: `/skill standup-prep`|
+|Phase gate passed|Run `/commit` to save progress|
 
 ### Python Non-Negotiables
 |Rule|Violation=STOP|
