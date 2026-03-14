@@ -7,24 +7,19 @@ set -euo pipefail
 RAW_URL="https://raw.githubusercontent.com/joaomj/opencode/main"
 
 echo "Downloading pre-commit config..."
-curl -sSL "$RAW_URL/instructions/.pre-commit-config.yaml" -o .pre-commit-config.yaml
+curl -sSL "$RAW_URL/.pre-commit-config.yaml" -o .pre-commit-config.yaml
 
 echo "Downloading check_file_length.py..."
 mkdir -p .hooks
-curl -sSL "$RAW_URL/instructions/check_file_length.py" -o .hooks/check_file_length.py
+curl -sSL "$RAW_URL/hooks/check_file_length.py" -o .hooks/check_file_length.py
 chmod +x .hooks/check_file_length.py
 
 echo "Downloading check_test_mock_abuse.py..."
-curl -sSL "$RAW_URL/instructions/check_test_mock_abuse.py" -o .hooks/check_test_mock_abuse.py
+curl -sSL "$RAW_URL/hooks/check_test_mock_abuse.py" -o .hooks/check_test_mock_abuse.py
 chmod +x .hooks/check_test_mock_abuse.py
 
 echo "Downloading mock allowlist template..."
 curl -sSL "$RAW_URL/.test-mock-external-allowlist.example" -o .test-mock-external-allowlist.example
-
-echo "Updating config to use local hook..."
-sed -i.bak 's|python instructions/check_file_length.py|python .hooks/check_file_length.py|' .pre-commit-config.yaml
-sed -i.bak 's|python instructions/check_test_mock_abuse.py|python .hooks/check_test_mock_abuse.py|' .pre-commit-config.yaml
-rm -f .pre-commit-config.yaml.bak
 
 echo "Installing pre-commit..."
 pip install -q pre-commit

@@ -36,14 +36,14 @@ repos:
     hooks:
       - id: check-file-length
         name: Check Python file length (max 300 lines)
-        entry: python instructions/check_file_length.py
+        entry: python .hooks/check_file_length.py
         language: system
         types: [python]
         pass_filenames: true
 
       - id: check-test-mock-abuse
         name: Check test mock abuse policy
-        entry: python instructions/check_test_mock_abuse.py
+        entry: python .hooks/check_test_mock_abuse.py
         language: system
         files: (^tests/|^test/|^__tests__/|test_|_test\.|\.test\.|\.spec\.)
         pass_filenames: true
