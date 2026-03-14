@@ -13,10 +13,13 @@ TDD-driven development process with strict document ordering, approval gates, an
 Core rules defined in AGENTS.md. Workflow-specific additions:
 
 | Rule | Violation = STOP |
-|------|-----------------|
+|------|-------------------|
 | Test Driven Development (TDD) | Block if tests written AFTER implementation |
 | Chronological document order | Block if order violated |
 | Approval gates required | Block if skipped |
+| 80% coverage minimum | Block commit if below threshold |
+| Critical path coverage | Business logic MUST have tests |
+| Behavior assertions required | Tests must verify outcomes, not internals |
 
 ## Chronological Document Order for New Features
 
@@ -515,6 +518,42 @@ def test_token_refresh():
 - **For bug fixes**, add a regression test that reproduces the bug before finalizing
 - **Verify-first always**: prove behavior with automated checks before building further
 
+### TDD Phase Gate Template
+Before implementing ANY phase, verify:
+
+```markdown
+## Pre-Requisite Gate
+- [ ] Test file created: `tests/test_{module}.py` OR user declined with justification
+- [ ] At least one failing test case for feature
+- [ ] Coverage baseline established (if applicable)
+
+### Verification Commands
+pytest tests/test_{module}.py -v --cov=src/{module} --cov-fail-under=80
+```
+
+### Coverage Gate Enforcement
+```bash
+# Pre-commit hook for coverage gate
+pytest --cov --cov-fail-under=80 --cov-report=term-missing
+
+# If below threshold:
+# 1. Identify uncovered lines
+# 2. Write tests for uncovered branches
+# 3. Re-run until >=80%
+```
+
+### Test-First Workflow Enforcement
+| Step | Action | Gate |
+|------|--------|------|
+| 1 | Create test file | Required before implementation |
+| 2 | Write failing test | Must fail for right reason |
+| 3 | Run test | Confirm RED state |
+| 4 | Implement minimal code | Just enough to pass |
+| 5 | Run test | Confirm GREEN state |
+| 6 | Refactor if needed | Keep tests GREEN |
+| 7 | Check coverage | Must be >=80% |
+| 8 | Commit | Only after all gates pass |
+
 ### Example
 ```python
 # Step 1: Write failing test (RED)
@@ -594,11 +633,21 @@ todowrite([
 1. **Type hints added**: All functions have proper type hints
 2. **Error handling**: Specific exceptions, no bare except
 3. **Tests written**: All functionality covered by tests
-4. **Lint passes**: `ruff check .`
-5. **Tests pass**: `pytest`
-6. **Pre-commit hooks**: `pre-commit run --all-files` (if installed)
-7. **Documentation updated**: `/skill doc-maintenance`
-8. **Changes committed**: Use `/commit` command for automatic conventional commit message generation
+4. **Coverage >=80%**: `pytest --cov --cov-fail-under=80`
+5. **Test quality**: Behavior assertions, edge cases, error paths
+6. **Lint passes**: `ruff check .`
+7. **Tests pass**: `pytest`
+8. **Pre-commit hooks**: `pre-commit run --all-files` (if installed)
+9. **Documentation updated**: `/skill doc-maintenance`
+10. **Changes committed**: Use `/commit` command for automatic conventional commit message generation
+
+### Test Quality Checklist
+| Category | Requirement |
+|----------|-------------|
+| Behavior assertions | Tests verify outcomes, not implementation details |
+| Edge cases | Empty input, max values, negative values, null |
+| Error paths | Exception handling, invalid input, failure modes |
+| Integration | Real or fake adapters, not mocks for internal code |
 
 ## Workflow Summary
 
@@ -626,11 +675,15 @@ todowrite([
 
 ## Completion Checklist
 
-- [ ] Chronological document order followed (PRD → Design → Specs → Implementation)
+- [ ] Chronological document order followed (PRD -> Design -> Specs -> Implementation)
 - [ ] Tests written BEFORE implementation (TDD)
 - [ ] All gate criteria met
 - [ ] Approval obtained before each phase
 - [ ] All tests pass (pytest)
+- [ ] Coverage >= 80% (pytest --cov --cov-fail-under=80)
+- [ ] Behavior assertions present
+- [ ] Edge cases tested
+- [ ] Error paths tested
 - [ ] Lint passes (ruff check)
 - [ ] Type hints added
 - [ ] Error handling proper

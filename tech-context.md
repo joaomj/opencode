@@ -23,7 +23,8 @@ Skills are loaded via deterministic triggers defined in `AGENTS.md` (decision-in
 | `python-best-practices` | Type hints, error handling, Pydantic patterns, testing (pytest), logging, Ruff rules, security, dependency management (pdm) | Python |
 | `docker-best-practices` | Dockerfile patterns (non-root USER), Docker Compose (read_only), runtime security, network isolation, secrets handling | Docker |
 | `ml-best-practices` | CRISP-DM phases with STAR documentation, data quality (test set ONCE), preprocessing in Pipeline, evaluation metrics, MLflow tracking | Machine Learning |
-| `workflow-development` | Test-first where it fits (verify-first always), chronological document order (PRD→Design→Specs→Plan), approval gates, todo tracking | Workflow |
+| `workflow-development` | Test-first where it fits (verify-first always), chronological document order (PRD -->Design --> Specs --> Plan), approval gates, todo tracking | Workflow |
+| `tdd-enforcement` | TDD discipline, coverage gates (80%), test-first workflow, behavior assertions, regression tests | TDD |
 | `code-review-expert` | Dual-agent code review with P0-P3 severity classification | Code Quality |
 | `doc-maintenance` | Guidelines for identifying and pruning outdated documentation | Documentation |
 | `github-cicd-lite` | Lean GitHub Actions CI pattern (Python-first, speed + security, deploy optional) | CI/CD |
@@ -116,11 +117,36 @@ Add `.test-mock-external-allowlist` in your repo to allow external module prefix
 | simplicity | Prefer fewest moving parts. Ask "is this overkill?" before abstractions. |
 | no-emojis | Never use emojis in code, docs, or communication. |
 | security | No secrets in code. Use .env + pydantic-settings. Validate all inputs. |
+| tdd-first | Test-first where it fits. Business logic needs tests. Bug fixes need regression tests. Config/spike work exempt. |
+| testing-policy | Prefer behavior/state assertions and real integrations; mock only external boundaries by default. |
 | env-files | Never view .env content. Read tool, cat, scripts printing envs are FORBIDDEN. Scripts can LOAD .env internally. Use .env.example for schema reference. |
 | python-deps | When changing/adding Python dependencies, you MUST use `pdm` commands, not directly edit `pyproject.toml`. |
 | tech-context | docs/tech-context.md is the Single-File Memory Bank. |
 | ml-reporting | ML projects must include a CRISP-DM Build Report in docs/tech-context.md. Each phase documented with STAR. |
 | doc-maintenance | Review documentation for obsolete content during code reviews, after major refactors, or when explicitly asked. |
+
+### TDD Non-Negotiables
+
+| Rule | Violation |
+|------|-----------|
+| Test-first for new features | WARN + require justification if skipped |
+| 80% coverage threshold | Block commit if below |
+| Critical path coverage | Business logic MUST have tests |
+| Behavior assertions | Tests must verify outcomes, not internals |
+| Bug fixes need regression tests | Block fix until test reproduces bug |
+
+### TDD Workflow
+
+1. **RED**: Write failing test for feature/bug
+2. **GREEN**: Write minimal code to pass
+3. **REFACTOR**: Improve while keeping tests green
+4. **VERIFY**: Coverage >= 80%, all tests pass
+5. **COMMIT**: Only after all gates pass
+
+**Test-First Triggers:**
+- User says "implement" -> ASK: "Create test scaffold first?"
+- User says "fix bug" -> Block: "Write regression test that reproduces bug first"
+- Implementation without test file -> WARN: "No test found for this implementation"
 
 ### Ruff Configuration
 

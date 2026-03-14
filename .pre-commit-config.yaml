@@ -48,6 +48,16 @@ repos:
         files: (^tests/|^test/|^__tests__/|test_|_test\.|\.test\.|\.spec\.)
         pass_filenames: true
 
+      # Optional: TDD coverage gate (requires pytest-cov)
+      # Uncomment to enforce 80% coverage before commit
+      # - id: tdd-coverage-gate
+      #   name: TDD coverage gate (80% minimum)
+      #   entry: pytest --cov --cov-fail-under=80 --cov-report=term-missing
+      #   language: system
+      #   pass_filenames: false
+      #   stages: [pre-commit]
+      #   always_run: true
+
   # Prevent commits to main/master
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0

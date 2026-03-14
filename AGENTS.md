@@ -45,6 +45,16 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |Confusion matrix generated|Block if missing|
 |Baseline comparison done|Block if missing|
 
+### TDD Non-Negotiables
+|Rule|Violation=STOP|
+|------|-----------|
+|Test-first for new features|WARN + require justification if skipped|
+|80% coverage threshold|Block commit if below threshold|
+|Critical path coverage|Business logic MUST have tests|
+|Behavior assertions required|Tests must verify outcomes, not internals|
+|No orphan test files|Tests must correspond to production code|
+|Bug fixes need regression tests|Block fix until test reproduces bug|
+
 ---
 
 ## DETERMINISTIC SKILL TRIGGERS
@@ -56,7 +66,9 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |"update docs" OR "prune docs" OR "clean up docs" OR "update documentation" OR "/update-docs"|`/skill doc-maintenance`|
 |"write a cicd pipeline" OR "write a ci/cd pipeline" OR "write a ci pipeline" OR "github actions pipeline" OR "set up github actions" OR "create github workflow" OR "/cicd"|`/skill github-cicd-lite`|
 |"scrape this url/website/article" OR "save this blog post/newsletter" OR "add to my reading queue"|`/skill firecrawl-web-scraper`|
-|"use [library]" OR "implement with [library]" OR "using [library]" OR "with [library]" OR "add [library]"|ASK: "Fetch up-to-date docs for [library]?"|
+|"use [library]" OR "implement with [library]" OR "using [library]" OR "with [library]" OR "add [library]"ASK: "Fetch up-to-date docs for [library]?"|
+|"implement" OR "write X function" OR "build feature" OR "create endpoint" OR "add feature"|ASK: "Create test scaffold first?"|
+|"fix bug" OR "fix this bug" OR "bug fix"|Block: "Write regression test that reproduces bug first"|
 
 ### File Pattern Triggers (BEFORE reading file)
 |File Pattern|Action|
@@ -102,6 +114,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |Docker/containerization|`/skill docker-best-practices`|
 |Machine learning|`/skill ml-best-practices`|
 |Workflow/TDD development|`/skill workflow-development`|
+|TDD enforcement|`/skill tdd-enforcement`|
 |Code review|`/skill code-review-expert`|
 |Documentation maintenance|`/skill doc-maintenance`|
 |GitHub CI/CD|`/skill github-cicd-lite`|
@@ -261,6 +274,7 @@ Installation command: `curl -sSL https://raw.githubusercontent.com/joaomj/openco
 |simplicity|Prefer fewest moving parts. Ask "is this overkill?" before abstractions.|
 |no-emojis|Never use emojis in code, docs, or communication.|
 |security|No secrets in code. Use .env + pydantic-settings. Validate all inputs.|
+|tdd-first|Test-first where it fits. Business logic needs tests. Bug fixes need regression tests. Config/spike work exempt.|
 |testing-policy|Prefer behavior/state assertions and real integrations; mock only external boundaries by default.|
 |env-files|Never view .env content. Read tool, cat, scripts printing envs are FORBIDDEN. Scripts can LOAD .env internally. Use .env.example for schema reference.|
 |python-deps|When changing/adding Python dependencies, you MUST use `pdm add`, not direct pyproject.toml edit.|
