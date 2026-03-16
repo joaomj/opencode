@@ -8,6 +8,16 @@ license: MIT
 
 TDD-driven development process with strict document ordering, approval gates, and verification checkpoints.
 
+## When to Use This Skill vs Others
+
+| Skill | Use When |
+|-------|----------|
+| `implementation-planning` | ANY implementation request. Quick planning, tradeoffs, approval. Start here for most requests. |
+| `workflow-development` | FORMAL feature development requiring full documentation suite (this skill). Use for complex features needing PRD, Design, Specs. |
+| `tdd-enforcement` | DURING implementation to enforce test-first practices. |
+
+**Flow:** `implementation-planning` → (if formal process needed) → `workflow-development` → (during coding) → `tdd-enforcement`
+
 ## Non-Negotiable Rules (STOP if violated)
 
 Core rules defined in AGENTS.md. Workflow-specific additions:

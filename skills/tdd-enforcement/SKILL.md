@@ -2,6 +2,16 @@
 
 Enforces Test-Driven Development practices with configurable strictness and coverage gates.
 
+## When to Use This Skill vs Others
+
+| Skill | Use When |
+|-------|----------|
+| `implementation-planning` | BEFORE coding: planning, tradeoffs, approval. |
+| `workflow-development` | BEFORE coding: formal documentation (PRD, Design, Specs). |
+| `tdd-enforcement` | DURING coding: enforce test-first practices (this skill). |
+
+**Flow:** `implementation-planning` → (if formal process needed) → `workflow-development` → (during coding) → `tdd-enforcement`
+
 ## Non-Negotiable Rules (STOP if violated)
 
 | Rule | Violation = STOP |
