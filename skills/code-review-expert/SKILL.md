@@ -1,11 +1,58 @@
 ---
 name: code-review-expert
-description: Expert code review with P0-P3 severity levels, covering SOLID principles, security risks, performance issues, and code quality. Uses independent sub-agents with automatic fallback to session model. Execution: Try both subagents → proceed with available reviewers → main agent fallback only if both fail.
+description: Expert code review with P0-P3 severity levels, covering SOLID principles, security risks, performance issues, and code quality. Uses independent sub-agents with graceful degradation. Execution: Try both subagents → proceed with available reviewers → main agent fallback only if both fail. Task-scoped reviews focus only on relevant code changes.
 license: MIT
 ---
 # Code Review Expert
 
 Comprehensive checklists for thorough code reviews with actionable severity levels.
+
+## Task-Scoped Reviews
+
+**IMPORTANT**: Code reviews should focus ONLY on code directly related to the current task context:
+
+| Task Context Type | How to Scope |
+|-------------------|--------------|
+| Jira Issue | Review only files changed to address the issue |
+| Task Plan | Review only files modified to implement the plan |
+| Feature Request | Review only files related to the feature |
+| Bug Fix | Review only files touched by the fix |
+| Refactor | Review only files within refactor scope |
+
+**Before reviewing**, identify the task context:
+1. Ask user: "What is the task context for this review?" (Jira issue, plan file, feature description, etc.)
+2. If user provides context, extract the specific files/functions involved
+3. Limit review scope to those files and their direct dependencies
+4. Do NOT review unrelated code, even if in same changed files
+
+**Task Context Prompt Template**:
+```
+Task Context: <jira-issue/plan-file/feature-description>
+Scope: <list of files/functions directly related>
+Exclude from review: <files/sections unrelated to task>
+```
+
+## Graceful Degradation (No Stalling)
+
+**CRITICAL**: The review process MUST NEVER stall or wait indefinitely:
+
+| Failure Scenario | Immediate Action |
+|------------------|------------------|
+| subagent timeout (>30s) | Skip that subagent, continue with others |
+| subagent error/exception | Log error, skip subagent, continue |
+| subagent returns empty | Proceed with other reviewers |
+| ALL subagents fail | Main agent performs full review |
+| Partial subagent response | Use what's available, main agent supplements |
+
+**Timeout Behavior**:
+- Each subagent call has a 30-second timeout
+- On timeout: Continue with available results
+- Never retry failed subagents during same review
+
+**Error Handling**:
+- Subagent errors are logged in report: `Execution: Single reviewer (reviewer-2 timed out after 30s)`
+- User is informed of degradation: "Review completed with N reviewers" where N may be 0, 1, or 2
+- Quality is maintained by fallback reviewers, not by retrying
 
 ## Model Availability & Fallback
 
@@ -91,77 +138,116 @@ Before deleting code:
 - Verify no dynamic references
 - Create removal PR with clear rationale
 
-### 7. Model Fallback Behavior
-
-When a reviewer sub-agent cannot use its configured model (e.g., no API key, quota exceeded, provider unreachable):
-
-1. **Automatic Detection**: The agent detects model unavailability during initialization
-2. **Graceful Degradation**: The current session's model is used instead
-3. **Transparent Operation**: The review proceeds with the same checklists and output format
-4. **Quality Assurance**: All models (primary or fallback) apply identical review criteria
-
-**What this means for you**:
-- No action required if a reviewer model is unavailable
-- Code review continues without interruption
-- Multiple independent reviews still happen (ensuring diverse perspectives)
-- Output format and severity classification remain consistent
-
-**Edge cases**:
-- If ALL reviewer models fail to initialize, the skill uses the session model for both reviewers
-- This maintains the dual-reviewer requirement while ensuring availability
-
 ## Review Execution Flow (For Main Agent)
 
 When invoking the code-review-expert skill, follow this exact execution flow:
 
-### Step 1: Try to Invoke Both Subagents (Parallel)
+### Step 0: Identify Task Context (REQUIRED)
 
-Always attempt to invoke BOTH subagents in parallel:
-- `task(subagent_type="code-reviewer-1", ...)` with the review scope
-- `task(subagent_type="code-reviewer-2", ...)` with the review scope
+**ALWAYS ask the user for task context before reviewing**:
 
-**Do NOT check model availability beforehand** - let the subagents handle their own fallback.
+Ask the user:
+```
+What is the task context for this review?
+Options:
+1. Add Jira issue number (e.g., PROJ-123)
+2. Provide path to task plan file
+3. Describe the feature/bug being addressed
+4. Specify files to review manually
+```
 
-### Step 2: Determine Available Reviewers
+Once context is provided:
+1. Extract the specific scope (files, functions, modules)
+2. Identify which changed files are directly related vs tangential
+3. Create a review scope document
 
-After invocation, determine how many reviewers succeeded:
+**If user cannot provide context**: Ask if they want a full review of all changes, then proceed.
 
-| Scenario | Action |
-|----------|--------|
-| **Both succeed** | Proceed with dual-reviewer workflow |
-| **Only reviewer-1 succeeds** | Continue with single reviewer (reviewer-1) |
-| **Only reviewer-2 succeeds** | Continue with single reviewer (reviewer-2) |
-| **Both fail** | Perform the review yourself using the current session model |
+### Step 1: Try to Invoke Subagents (Parallel with Timeout)
 
-### Step 3: Process Reviewer Output
+Attempt to invoke BOTH subagents in parallel with explicit 30-second timeouts:
 
-If 1 or 2 reviewers succeed:
-1. Collect JSON arrays from all successful reviewers
+```
+task(subagent_type="code-reviewer-1", timeout=30000, ...) 
+task(subagent_type="code-reviewer-2", timeout=30000, ...)
+```
+
+**Include task context in each subagent prompt**:
+- Pass the task scope (files, context)
+- Instruct subagent to focus ONLY on task-related code
+
+**If a subagent times out or errors**:
+- Log the failure with reason
+- DO NOT retry
+- DO NOT wait
+- Continue with available reviewers
+
+### Step 2: Determine Available Reviewers (Non-Blocking)
+
+Immediately after timeout/error, determine available reviewers:
+
+| Scenario | Action | Log Message |
+|----------|--------|-------------|
+| **Both succeed** | Proceed with dual-reviewer workflow | "Dual reviewer execution" |
+| **reviewer-1 succeeds, reviewer-2 fails** | Continue with reviewer-1 only | "Single reviewer (reviewer-2: <error reason>)" |
+| **reviewer-2 succeeds, reviewer-1 fails** | Continue with reviewer-2 only | "Single reviewer (reviewer-1: <error reason>)" |
+| **Both fail/timeout** | Main agent performs review | "All subagents unavailable (<reasons>)" |
+
+**Never block**: If any reviewer returns data, process it immediately.
+
+### Step 3: Process and Merge Reviewer Output
+
+If reviewers succeed (any count):
+1. Collect findings from all successful reviewers
 2. Merge findings, deduplicating by (file, line, severity, issue_title)
-3. Group by file, prioritize P0 > P1 > P2 > P3
-4. Write CODE_REVIEW.md with consolidated report
+3. Filter findings to task scope only (discard unrelated issues)
+4. Group by file, prioritize P0 > P1 > P2 > P3
 
-If both reviewers fail:
+If all reviewers fail:
 1. Load the code-review-expert skill checklists yourself
 2. Perform the review against all checklists
-3. Generate findings in the same JSON format
-4. Write CODE_REVIEW.md with the consolidated report
+3. Focus review on task-scoped files only
+4. Generate findings in the same JSON format
 
-### Step 4: Report Execution
+### Step 4: Ask User Before Writing Report (REQUIRED)
+
+**BEFORE writing CODE_REVIEW.md, ask the user**:
+
+```
+Review completed. Found:
+- P0: X critical issues
+- P1: Y high priority issues  
+- P2: Z medium priority issues
+- P3: W low priority issues
+
+Write the review report to CODE_REVIEW.md? (yes/no)
+```
+
+**If user says "yes"**: Write CODE_REVIEW.md
+**If user says "no"**: Present findings inline, do NOT create file
+
+### Step 5: Write Report (After User Approval)
 
 In CODE_REVIEW.md, include:
 
 **Review Execution Note** (add after Review Scope line):
-- If 2 reviewers: "Dual reviewer execution completed"
-- If 1 reviewer: "Single reviewer execution (reviewer-X unavailable)"
-- If 0 reviewers: "All subagents unavailable, review performed by main agent using session model"
+```markdown
+**Task Context**: <jira-issue/plan-file/description>
+**Execution**: <dual/single/fallback> - <details>
+**Reviewers**: code-reviewer-1, code-reviewer-2
+**Scope**: Focused on task-related code only
+```
 
 ### Key Principles
 
-- **Never block the review** - proceed with whatever reviewers are available
-- **Prefer subagents** - only do the review yourself if both subagents fail
-- **Maintain quality** - use the same checklists regardless of who performs the review
-- **Transparency** - clearly document in the report how the review was executed
+| Principle | Behavior |
+|-----------|----------|
+| **Never stall** | Proceed with available results, never wait or retry |
+| **Never block** | If subagent fails, use fallback immediately |
+| **Task-scoped** | Review only code directly related to the task |
+| **User approval** | Always ask before writing the review document |
+| **Transparency** | Document execution mode and any failures |
+| **Quality maintains** | Same checklists regardless of who performs the review |
 
 ## CODE_REVIEW.md Output Format
 
@@ -169,8 +255,11 @@ In CODE_REVIEW.md, include:
 # Code Review Report
 
 **Review Scope**: `<git-diff-scope>`
+**Task Context**: `<jira-issue OR plan-file OR feature-description>`
+**Task Scope**: `<files/functions directly related to task>`
+**Excluded**: `<files/sections excluded from this review>`
 **Iteration**: `N` of `3`
-**Execution**: `<execution-note>`
+**Execution**: `<execution-mode>` - `<details>`
 **Reviewers**: code-reviewer-1, code-reviewer-2
 *Note: Models are configured in agents/code-reviewer-*.md; fallback to session model may occur automatically if primary is unavailable.*
 
@@ -181,6 +270,8 @@ In CODE_REVIEW.md, include:
 - P2: `Z` - Medium priority (fix or follow-up)
 - P3: `W` - Low priority (optional)
 
+**Note**: This review is scoped to the task context. Issues in unrelated code are not included.
+
 ## Findings by File
 
 ### file/path.py (P0, P1, P2, P3)
@@ -190,8 +281,16 @@ In CODE_REVIEW.md, include:
 - **Severity**: P0
 - **Description**: Issue details
 - **Fix**: Recommended fix
+- **Task Relation**: How this relates to the current task
 
 [Repeat for all issues]
+
+## Execution Details
+
+| Reviewer | Status | Notes |
+|----------|--------|-------|
+| code-reviewer-1 | success/timeout/error | Details if failed |
+| code-reviewer-2 | success/timeout/error | Details if failed |
 
 ## Iteration History
 
