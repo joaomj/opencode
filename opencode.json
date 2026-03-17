@@ -24,7 +24,7 @@
       "*": "allow"
     }
   },
-  "small_model": "opencode-go/minimax-m2.5",
+  "small_model": "opencode/minimax-m2.5-free",
   "agent": {
     "code-reviewer-1": {
       "mode": "subagent",
