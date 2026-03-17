@@ -7,11 +7,9 @@
   "permission": {
     "bash": {
       "*": "allow",
-      "git *": "ask",
-      "git status *": "allow",
-      "git diff *": "allow",
-      "git log *": "allow",
-      "git show *": "allow",
+      "git commit *": "ask",
+      "git push *": "ask",
+      "git merge *": "ask",
       "npm *": "ask",
       "rm *": "ask",
       "ssh *": "ask",
@@ -24,7 +22,7 @@
       "*": "allow"
     }
   },
-  "small_model": "opencode/minimax-m2.5-free",
+  "small_model": "opencode-go/minimax-m2.5",
   "agent": {
     "code-reviewer-1": {
       "mode": "subagent",
