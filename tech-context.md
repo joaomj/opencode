@@ -220,14 +220,13 @@ This approach:
 - Allows fast scanning without parsing natural language
 - Follows Vercel's pattern for their AI systems
 
-### Dual-Agent Code Review
+### Code Review
 
-Code reviews use two independent reviewers that cross-check each other:
-
-1. **Reviewer 1** (agents/code-reviewer-1.md) - Primary reviewer
-2. **Reviewer 2** (agents/code-reviewer-2.md) - Secondary reviewer for validation
-
-Findings are consolidated with severity classification (P0-P3).
+Code reviews use the code-review-expert skill with severity classification (P0-P3):
+- Task-scoped reviews focus only on relevant code changes
+- Ask user for context before reviewing
+- Ask user before writing review document
+- Single reviewer flow (no subagents) for reliability
 
 ### Skill-Based Architecture Benefits
 

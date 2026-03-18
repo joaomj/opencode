@@ -1,32 +1,27 @@
 ---
-description: Perform dual-subagent code review with P0-P3 severity levels
+description: Perform code review with P0-P3 severity levels
 ---
 
 ## Execution Flow
 
-1. **Invoke Both Subagents in Parallel**
-   - code-reviewer-1
-   - code-reviewer-2
-   - Pass identical scope to both reviewers
+1. **Identify Task Context**
+   - Ask user for task context (Jira issue, plan file, feature description)
+   - Extract specific files/functions related to the task
+   - Focus review scope on task-related code only
 
-2. **Handle Availability**
-   - **Both succeed** → Proceed with dual-reviewer workflow
-   - **Only one succeeds** → Continue with single reviewer
-   - **Both fail** → Perform review yourself using session model
+2. **Analyze Code Against Checklists**
+   - Get git diff for the scope
+   - Apply all checklists: SOLID, security, performance, code quality
+   - Categorize findings by severity (P0-P3)
+   - Filter findings to task scope only
 
-3. **Process Results**
-   - Merge findings from successful reviewers (deduplicate by file, line, severity, issue)
-   - Group by file, prioritize P0 > P1 > P2 > P3
-   - Write CODE_REVIEW.md at project root with consolidated report
+3. **Ask User Before Writing Report**
+   - Present summary of findings (P0/P1/P2/P3 counts)
+   - Get approval before creating CODE_REVIEW.md
 
-4. **Document Execution**
-   - Include execution note in CODE_REVIEW.md (2 reviewers / 1 reviewer / main agent)
-
-## Fallback Behavior
-
-- Subagents automatically fall back to session model if primary is unavailable (no API key, quota exceeded, etc.)
-- Main agent only performs review if BOTH subagents fail
-- Review process never blocks - always completes with available reviewers
+4. **Write Report (After Approval)**
+   - Write CODE_REVIEW.md at project root
+   - Include task context, scope, and iteration history
 
 Default scope: git diff origin/main...HEAD
 
@@ -34,11 +29,6 @@ Custom scopes available:
 - "from feature-x to main" - branch comparison
 - "commit abc123 vs def456" - commit comparison
 - "PR #42" - pull request review
-
-After both subagents complete:
-1. Merge findings, deduplicating by (file, line, severity, issue title)
-2. Group by file, prioritize P0 > P1 > P2 > P3
-3. Write CODE_REVIEW.md at project root with consolidated report
 
 Severity levels:
 - P0: Critical (must block merge)
