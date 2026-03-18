@@ -345,6 +345,29 @@ def cmd_get(args: argparse.Namespace, config: JiraConfig) -> int:
     return 0
 
 
+def cmd_get_comments(args: argparse.Namespace, config: JiraConfig) -> int:
+    issue_key: str = parse_issue_key(config.project_key, args.issue_key)
+    account_id: str = current_account_id(config)
+    issue: dict[str, Any] = issue_by_key(config, issue_key)
+    ensure_assigned_issue(issue, config.project_key, account_id)
+    response: Any = jira_request(config, "GET", f"/rest/api/3/issue/{issue_key}/comment")
+    comments_raw: Any = response.get("comments", []) if isinstance(response, dict) else []
+    comments: list[dict[str, Any]] = []
+    for c in comments_raw:
+        if not isinstance(c, dict):
+            continue
+        author: Any = c.get("author")
+        comments.append(
+            {
+                "author": author.get("displayName") if isinstance(author, dict) else None,
+                "created": c.get("created"),
+                "body": adf_to_text(c.get("body")),
+            }
+        )
+    print(json.dumps({"key": issue_key, "comments": comments}, indent=2))
+    return 0
+
+
 def cmd_transition(args: argparse.Namespace, config: JiraConfig) -> int:
     issue_key: str = parse_issue_key(config.project_key, args.issue_key)
     account_id: str = current_account_id(config)
@@ -411,6 +434,9 @@ def build_parser() -> argparse.ArgumentParser:
     get_cmd = subparsers.add_parser("get", help="Read one assigned issue")
     get_cmd.add_argument("issue_key", help="Issue key, for example TDT-123")
     get_cmd.set_defaults(handler=cmd_get)
+    get_comments = subparsers.add_parser("get-comments", help="Read comments on an assigned issue")
+    get_comments.add_argument("issue_key", help="Issue key, for example TDT-123")
+    get_comments.set_defaults(handler=cmd_get_comments)
     transition = subparsers.add_parser("transition", help="Transition one assigned issue")
     transition.add_argument("issue_key", help="Issue key, for example TDT-123")
     transition.add_argument("transition", help="Transition name or id")

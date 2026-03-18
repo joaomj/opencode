@@ -9,6 +9,7 @@ metadata:
 ## What I do
 - Search Jira issues assigned to the authenticated user.
 - Read one assigned issue by key.
+- Read comments on assigned issues.
 - Update assigned issues by either transitioning status or replacing description.
 
 ## Hard limits
@@ -25,6 +26,7 @@ Use the helper script for every Jira action:
 python3 ".opencode/skills/jira-issues/bin/jira_issue.py" search --limit 20
 python3 ".opencode/skills/jira-issues/bin/jira_issue.py" search --jql "status = \"In Progress\""
 python3 ".opencode/skills/jira-issues/bin/jira_issue.py" get PROJECTKEY-123
+python3 ".opencode/skills/jira-issues/bin/jira_issue.py" get-comments PROJECTKEY-123
 python3 ".opencode/skills/jira-issues/bin/jira_issue.py" transition PROJECTKEY-123 "In Progress"
 python3 ".opencode/skills/jira-issues/bin/jira_issue.py" update-description PROJECTKEY-123 --text "Updated details"
 ```
