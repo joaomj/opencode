@@ -118,7 +118,27 @@ Installation: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/
 1. Check git identity: `git config user.name && git config user.email`
 2. Check remote URL: `git remote -v`
 3. If GitHub remote: `gh auth status` (fallback: `ssh -T git@github.com`)
-4. If identity mismatch: Present both identities, ask user which to use
+4. **Check SSH key alignment**:
+   ```bash
+   REMOTE_URL=$(git remote get-url origin 2>/dev/null)
+   if [[ "$REMOTE_URL" == git@* ]]; then
+       SSH_HOST=$(echo "$REMOTE_URL" | sed 's/.*@//' | sed 's/:.*//')
+       EXPECTED_KEY=$(ssh -G "$SSH_HOST" 2>/dev/null | grep '^identityfile' | head -1 | awk '{print $2}' | sed "s|~|$HOME|")
+       LOADED_KEYS=$(ssh-add -l 2>/dev/null | awk '{print $3}')
+       if [[ -n "$EXPECTED_KEY" ]] && ! echo "$LOADED_KEYS" | grep -q "$EXPECTED_KEY"; then
+           echo "SSH Key Mismatch Detected"
+           echo "  Expected key: $EXPECTED_KEY"
+           echo "  Currently loaded: $LOADED_KEYS"
+           # Prompt user to switch
+           read -p "Switch SSH agent to correct profile? (y/n) " response
+           if [[ "$response" =~ ^[Yy]$ ]]; then
+               ssh-add -D
+               ssh-add "$EXPECTED_KEY"
+           fi
+       fi
+   fi
+   ```
+5. If identity mismatch: Present both identities, ask user which to use
 
 ### When to Invoke `/commit`
 - After completing a logical unit of work
