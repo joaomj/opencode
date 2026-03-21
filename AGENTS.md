@@ -23,18 +23,20 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |Phase gate passed|Run `/commit` to save progress|
 
 ### Non-Negotiable Rules
-|Domain|Rule|Violation|Load Skill|
-|------|----|---------|----------|
-|Python|Every function has type hints|Block if missing|`python-best-practices`|
-|Python|No raw dicts for API schemas|Block if detected|`python-best-practices`|
-|Python|Use `pdm add X` for deps|Block if direct pyproject.toml edit|`python-best-practices`|
-|Python|Never view .env content|Block if attempted|`python-best-practices`|
-|Docker|Dockerfile has non-root USER|Block if missing|`docker-best-practices`|
-|Docker|No privileged: true|Block if detected|`docker-best-practices`|
-|ML|Test set touched ONCE only|Block if multiple accesses|`ml-best-practices`|
-|ML|Confusion matrix generated|Block if missing|`ml-best-practices`|
-|TDD|Test-first for new features|Block until failing test exists|`tdd-enforcement`|
-|TDD|80% coverage minimum|Block commit if below|`tdd-enforcement`|
+|Rule ID|Domain|Rule|Enforcement|Load Skill|
+|-------|------|----|-----------|----------|
+|OC005|Python|Every function has type hints|Pre-commit mypy|`python-best-practices`|
+|OC001|Python|No raw dicts for API schemas|Lint + Pre-commit|`python-best-practices`|
+|—|Python|Use `pdm add X` for deps|Manual review|`python-best-practices`|
+|OC002|Python|Never view .env content|Lint + Pre-commit|`python-best-practices`|
+|—|Docker|Dockerfile has non-root USER|Hadolint DL3002|`docker-best-practices`|
+|OC003|Docker|No privileged containers|Lint + Pre-commit|`docker-best-practices`|
+|—|ML|Test set touched ONCE only|Manual review|`ml-best-practices`|
+|—|ML|Confusion matrix generated|Manual review|`ml-best-practices`|
+|—|TDD|Test-first for new features|Manual review|`tdd-enforcement`|
+|—|TDD|80% coverage minimum|Optional pre-commit|`tdd-enforcement`|
+
+**Lint Rules Reference:** See `opencode_lint/` directory. Based on Factory.ai "Linters as Law Enforcement" concept.
 
 ---
 
@@ -184,3 +186,27 @@ Installation: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/
 |python-deps|Use `pdm add`, not direct pyproject.toml edit.|
 |tech-context|MANDATORY: docs/tech-context.md is single source of truth.|
 |doc-maintenance|After completing a task, ASK: "Update documentation?"|
+
+---
+
+## LINT RULES REFERENCE (Factory.ai Concept)
+
+All rules are enforced via `opencode-lint` package. Run with: `python -m opencode_lint.cli`
+
+|Rule ID|Category|Description|Severity|Auto-fix|
+|-------|--------|-------------|--------|--------|
+|OC001|Type Safety|No raw dicts for API schemas - Use Pydantic models|Error|No|
+|OC002|Security|Never view .env content - Use os.getenv() or pydantic-settings|Error|No|
+|OC003|Security|No privileged containers in docker-compose|Error|No|
+|OC004|Grep-ability|Absolute imports preferred over relative|Warning|No|
+|OC005|Type Safety|Strict type hints required for all functions|Warning|No|
+
+### How It Works (Factory.ai Pattern)
+
+1. **Agent generates code**
+2. **Lint check runs** (`python -m opencode_lint.cli`)
+3. **Violations displayed with Rule ID**
+4. **Agent warns user**: "Fix OC001 violation? (y/n)"
+5. **Pre-commit blocks** if violations remain
+
+This implements the Factory.ai concept: "Linters are the executable spec that ties human intent to agent output."
