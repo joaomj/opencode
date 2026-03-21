@@ -10,13 +10,13 @@ repos:
         args: [--fix]
       - id: ruff-format
 
-  # Mypy - Type checking
+  # Mypy - Type checking (strict for OC005)
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.10.0
     hooks:
       - id: mypy
         additional_dependencies: [types-all]
-        args: [--ignore-missing-imports]
+        args: [--ignore-missing-imports, --disallow-untyped-defs, --check-untyped-defs]
 
   # Gitleaks - Secret detection (CRITICAL)
   - repo: https://github.com/gitleaks/gitleaks
@@ -46,6 +46,15 @@ repos:
         entry: python .hooks/check_test_mock_abuse.py
         language: system
         files: (^tests/|^test/|^__tests__/|test_|_test\.|\.test\.|\.spec\.)
+        pass_filenames: true
+
+      # OpenCode Lint - AGENTS.md rules (OC001-OC005)
+      # Factory.ai concept: "Linters as Law Enforcement"
+      - id: opencode-lint
+        name: OpenCode custom rules (AGENTS.md)
+        entry: python -m opencode_lint.cli --pre-commit
+        language: system
+        files: \.(py|yaml|yml)$
         pass_filenames: true
 
       # Optional: TDD coverage gate (requires pytest-cov)
