@@ -1,19 +1,26 @@
-{  "$schema": "https://opencode.ai/config.json",  "instructions": [    "https://raw.githubusercontent.com/joaomj/skills/main/AGENTS.md"  ],  "autoupdate": true,
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "https://raw.githubusercontent.com/joaomj/skills/main/AGENTS.md"
+  ],
+  "autoupdate": true,
   "permission": {
     "bash": {
-      "*": "allow",      "git commit *": "ask",
-      "git push *": "ask",      "git merge *": "ask",
-      "npm *": "ask",      "rm *": "ask",
-      "ssh *": "ask",      "brew *": "ask",
-      "cat .env *": "deny",      "* .env *": "deny",
-      "docker *": "ask"    },
-    "skill": {      "*": "allow"
+      "*": "allow",
+      "git commit *": "ask",
+      "git push *": "ask",
+      "git merge *": "ask",
+      "npm *": "ask",
+      "rm *": "ask",
+      "ssh *": "ask",
+      "brew *": "ask",
+      "cat .env *": "deny",
+      "* .env *": "deny",
+      "docker *": "ask"
+    },
+    "skill": {
+      "*": "allow"
     }
   },
-  "small_model": "opencode-go/minimax-m2.5",  "provider": {
-    "lmstudio-local": {      "npm": "@ai-sdk/openai-compatible",      "name": "LM Studio (local)",
-      "options": { "baseURL": "http://127.0.0.1:1234/v1" },      "models": {
-        "qwen3.5-9b-mlx": { "name": "Qwen3.5-9B MLX (local)" }
-      }    }
-  }
+  "small_model": "opencode-go/minimax-m2.5"
 }
