@@ -184,7 +184,7 @@ Installation: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/
 |tdd-first|Test-first where it fits. Business logic needs tests. Bug fixes need regression tests.|
 |env-files|Never view .env content. Use .env.example for schema reference.|
 |python-deps|Use `pdm add`, not direct pyproject.toml edit.|
-|tech-context|MANDATORY: docs/tech-context.md is single source of truth.|
+|tech-context|MANDATORY: tech-context.md is single source of truth.|
 |doc-maintenance|After completing a task, ASK: "Update documentation?"|
 
 ---

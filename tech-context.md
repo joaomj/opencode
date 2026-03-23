@@ -4,7 +4,7 @@ This document provides detailed technical information about the opencode configu
 
 ## Skills Architecture
 
-This configuration uses a skill-based architecture with 10 domain-specific skills loaded on-demand.
+This configuration uses a skill-based architecture with domain-specific skills loaded on-demand.
 
 ### Skill Loading Pattern
 
@@ -32,6 +32,7 @@ Skills are loaded via deterministic triggers defined in `AGENTS.md` (decision-in
 | `standup-prep` | Daily standup summaries from git activity, blocker detection, markdown report generation | Daily Standup |
 | `code-simplifier` | Pre-commit simplification with type hints, no raw dicts, explicit code enforcement | Code Quality |
 | `jira-issues` | Search assigned Jira issues and update status or description | Project Management |
+| `implementation-planning` | Propose and design implementation plans with workspace analysis, user interview, tradeoffs analysis, and approval gates | Planning |
 
 ## Available Commands
 
@@ -80,6 +81,21 @@ Generates daily standup summaries from git activity for team meetings.
 - Detects potential blockers (failed CI, stale PRs, TODOs)
 - Creates a markdown report at `docs/activity-log/activities-YYYY-MM-DD.md`
 
+### `/commit`
+
+Stages and commits recent changes with auto-generated conventional commit messages.
+
+**Usage:**
+```bash
+/commit                    # Stage and commit all changes
+```
+
+**Features:**
+- Creates atomic commits (one logical change per commit)
+- Automatically excludes planning/draft files (PLAN, TODO, DRAFT, WIP, TEMP, BACKUP, OLD)
+- Generates conventional commit messages (feat:, fix:, docs:, style:, refactor:, test:, chore:)
+- Respects .gitignore automatically
+
 ## Pre-Commit Hooks (Optional)
 
 Install quality checks in any project:
@@ -121,8 +137,8 @@ Add `.test-mock-external-allowlist` in your repo to allow external module prefix
 | testing-policy | Prefer behavior/state assertions and real integrations; mock only external boundaries by default. |
 | env-files | Never view .env content. Read tool, cat, scripts printing envs are FORBIDDEN. Scripts can LOAD .env internally. Use .env.example for schema reference. |
 | python-deps | When changing/adding Python dependencies, you MUST use `pdm` commands, not directly edit `pyproject.toml`. |
-| tech-context | docs/tech-context.md is the Single-File Memory Bank. |
-| ml-reporting | ML projects must include a CRISP-DM Build Report in docs/tech-context.md. Each phase documented with STAR. |
+| tech-context | tech-context.md is the Single-File Memory Bank. |
+| ml-reporting | ML projects must include a CRISP-DM Build Report in tech-context.md. Each phase documented with STAR. |
 | doc-maintenance | Review documentation for obsolete content during code reviews, after major refactors, or when explicitly asked. |
 
 ### TDD Non-Negotiables
@@ -161,7 +177,7 @@ Add `.test-mock-external-allowlist` in your repo to allow external module prefix
 
 ### Workflow
 
-1. **Workspace Analysis** - scan docs/tech-context.md, pyproject.toml, entry points
+1. **Workspace Analysis** - scan tech-context.md, pyproject.toml, entry points
 2. **User Interview** - ask questions until spec is 100% clear
 3. **Action Plan** - step-by-step todos with testable checkpoints between phases
 4. **Approval Gate** - wait for explicit "yes" before executing the plan
@@ -177,10 +193,10 @@ Add `.test-mock-external-allowlist` in your repo to allow external module prefix
 
 ### Documentation Standards
 
-- **source-of-truth** - docs/tech-context.md - Single-File Memory Bank consolidating Project Brief, Product Context, System Patterns, Tech Context.
+- **source-of-truth** - tech-context.md - Single-File Memory Bank consolidating Project Brief, Product Context, System Patterns, Tech Context.
 - **document-why** - Explain decisions and tradeoffs, not just mechanics
 - **data-flow** - How data moves through components, entry to exit
-- **depth-over-brevity** - docs/tech-context.md must be a DEEP technical report. Size is not a problem; shallowness is. For every metric, explain: calculation method, why chosen, observed values.
+- **depth-over-brevity** - tech-context.md must be a DEEP technical report. Size is not a problem; shallowness is. For every metric, explain: calculation method, why chosen, observed values.
 - **no-proactive-docs** - Never create README/docs unless explicitly requested, except temporary docs phase-plan files required after approval
 
 ## Context7 API Integration
