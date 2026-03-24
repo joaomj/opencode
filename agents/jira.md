@@ -10,9 +10,6 @@ permission:
   bash:
     "jira *": allow
     "*": deny
-additional:
-  fallback_model: anthropic/claude-haiku-4-20250514
-  fallback_strategy: automatic
 ---
 
 # Jira Issues
@@ -82,19 +79,6 @@ Fetched by jira subagent on [timestamp]
 | Not authenticated | Error: "Run `jira login`" |
 | Issue not found | Error: "Issue ISSUE-KEY not found" |
 | Network error | Retry with exponential backoff |
-
-## Fallback Mechanisms
-
-### Model Fallback
-If `opencode-go/minimax-m2.5` is unavailable:
-1. Automatically fallback to `anthropic/claude-haiku-4-20250514`
-2. If fallback fails, return error to main agent
-
-### CLI Fallback
-If Jira CLI unavailable:
-1. Check for environment variables (JIRA_TOKEN, JIRA_HOST)
-2. If available, use curl with Jira API directly
-3. If not, inform main agent that Jira CLI required
 
 ## Non-Negotiable Rules
 

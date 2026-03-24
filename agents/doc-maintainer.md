@@ -10,9 +10,6 @@ permission:
     "git log*": allow
     "git diff*": allow
     "*": deny
-additional:
-  fallback_model: anthropic/claude-sonnet-4-20250514
-  fallback_strategy: automatic
 ---
 
 # Documentation Maintenance
@@ -77,20 +74,6 @@ Ask: "Apply these documentation updates? (yes/no/selective)"
 - If "yes": Apply all updates
 - If "no": Do nothing
 - If "selective": Apply user-selected changes only
-
-## Fallback Mechanisms
-
-### Model Fallback
-If `opencode-go/minimax-m2.5` is unavailable:
-1. Automatically fallback to `anthropic/claude-sonnet-4-20250514`
-2. If fallback fails, inform main agent
-3. Main agent can decide to retry or skip
-
-### File Discovery Fallback
-If docs/ directory doesn't exist:
-1. Search for markdown files in project root
-2. Check for README.md only
-3. Inform user if no documentation found
 
 ## Non-Negotiable Rules
 

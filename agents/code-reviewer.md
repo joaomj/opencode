@@ -1,7 +1,7 @@
 ---
 description: Expert code review with P0-P3 severity levels covering SOLID, security, performance
 mode: subagent
-model: opencode-go/minimax-m2.5
+model: openai/gpt-5.4
 temperature: 0.1
 permission:
   edit: deny
@@ -12,9 +12,6 @@ permission:
     "git status*": allow
     "git show*": allow
     "*": deny
-additional:
-  fallback_model: anthropic/claude-sonnet-4-20250514
-  fallback_strategy: automatic
 ---
 
 # Code Review Expert
@@ -192,20 +189,6 @@ Write the review report to CODE_REVIEW.md? (yes/no)
 | 1 | X | Y | Z | W | - |
 | 2 | X' | Y' | Z' | W' | Z+Y-X'-Y' |
 ```
-
-## Fallback Mechanisms
-
-### Model Fallback
-If `opencode-go/minimax-m2.5` is unavailable:
-1. Automatically fallback to `anthropic/claude-sonnet-4-20250514`
-2. If that fails, inform main agent of error
-3. User can retry with explicit model: `@code-reviewer --model anthropic/claude-sonnet-4-20250514`
-
-### Git Fallback
-If git commands fail:
-1. Try alternative git flags (e.g., `--no-pager`)
-2. If repository error, report to main agent immediately
-3. Never proceed with invalid git state
 
 ## Key Principles
 

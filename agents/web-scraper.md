@@ -9,9 +9,6 @@ permission:
   write: ask
   bash:
     "*": deny
-additional:
-  fallback_model: anthropic/claude-haiku-4-20250514
-  fallback_strategy: automatic
 ---
 
 # Web Scraper
@@ -95,25 +92,6 @@ Timestamp: [ISO Timestamp]
 | URL unreachable | Error: "Failed to fetch URL: [reason]" |
 | Rate limited | Wait and retry with backoff |
 | Invalid URL | Error: "Invalid URL format" |
-
-## Fallback Mechanisms
-
-### Model Fallback
-If `opencode-go/minimax-m2.5` is unavailable:
-1. Automatically fallback to `anthropic/claude-haiku-4-20250514`
-2. If fallback fails, return error to main agent
-
-### API Fallback
-If Firecrawl API fails:
-1. Retry with exponential backoff (max 3 attempts)
-2. If still failing, check for alternative endpoints
-3. If all fail, return error to main agent with full error details
-
-### URL Processing Fallback
-If URL slug generation fails:
-1. Use URL hash instead
-2. Inform user of alternative filename
-3. Continue with content scraping
 
 ## Non-Negotiable Rules
 
