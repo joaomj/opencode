@@ -25,13 +25,7 @@ Skills are loaded via deterministic triggers defined in `AGENTS.md` (decision-in
 | `ml-best-practices` | CRISP-DM phases with STAR documentation, data quality (test set ONCE), preprocessing in Pipeline, evaluation metrics, MLflow tracking | Machine Learning |
 | `workflow-development` | Test-first where it fits (verify-first always), chronological document order (PRD -->Design --> Specs --> Plan), approval gates, todo tracking | Workflow |
 | `tdd-enforcement` | TDD discipline, coverage gates (80%), test-first workflow, behavior assertions, regression tests | TDD |
-| `code-review-expert` | Dual-agent code review with P0-P3 severity classification | Code Quality |
-| `doc-maintenance` | Guidelines for identifying and pruning outdated documentation | Documentation |
 | `github-cicd-lite` | Lean GitHub Actions CI pattern (Python-first, speed + security, deploy optional) | CI/CD |
-| `firecrawl-web-scraper` | Single-URL web scraping with dynamic-page actions and structured JSON output | Web Scraping |
-| `standup-prep` | Daily standup summaries from git activity, blocker detection, markdown report generation | Daily Standup |
-| `code-simplifier` | Pre-commit simplification with type hints, no raw dicts, explicit code enforcement | Code Quality |
-| `jira-issues` | Search assigned Jira issues and update status or description | Project Management |
 | `implementation-planning` | Propose and design implementation plans with workspace analysis, user interview, tradeoffs analysis, and approval gates | Planning |
 
 ## Available Commands
