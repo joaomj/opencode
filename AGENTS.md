@@ -9,17 +9,17 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 ### Zero-Tolerance Actions
 |Trigger|Action|
 |-------|-------|
-|User says "review"|`/skill code-review-expert`|
-|User says "update docs"|`/skill doc-maintenance`|
+|User says "review"|`@code-reviewer`|
+|User says "update docs"|`@doc-maintainer`|
 |User asks for CI/CD pipeline on GitHub|`/skill github-cicd-lite`|
-|User says "scrape this url/article/blog"|`/skill firecrawl-web-scraper`|
+|User says "scrape this url/article/blog"|`@web-scraper`|
 |User says "implement" OR "build feature" OR "create endpoint" OR "add feature"|`/skill implementation-planning`|
 |User says "/plan" OR "create a plan"|`/skill implementation-planning`|
-|AFTER any code change|ASK: "Update documentation?" → if yes: `/skill doc-maintenance`|
+|AFTER any code change|ASK: "Update documentation?" → if yes: `@doc-maintainer`|
 |User says "commit" OR "/commit"|Run `/commit` command with semantic filtering|
 |See `import X` (X not stdlib)|ASK: "Fetch up-to-date docs for X?" → if yes: Fetch Context7 docs|
 |Context7 fetch fails|Ask user: "Proceed without docs?"|
-|Task completed|ASK: "Update daily activity log?" → if yes: `/skill standup-prep`|
+|Task completed|ASK: "Update daily activity log?" → if yes: `@standup`|
 |Phase gate passed|Run `/commit` to save progress|
 
 ### Non-Negotiable Rules
@@ -43,15 +43,18 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 ## DETERMINISTIC SKILL TRIGGERS
 
 ### User Request Triggers (EXACT MATCH)
-|User Says|Load Skill|
-|---------|----------|
-|"review" OR "code review" OR "review my changes" OR "check my code" OR "/review" OR "PR review"|`/skill code-review-expert`|
-|"update docs" OR "prune docs" OR "clean up docs" OR "update documentation"|`/skill doc-maintenance`|
+|User Says|Action|
+|---------|------|
+|"review" OR "code review" OR "review my changes" OR "check my code" OR "/review" OR "PR review"|`@code-reviewer`|
+|"update docs" OR "prune docs" OR "clean up docs" OR "update documentation"|`@doc-maintainer`|
 |"write a cicd pipeline" OR "github actions pipeline" OR "create github workflow"|`/skill github-cicd-lite`|
-|"scrape this url/website/article"|`/skill firecrawl-web-scraper`|
+|"scrape this url/website/article"|`@web-scraper`|
 |"implement" OR "build feature" OR "create endpoint" OR "add feature"|`/skill implementation-planning`|
 |"/plan" OR "create a plan"|`/skill implementation-planning`|
 |"fix bug" OR "fix this bug"|Block: "Write regression test that reproduces bug first"|
+|"standup" OR "/standup" OR "daily activity"|`@standup`|
+|"jira" OR "fetch jira issue"|`@jira`|
+|"simplify code" OR "simplify this"|`@simplifier`|
 
 ### File Pattern Triggers (BEFORE reading file)
 |File Pattern|Action|
@@ -70,7 +73,18 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 
 ---
 
-## SKILL INDEX (LOAD ON DEMAND)
+## SUBAGENT INDEX
+
+|Subagent|Invoke|Description|
+|----------|--------|-------------|
+|standup|`@standup`|Generate standup summaries from git activity|
+|code-reviewer|`@code-reviewer`|Expert code review with P0-P3 severity levels|
+|simplifier|`@simplifier`|Apply project standards to simplify code|
+|doc-maintainer|`@doc-maintainer`|Update and prune project documentation|
+|jira|`@jira`|Fetch Jira issue details as markdown|
+|web-scraper|`@web-scraper`|Scrape web pages to markdown|
+
+## SKILL INDEX (Reference Guides - Use `/skill name`)
 
 |Domain|Skill|
 |-------|------|
@@ -80,11 +94,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |Machine learning|`/skill ml-best-practices`|
 |Workflow/TDD development|`/skill workflow-development`|
 |TDD enforcement|`/skill tdd-enforcement`|
-|Code review|`/skill code-review-expert`|
-|Documentation maintenance|`/skill doc-maintenance`|
 |GitHub CI/CD|`/skill github-cicd-lite`|
-|Web scraping|`/skill firecrawl-web-scraper`|
-|Code simplification|`/skill code-simplifier`|
 
 ---
 
@@ -210,3 +220,47 @@ All rules are enforced via `opencode-lint` package. Run with: `python -m opencod
 5. **Pre-commit blocks** if violations remain
 
 This implements the Factory.ai concept: "Linters are the executable spec that ties human intent to agent output."
+
+---
+
+## AVAILABLE SKILLS (For Subagent Use)
+
+Skills provide specialized instructions for subagents and main agents.
+
+<available_skills>
+  <skill>
+    <name>implementation-planning</name>
+    <description>Propose and design implementation plans with workspace analysis, user interview, tradeoffs analysis, and approval gates</description>
+    <location>file:///Users/admin/.config/opencode/skills/implementation-planning/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>python-best-practices</name>
+    <description>Complete Python development guide covering code quality, testing, security, and dependency management</description>
+    <location>file:///Users/admin/.config/opencode/skills/python-best-practices/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>docker-best-practices</name>
+    <description>Complete containerization guide covering Dockerfile patterns, Docker Compose, security, and networking</description>
+    <location>file:///Users/admin/.config/opencode/skills/docker-best-practices/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>ml-best-practices</name>
+    <description>Complete ML development guide covering CRISP-DM, data quality, evaluation, and MLflow</description>
+    <location>file:///Users/admin/.config/opencode/skills/ml-best-practices/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>workflow-development</name>
+    <description>TDD-driven development workflow with chronological document ordering and testable gates</description>
+    <location>file:///Users/admin/.config/opencode/skills/workflow-development/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>tdd-enforcement</name>
+    <description>TDD enforcement with test-first practices and coverage requirements</description>
+    <location>file:///Users/admin/.config/opencode/skills/tdd-enforcement/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>github-cicd-lite</name>
+    <description>Lean GitHub-only CI pipelines for small Python projects, optimized for speed and security</description>
+    <location>file:///Users/admin/.config/opencode/skills/github-cicd-lite/SKILL.md</location>
+  </skill>
+</available_skills>
