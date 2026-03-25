@@ -12,14 +12,14 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |User says "review"|`@code-reviewer`|
 |User says "update docs"|`@doc-maintainer`|
 |User asks for CI/CD pipeline on GitHub|`/skill github-cicd-lite`|
-|User says "scrape this url/article/blog"|`@web-scraper`|
+|User says "scrape this url/article/blog"|`/skill firecrawl-web-scraper`|
 |User says "implement" OR "build feature" OR "create endpoint" OR "add feature"|`/skill implementation-planning`|
 |User says "/plan" OR "create a plan"|`/skill implementation-planning`|
 |AFTER any code change|ASK: "Update documentation?" → if yes: `@doc-maintainer`|
 |User says "commit" OR "/commit"|Run `/commit` command with semantic filtering|
 |See `import X` (X not stdlib)|ASK: "Fetch up-to-date docs for X?" → if yes: Fetch Context7 docs|
 |Context7 fetch fails|Ask user: "Proceed without docs?"|
-|Task completed|ASK: "Update daily activity log?" → if yes: `@standup`|
+|Task completed|ASK: "Update daily activity log?" → if yes: `/skill standup-prep`|
 |Phase gate passed|Run `/commit` to save progress|
 
 ### Non-Negotiable Rules
@@ -48,12 +48,12 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |"review" OR "code review" OR "review my changes" OR "check my code" OR "/review" OR "PR review"|`@code-reviewer`|
 |"update docs" OR "prune docs" OR "clean up docs" OR "update documentation"|`@doc-maintainer`|
 |"write a cicd pipeline" OR "github actions pipeline" OR "create github workflow"|`/skill github-cicd-lite`|
-|"scrape this url/website/article"|`@web-scraper`|
+|"scrape this url/website/article"|`/skill firecrawl-web-scraper`|
 |"implement" OR "build feature" OR "create endpoint" OR "add feature"|`/skill implementation-planning`|
 |"/plan" OR "create a plan"|`/skill implementation-planning`|
 |"fix bug" OR "fix this bug"|Block: "Write regression test that reproduces bug first"|
-|"standup" OR "/standup" OR "daily activity"|`@standup`|
-|"jira" OR "fetch jira issue"|`@jira`|
+|"standup" OR "/standup" OR "daily activity"|`/skill standup-prep`|
+|"jira" OR "fetch jira issue"|`/skill jira-issues`|
 |"simplify code" OR "simplify this"|`@simplifier`|
 
 ### File Pattern Triggers (BEFORE reading file)
@@ -77,12 +77,9 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 
 |Subagent|Invoke|Description|
 |----------|--------|-------------|
-|standup|`@standup`|Generate standup summaries from git activity|
 |code-reviewer|`@code-reviewer`|Expert code review with P0-P3 severity levels|
 |simplifier|`@simplifier`|Apply project standards to simplify code|
 |doc-maintainer|`@doc-maintainer`|Update and prune project documentation|
-|jira|`@jira`|Fetch Jira issue details as markdown|
-|web-scraper|`@web-scraper`|Scrape web pages to markdown|
 
 ## SKILL INDEX (Reference Guides - Use `/skill name`)
 
@@ -95,6 +92,9 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |Workflow/TDD development|`/skill workflow-development`|
 |TDD enforcement|`/skill tdd-enforcement`|
 |GitHub CI/CD|`/skill github-cicd-lite`|
+|Jira issues|`/skill jira-issues`|
+|Standup prep|`/skill standup-prep`|
+|Web scraping|`/skill firecrawl-web-scraper`|
 
 ---
 
