@@ -17,8 +17,8 @@ $HOME/.config/opencode/skills/jira-issues/bin/jira_fetch.sh TDT-2554
 
 This script will:
 1. Load `.env` from current directory (which contains JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_KEY)
-2. Fetch issue details and comments from Jira API
-3. Convert ADF description to markdown
+2. Fetch issue details and comments from Jira API v3
+3. Convert Atlassian Document Format (ADF) description and comments to markdown
 4. Save to `{lowercase-issue-key}.md` in current directory
 
 ## Requirements
@@ -35,9 +35,39 @@ This script will:
 
 Creates `{issue-key}.md` with:
 - Issue key and summary (H1)
-- Status, assignee, created/updated dates
-- Description (basic ADF to markdown conversion)
-- Comments (if any)
+- Metadata table (type, status, priority, assignee, dates, labels, components)
+- Description with full ADF to markdown conversion
+- Comments (if any) with author and date
+
+## ADF to Markdown Conversion
+
+The converter supports:
+
+**Text Marks:**
+- Bold (`**text**`)
+- Italic (`*text*`)
+- Strikethrough (`~~text~~`)
+- Inline code (`` `text` ``)
+- Underline (`<u>text</u>`)
+- Links (`[text](url)`)
+
+**Block Nodes:**
+- Headings (H1-H6)
+- Paragraphs
+- Bullet lists
+- Numbered lists
+- Code blocks with language support
+- Blockquotes
+- Horizontal rules
+- Tables
+- Panels (info/warning/error)
+- Expandable sections
+
+**Inline Nodes:**
+- Mentions (@username)
+- Emojis
+- Status badges
+- Dates
 
 ## Error Handling
 
