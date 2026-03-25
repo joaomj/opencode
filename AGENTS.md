@@ -48,6 +48,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |"review" OR "code review" OR "review my changes" OR "check my code" OR "/review" OR "PR review"|`@code-reviewer`|
 |"update docs" OR "prune docs" OR "clean up docs" OR "update documentation"|`@doc-maintainer`|
 |"write a cicd pipeline" OR "github actions pipeline" OR "create github workflow"|`/skill github-cicd-lite`|
+|"create PR" OR "open pull request" OR "check PR status" OR "fetch PR comments"|`/skill github-pr-workflow`|
 |"scrape this url/website/article"|`/skill firecrawl-web-scraper`|
 |"implement" OR "build feature" OR "create endpoint" OR "add feature"|`/skill implementation-planning`|
 |"/plan" OR "create a plan"|`/skill implementation-planning`|
@@ -92,6 +93,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |Workflow/TDD development|`/skill workflow-development`|
 |TDD enforcement|`/skill tdd-enforcement`|
 |GitHub CI/CD|`/skill github-cicd-lite`|
+|GitHub PR workflow|`/skill github-pr-workflow`|
 |Jira issues|`/skill jira-issues`|
 |Standup prep|`/skill standup-prep`|
 |Web scraping|`/skill firecrawl-web-scraper`|
@@ -262,5 +264,10 @@ Skills provide specialized instructions for subagents and main agents.
     <name>github-cicd-lite</name>
     <description>Lean GitHub-only CI pipelines for small Python projects, optimized for speed and security</description>
     <location>file:///Users/admin/.config/opencode/skills/github-cicd-lite/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>github-pr-workflow</name>
+    <description>Guide PR lifecycle management with automated context detection, PR description generation from templates, troubleshooting, and best practices for GitHub CLI operations</description>
+    <location>file:///Users/admin/.config/opencode/skills/github-pr-workflow/SKILL.md</location>
   </skill>
 </available_skills>
