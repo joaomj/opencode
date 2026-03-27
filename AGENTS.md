@@ -13,11 +13,11 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |User says "update docs"|`@doc-maintainer`|
 |User asks for CI/CD pipeline on GitHub|`/skill github-cicd-lite`|
 |User says "scrape this url/article/blog"|`/skill firecrawl-web-scraper`|
-|User says "implement" OR "build feature" OR "create endpoint" OR "add feature"|`/skill implementation-planning`|
-|User says "/plan" OR "create a plan"|`/skill implementation-planning`|
+|User says "implement" OR "build feature" OR "create endpoint" OR "add feature"|`/skill implementation-plan`|
+|User says "/plan" OR "create a plan"|`/skill implementation-plan`|
 |AFTER any code change|ASK: "Update documentation?" → if yes: `@doc-maintainer`|
 |User says "commit" OR "/commit"|Run `/commit` command with semantic filtering|
-|See `import X` (X not stdlib)|ASK: "Fetch up-to-date docs for X?" → if yes: Fetch Context7 docs|
+|See `import X` (X not stdlib)|ASK: "Fetch up-to-date docs for X?" → if yes: `/skill context7-docs`|
 |Context7 fetch fails|Ask user: "Proceed without docs?"|
 |Task completed|ASK: "Update daily activity log?" → if yes: `/skill standup-prep`|
 |Phase gate passed|Run `/commit` to save progress|
@@ -33,8 +33,8 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |OC003|Docker|No privileged containers|Lint + Pre-commit|`docker-best-practices`|
 |—|ML|Test set touched ONCE only|Manual review|`ml-best-practices`|
 |—|ML|Confusion matrix generated|Manual review|`ml-best-practices`|
-|—|TDD|Test-first for new features|Manual review|`tdd-enforcement`|
-|—|TDD|80% coverage minimum|Optional pre-commit|`tdd-enforcement`|
+|OC006|Python|TDD - Test-first for new features|Manual review|`python-best-practices`|
+|OC007|Python|80% coverage minimum|Optional pre-commit|`python-best-practices`|
 
 **Lint Rules Reference:** See `opencode_lint/` directory. Based on Factory.ai "Linters as Law Enforcement" concept.
 
@@ -53,7 +53,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |"implement" OR "build feature" OR "create endpoint" OR "add feature"|`/skill implementation-planning`|
 |"/plan" OR "create a plan"|`/skill implementation-planning`|
 |"fix bug" OR "fix this bug"|Block: "Write regression test that reproduces bug first"|
-|"standup" OR "/standup" OR "daily activity"|`/skill standup-prep`|
+|"standup" OR "/standup" OR "daily activity"|Run `/standup-prep` command|
 |"jira" OR "fetch jira issue"|`/skill jira-issues`|
 |"simplify code" OR "simplify this"|`@simplifier`|
 
@@ -86,17 +86,15 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 
 |Domain|Skill|
 |-------|------|
-|Implementation planning|`/skill implementation-planning`|
-|Python development|`/skill python-best-practices`|
+|Implementation planning|`/skill implementation-plan`|
+|Python development (with TDD)|`/skill python-best-practices`|
 |Docker/containerization|`/skill docker-best-practices`|
 |Machine learning|`/skill ml-best-practices`|
-|Workflow/TDD development|`/skill workflow-development`|
-|TDD enforcement|`/skill tdd-enforcement`|
 |GitHub CI/CD|`/skill github-cicd-lite`|
 |GitHub PR workflow|`/skill github-pr-workflow`|
 |Jira issues|`/skill jira-issues`|
-|Standup prep|`/skill standup-prep`|
 |Web scraping|`/skill firecrawl-web-scraper`|
+|Documentation lookup|`/skill context7-docs`|
 
 ---
 
@@ -231,13 +229,13 @@ Skills provide specialized instructions for subagents and main agents.
 
 <available_skills>
   <skill>
-    <name>implementation-planning</name>
+    <name>implementation-plan</name>
     <description>Propose and design implementation plans with workspace analysis, user interview, tradeoffs analysis, and approval gates</description>
-    <location>file:///Users/admin/.config/opencode/skills/implementation-planning/SKILL.md</location>
+    <location>file:///Users/admin/.config/opencode/skills/implementation-plan/SKILL.md</location>
   </skill>
   <skill>
     <name>python-best-practices</name>
-    <description>Complete Python development guide covering code quality, testing, security, and dependency management</description>
+    <description>Complete Python development guide covering code quality, testing, security, dependency management, and TDD</description>
     <location>file:///Users/admin/.config/opencode/skills/python-best-practices/SKILL.md</location>
   </skill>
   <skill>
@@ -251,16 +249,6 @@ Skills provide specialized instructions for subagents and main agents.
     <location>file:///Users/admin/.config/opencode/skills/ml-best-practices/SKILL.md</location>
   </skill>
   <skill>
-    <name>workflow-development</name>
-    <description>TDD-driven development workflow with chronological document ordering and testable gates</description>
-    <location>file:///Users/admin/.config/opencode/skills/workflow-development/SKILL.md</location>
-  </skill>
-  <skill>
-    <name>tdd-enforcement</name>
-    <description>TDD enforcement with test-first practices and coverage requirements</description>
-    <location>file:///Users/admin/.config/opencode/skills/tdd-enforcement/SKILL.md</location>
-  </skill>
-  <skill>
     <name>github-cicd-lite</name>
     <description>Lean GitHub-only CI pipelines for small Python projects, optimized for speed and security</description>
     <location>file:///Users/admin/.config/opencode/skills/github-cicd-lite/SKILL.md</location>
@@ -269,5 +257,10 @@ Skills provide specialized instructions for subagents and main agents.
     <name>github-pr-workflow</name>
     <description>Guide PR lifecycle management with automated context detection, PR description generation from templates, troubleshooting, and best practices for GitHub CLI operations</description>
     <location>file:///Users/admin/.config/opencode/skills/github-pr-workflow/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>context7-docs</name>
+    <description>Retrieve up-to-date documentation for software libraries and frameworks via Context7 API</description>
+    <location>file:///Users/admin/.config/opencode/skills/context7-docs/SKILL.md</location>
   </skill>
 </available_skills>
