@@ -31,7 +31,7 @@ Once installed, the following commands are available:
 
 - `/review` - Dual-agent code review with severity classification
 - `/update-docs` - Identify and remove obsolete documentation
-- `/standup-prep` - Generate daily standup summaries from git activity
+- `/standup` - Generate daily standup summaries from git activity
 - `/commit` - Stage and commit changes with auto-generated conventional commit messages
 
 ## Pre-Commit Hooks (Optional)
