@@ -35,6 +35,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |—|ML|Confusion matrix generated|Manual review|`ml-best-practices`|
 |OC006|Python|TDD - Test-first for new features|Manual review|`python-best-practices`|
 |OC007|Python|80% coverage minimum|Optional pre-commit|`python-best-practices`|
+|OC008|Python|ZERO `noqa` or skip in tests - Fix root cause|Block commit|`python-best-practices`|
 
 **Lint Rules Reference:** See `opencode_lint/` directory. Based on Factory.ai "Linters as Law Enforcement" concept.
 
@@ -191,7 +192,8 @@ Installation: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/
 |simplicity|Prefer fewest moving parts. Ask "is this overkill?" before abstractions.|
 |no-emojis|Never use emojis in code, docs, or communication.|
 |security|No secrets in code. Use .env + pydantic-settings. Validate all inputs.|
-|tdd-first|Test-first where it fits. Business logic needs tests. Bug fixes need regression tests.|
+|tdd-first|Test-first is MANDATORY. RED-GREEN-REFACTOR is non-negotiable. NO exceptions for business logic. Bug fixes REQUIRE regression tests first.|
+|no-test-skipping|NEVER use `# noqa`, `@pytest.mark.skip`, `@pytest.mark.xfail`, or any mechanism to bypass failing tests. The sole purpose of tests is to identify failures. When a test fails, fix the root cause - do NOT suppress the symptom.|
 |env-files|Never view .env content. Use .env.example for schema reference.|
 |python-deps|Use `pdm add`, not direct pyproject.toml edit.|
 |tech-context|MANDATORY: tech-context.md is single source of truth.|
@@ -210,6 +212,7 @@ All rules are enforced via `opencode-lint` package. Run with: `python -m opencod
 |OC003|Security|No privileged containers in docker-compose|Error|No|
 |OC004|Grep-ability|Absolute imports preferred over relative|Warning|No|
 |OC005|Type Safety|Strict type hints required for all functions|Warning|No|
+|OC008|Test Integrity|ZERO tolerance for `# noqa` or `@pytest.mark.skip` in tests. Tests exist to catch failures. Fix the code or fix the test.|Error|No|
 
 ### How It Works (Factory.ai Pattern)
 
@@ -220,6 +223,24 @@ All rules are enforced via `opencode-lint` package. Run with: `python -m opencod
 5. **Pre-commit blocks** if violations remain
 
 This implements the Factory.ai concept: "Linters are the executable spec that ties human intent to agent output."
+
+### Special Handling for Test Failures
+
+**When encountering a failing test:**
+- Ask: "Fix the implementation or fix the test?"
+- Investigate root cause
+- Make minimal fix
+- Verify test passes
+- **NEVER suggest**: `noqa`, `skip`, `xfail`, or any suppression mechanism
+
+**When seeing `# noqa` in test files:**
+- Immediately remove it
+- Fix the underlying issue
+- Explain: "Tests exist to identify failures, not hide them"
+
+**When user says "just make the tests pass":**
+- Clarify: "All tests must pass without suppression"
+- Proceed only with proper fixes
 
 ---
 

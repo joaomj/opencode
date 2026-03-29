@@ -19,6 +19,7 @@ Core rules defined in AGENTS.md. Python-specific additions:
 | Use `pdm add X` for dependencies | Block if direct pyproject.toml edit |
 | Test-first for features | Block until failing test exists (or user justification) |
 | 80% coverage minimum | Block commit if `pytest --cov` reports <80% |
+| **ZERO test skipping** | **Block if `# noqa`, `@pytest.mark.skip`, or `@pytest.mark.xfail` found in tests** |
 
 ## Type Hints
 
@@ -188,6 +189,89 @@ def test_process_calculation_behavior(processor, input, expected):
 - Keep unit tests for pure business logic and deterministic transforms
 - A good test must fail when behavior regresses (not just when mocks change)
 
+## TEST INTEGRITY - ZERO EXCEPTIONS
+
+### The Non-Negotiable Rule
+
+**NEVER skip failing tests. NEVER use `# noqa`, `@pytest.mark.skip`, `@pytest.mark.xfail`, or any mechanism to bypass test failures.**
+
+The sole purpose of tests is to identify failures. When a test fails, it means:
+1. **The code is wrong** → Fix the code
+2. **The test is wrong** → Fix the test
+3. **Both are wrong** → Fix both
+
+**There is no option 4: "Suppress the failure"**
+
+### Why This Matters
+
+- **Tests are safety nets**: They catch bugs before they reach production
+- **Skipping tests = accepting bugs**: You're choosing to ship broken code
+- **Technical debt compounds**: Skipped tests never get fixed, they multiply
+- **False confidence**: A green CI with skipped tests is worse than red CI
+
+### Enforcement Protocol
+
+#### When You See a Failing Test:
+1. **STOP** - Do not proceed with any other work
+2. **Investigate** - Determine if code or test is wrong
+3. **Fix** - Make the minimal change to make the test pass
+4. **Verify** - Run the test suite, confirm everything passes
+5. **Commit** - Only when all tests pass
+
+#### Forbidden Patterns (BLOCKED):
+```python
+# NEVER DO THIS
+@pytest.mark.skip("TODO: fix later")  # BLOCKED
+def test_feature():
+    pass
+
+# NEVER DO THIS  
+@pytest.mark.xfail  # BLOCKED
+def test_broken_feature():
+    assert broken_code() == expected
+
+# NEVER DO THIS
+def test_feature():  # noqa: F841  # BLOCKED
+    unused_var = 123
+    assert actual == expected
+
+# NEVER DO THIS
+def test_feature():
+    try:
+        risky_operation()
+    except:  # noqa: E722  # BLOCKED - bare except
+        pass
+```
+
+#### Correct Approach:
+```python
+# GOOD: Fix the test or fix the code
+def test_feature():
+    result = feature_under_test()
+    assert result == expected_value
+    
+# If this fails, investigate WHY it fails
+# Fix the root cause, don't suppress the symptom
+```
+
+### Agent Instructions
+
+**When you encounter a failing test:**
+1. Ask: "Should I fix the code or fix the test?"
+2. Investigate the failure thoroughly
+3. Make the minimal change to resolve it
+4. **Never** suggest skipping, marking as xfail, or adding noqa
+
+**When you see `# noqa` in a test file:**
+1. Remove it immediately
+2. Fix the underlying issue
+3. Run the test to verify it passes
+
+**When a user asks to "just make it pass":**
+1. Explain: "Tests exist to identify real failures"
+2. Ask: "Should I fix the implementation or the test expectations?"
+3. Proceed only after determining the correct fix
+
 ### Test Patterns
 - Use fixtures for common setup
 - Parametrize tests for multiple cases
@@ -233,9 +317,17 @@ def test_process_calculation_behavior(processor, input, expected):
 - Asserting implementation internals instead of observable outcomes
 - Writing tests that pass even if real integration is broken
 
-## Test-Driven Development (TDD)
+## Test-Driven Development (TDD) - MANDATORY
 
-### TDD Cycle (RED-GREEN-REFACTOR)
+**TDD is NON-NEGOTIABLE for all business logic. No exceptions.**
+
+### The Law of TDD
+
+1. **You are not allowed to write any production code unless it is to make a failing unit test pass.**
+2. **You are not allowed to write any more of a unit test than is sufficient to fail; and compilation failures are failures.**
+3. **You are not allowed to write any more production code than is sufficient to pass the one failing unit test.**
+
+### TDD Cycle (RED-GREEN-REFACTOR) - STRICT ENFORCEMENT
 
 #### Step 1: RED - Write Failing Test
 ```python
@@ -271,26 +363,67 @@ Expected: PASS
 - Keep tests green throughout refactoring
 - Run tests after each change
 
-### Test-First Protocol
+### Test-First Protocol - MANDATORY GATES
 
 #### For New Features
 
-1. **Detect**: User requests implementation
-2. **Check**: Does test file exist?
-3. **Prompt**: "Create test scaffold for `{module}` first?"
-4. **Generate**: If yes, create test file with describe/test blocks
-5. **Write failing test**: Add test case for feature
-6. **Gate**: Require test to run (and fail) before implementation
-7. **Implement**: Write minimal code to pass
-8. **Verify**: Run tests, check coverage
+**GATE 1: Test Must Exist**
+- **Action**: Check if test file exists for the feature
+- **If NO**: Create test file FIRST (before any implementation)
+- **If YES**: Check if test covers the new behavior
+- **Block**: Do NOT proceed to implementation without failing test
 
-#### For Bug Fixes
+**GATE 2: Test Must Fail (RED)**
+- **Action**: Run the test
+- **Expected**: Test FAILS (proving the feature doesn't exist)
+- **If PASSES**: Test is wrong - fix it first
+- **Block**: Do NOT proceed until you see RED
 
-1. **Reproduce**: Write test that demonstrates bug
-2. **Verify test fails**: Confirm bug exists
-3. **Fix**: Implement minimal fix
-4. **Verify test passes**: Confirm fix works
-5. **Gate**: No commit until test passes
+**GATE 3: Implementation (GREEN)**
+- **Action**: Write minimal code to make test pass
+- **Rule**: Simplest possible solution, no premature optimization
+- **Verify**: Run test, confirm it PASSES
+- **Block**: Do NOT refactor while test fails
+
+**GATE 4: Refactor**
+- **Action**: Improve code quality while keeping tests green
+- **Rule**: Run tests after every change
+- **Block**: If tests fail during refactor, undo and try again
+
+**VIOLATION CONSEQUENCES:**
+- Writing implementation before test → MUST delete implementation, start over
+- Skipping RED phase → Not TDD, violates protocol
+- No test for new feature → Commit blocked, coverage gate fails
+
+#### For Bug Fixes - REGRESSION TEST FIRST
+
+**MANDATORY: Every bug fix requires a regression test.**
+
+**GATE 1: Reproduce with Test**
+- **Action**: Write a test that demonstrates the bug
+- **Rule**: Test must describe the expected (correct) behavior
+- **Verify**: Run test, confirm it FAILS (bug exists)
+- **Block**: Do NOT fix bug without regression test
+
+**GATE 2: Verify Failure**
+- **Action**: Confirm test fails for the right reason
+- **Check**: Error message matches bug description
+- **Block**: If test passes, bug is misunderstood - investigate
+
+**GATE 3: Minimal Fix**
+- **Action**: Implement smallest change that makes test pass
+- **Rule**: One bug = one focused fix, no scope creep
+- **Verify**: Run test, confirm it PASSES
+
+**GATE 4: Regression Prevention**
+- **Action**: Run full test suite
+- **Verify**: All tests pass, coverage maintained
+- **Commit**: Only when everything is green
+
+**WHY THIS MATTERS:**
+- Without regression test, the bug WILL return
+- Tests document expected behavior for future developers
+- Prevents "whack-a-mole" debugging (fix one bug, create another)
 
 #### For Refactors
 
@@ -471,6 +604,8 @@ Use `ruff check . --fix` to auto-format imports.
 - [ ] Coverage >= 80% for new code
 - [ ] `ruff check .` passes
 - [ ] Dependencies added via `pdm add` (not manual edit)
+- [ ] **ZERO `# noqa`, `@pytest.mark.skip`, or `@pytest.mark.xfail` in tests**
+- [ ] **All tests pass - none skipped or suppressed**
 
 Base directory for this skill: file:///Users/admin/.config/opencode/skills/python-best-practices
 Relative paths in this skill are relative to this base directory.
