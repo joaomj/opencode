@@ -181,7 +181,8 @@ convert_adf_to_markdown() {
 }
 
 # Convert description
-description_markdown=$(convert_adf_to_markdown "$issue_json")
+description_adf=$(echo "$issue_json" | jq -c '.fields.description // null')
+description_markdown=$(convert_adf_to_markdown "$description_adf")
 
 # Convert comments
 comments_markdown=$(echo "$comments_json" | jq -r '
