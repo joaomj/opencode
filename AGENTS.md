@@ -15,7 +15,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |User says "scrape this url/article/blog"|`/skill firecrawl-web-scraper`|
 |User says "implement" OR "build feature" OR "create endpoint" OR "add feature"|`/skill implementation-plan`|
 |User says "/plan" OR "create a plan"|`/skill implementation-plan`|
-|AFTER any code change|ASK: "Update documentation?" → if yes: `@doc-maintainer`|
+|AFTER any code change|Run `/deslop` then ASK: "Update documentation?" → if yes: `@doc-maintainer`|
 |User says "commit" OR "/commit"|Run `/commit` command with semantic filtering|
 |See `import X` (X not stdlib)|ASK: "Fetch up-to-date docs for X?" → if yes: `/skill context7-docs`|
 |Context7 fetch fails|Ask user: "Proceed without docs?"|
@@ -57,6 +57,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |"standup" OR "/standup" OR "daily activity"|Run `/standup-prep` command|
 |"jira" OR "fetch jira issue"|`/skill jira-issues`|
 |"simplify code" OR "simplify this"|`@simplifier`|
+|"deslop" OR "clean up AI code" OR "remove slop"|Run `/deslop` command|
 
 ### File Pattern Triggers (BEFORE reading file)
 |File Pattern|Action|
