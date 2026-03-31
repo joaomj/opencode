@@ -48,7 +48,7 @@ repos:
         files: (^tests/|^test/|^__tests__/|test_|_test\.|\.test\.|\.spec\.)
         pass_filenames: true
 
-      # OpenCode Lint - AGENTS.md rules (OC001-OC005)
+      # OpenCode Lint - AGENTS.md rules (OC001-OC008)
       # Factory.ai concept: "Linters as Law Enforcement"
       - id: opencode-lint
         name: OpenCode custom rules (AGENTS.md)
@@ -56,6 +56,16 @@ repos:
         language: system
         files: \.(py|yaml|yml)$
         pass_filenames: true
+
+      # pip-audit - Supply chain vulnerability scanning
+      - id: pip-audit
+        name: Dependency vulnerability scan (pip-audit)
+        entry: pip-audit --desc
+        language: python
+        additional_dependencies: [pip-audit]
+        files: (requirements\.txt|pyproject\.toml|uv\.lock|pdm\.lock|poetry\.lock)$
+        pass_filenames: false
+        always_run: true
 
       # Optional: TDD coverage gate (requires pytest-cov)
       # Uncomment to enforce 80% coverage before commit
