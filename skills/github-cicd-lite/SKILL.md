@@ -61,7 +61,20 @@ Keep one primary workflow unless the user requests split workflows.
 
 ## Python-First CI Shape
 
-Use this as the default pattern and adapt to project tooling (`pdm`, `poetry`, `pip`):
+Use this as the default pattern. Adapt to project tooling by detecting the package manager:
+
+### Package Manager Detection
+
+| Detected file | Install command | Run command | Lockfile check |
+|---------------|----------------|-------------|----------------|
+| `uv.lock` | `uv sync` | `uv run ...` | `uv.lock` exists |
+| `pdm.lock` | `pdm install --dev` | `pdm run ...` | `pdm.lock` exists |
+| `poetry.lock` | `poetry install --with dev` | `poetry run ...` | `poetry.lock` exists |
+| `requirements*.txt` | `pip install -r ...` | direct call | N/A |
+
+Do not introduce a new package manager if one is already in use.
+
+### CI Workflow Template
 
 ```yaml
 name: CI
@@ -84,59 +97,67 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
+      - uses: astral-sh/setup-uv@v5
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install ruff
+        run: uv sync
       - name: Lint
-        run: ruff check .
+        run: uv run ruff check .
 
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: "pip"
+      - uses: astral-sh/setup-uv@v5
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest
+        run: uv sync
       - name: Test
-        run: pytest -q
+        run: uv run pytest -q
 
   security:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Dependency audit
-        run: |
-          python -m pip install --upgrade pip
-          pip install pip-audit
-          pip-audit
+      - uses: astral-sh/setup-uv@v5
+      - name: Vulnerability audit
+        run: uvx pip-audit --desc
+      - name: Secret detection
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## Tooling Detection Rules
 
-Select install/test commands by existing files:
+Select install/test commands by existing files (see table above).
 
-- `pdm.lock` or `pyproject.toml` with PDM config -> `pdm install --dev`, `pdm run ...`
-- `poetry.lock` -> `poetry install --with dev`, `poetry run ...`
-- `requirements*.txt` -> `pip install -r ...`
+Additional rules:
+- `pyproject.toml` without any lockfile -> suggest `uv init` to bootstrap
+- Always verify lockfile exists before running install commands
+- Add `pip-audit` step as a mandatory CI job for dependency vulnerability scanning
+- When using `uv pip compile`, enforce `--exclude-newer` with 7-day buffer (OC010)
 
-Do not introduce a new package manager if one is already in use.
+### pip-audit Integration (Mandatory)
+
+Add a dedicated security job to every CI pipeline:
+
+```yaml
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Vulnerability scan
+        run: uvx pip-audit --desc
+```
+
+For projects with requirements.txt:
+```yaml
+      - name: Vulnerability scan
+        run: uvx pip-audit --requirement requirements.txt --desc
+```
 
 ## Optional Deployment Block
 
@@ -159,6 +180,7 @@ Only add deployment when user requests it. If requested:
 
 - Workflow validates in GitHub Actions syntax
 - CI runs quickly with caching and cancellation
-- Security baseline check present
+- Security baseline check present (lint + pip-audit)
+- Package manager auto-detected from lockfile (uv.lock/pdm.lock/poetry.lock)
 - No secrets required for PR validation path
 - Deployment omitted unless explicitly requested

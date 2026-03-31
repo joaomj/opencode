@@ -27,7 +27,8 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |-------|------|----|-----------|----------|
 |OC005|Python|Every function has type hints|Pre-commit mypy|`python-best-practices`|
 |OC001|Python|No raw dicts for API schemas|Lint + Pre-commit|`python-best-practices`|
-|—|Python|Use `pdm add X` for deps|Manual review|`python-best-practices`|
+|—|Python|Deps changed ONLY via detected package manager (uv/pdm/poetry), never direct pyproject.toml edit|Manual review|`python-best-practices`|
+|—|Python|If no manager detected, suggest uv|Manual review|`python-best-practices`|
 |OC002|Python|Never view .env content|Lint + Pre-commit|`python-best-practices`|
 |—|Docker|Dockerfile has non-root USER|Hadolint DL3002|`docker-best-practices`|
 |OC003|Docker|No privileged containers|Lint + Pre-commit|`docker-best-practices`|
@@ -196,7 +197,7 @@ Installation: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/
 |tdd-first|Test-first is MANDATORY. RED-GREEN-REFACTOR is non-negotiable. NO exceptions for business logic. Bug fixes REQUIRE regression tests first.|
 |no-test-skipping|NEVER use `# noqa`, `@pytest.mark.skip`, `@pytest.mark.xfail`, or any mechanism to bypass failing tests. The sole purpose of tests is to identify failures. When a test fails, fix the root cause - do NOT suppress the symptom.|
 |env-files|Never view .env content. Use .env.example for schema reference.|
-|python-deps|Use `pdm add`, not direct pyproject.toml edit.|
+|python-deps|Use detected package manager (uv/pdm/poetry) to modify deps -- never edit pyproject.toml directly. If no manager detected, suggest uv.|
 |tech-context|MANDATORY: tech-context.md is single source of truth.|
 |doc-maintenance|After completing a task, ASK: "Update documentation?"|
 
@@ -242,6 +243,44 @@ This implements the Factory.ai concept: "Linters are the executable spec that ti
 **When user says "just make the tests pass":**
 - Clarify: "All tests must pass without suppression"
 - Proceed only with proper fixes
+
+---
+
+## SUPPLY CHAIN SECURITY
+
+### Mandatory Controls
+
+| Control | Rule | Enforcement |
+|---------|------|-------------|
+| Lockfile required | No lockfile found -> agent MUST ask user to create one | Agent asks user |
+| Delayed ingestion | `--exclude-newer` with 7-day buffer recommended | Agent asks user |
+| Vulnerability scanning | `pip-audit` in CI on every push/PR | CI pipeline |
+| Security linting | Ruff `S` rules (Bandit: secrets, crypto, timeouts) | Pre-commit (ruff) |
+
+### Dependency Manager Detection
+
+When working on a Python project, detect the package manager from existing files:
+
+| Detected file | Manager | Commands |
+|---------------|---------|----------|
+| `uv.lock` | uv | `uv add`, `uv run`, `uv lock` |
+| `pdm.lock` | pdm | `pdm add`, `pdm run`, `pdm lock` |
+| `poetry.lock` | poetry | `poetry add`, `poetry run`, `poetry lock` |
+| None | **Suggest uv** | `uv init` to bootstrap |
+
+Rules:
+- NEVER edit `pyproject.toml` dependencies directly
+- ALWAYS use the detected manager's add/remove commands
+- ALWAYS commit the lockfile
+- If no manager is detected, suggest uv
+
+### Supply Chain Attack Context
+
+Recent incidents (axios Mar 2026, telnyx Mar 2026, Ultralytics Dec 2024) demonstrate:
+- Compromised maintainer accounts publish malicious versions
+- Malicious dependencies injected via postinstall hooks
+- Self-destructing droppers hide evidence
+- Lockfiles + hash pinning + delayed ingestion are the primary defenses
 
 ---
 

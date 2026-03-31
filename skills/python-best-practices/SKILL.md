@@ -16,7 +16,8 @@ Core rules defined in AGENTS.md. Python-specific additions:
 |------|-----------------|
 | Every function has type hints | Block if missing |
 | No raw dicts for API schemas | Block if detected |
-| Use `pdm add X` for dependencies | Block if direct pyproject.toml edit |
+| Use detected package manager for dependencies | Block if direct pyproject.toml edit |
+| Lockfile must exist and be committed | Block if no lockfile (OC009) |
 | Test-first for features | Block until failing test exists (or user justification) |
 | 80% coverage minimum | Block commit if `pytest --cov` reports <80% |
 | **ZERO test skipping** | **Block if `# noqa`, `@pytest.mark.skip`, or `@pytest.mark.xfail` found in tests** |
@@ -558,24 +559,87 @@ For exemptions, add comment: `# test-exempt: [reason]`
 
 ## Dependency Management
 
-### Using PDM
-```bash
-# Add dependency
-pdm add package-name
+### Detect the Package Manager
 
-# Add dev dependency
-pdm add -d package-name
+When working on a Python project, detect the package manager from existing files:
 
-# Remove dependency
-pdm remove package-name
+| Detected file | Manager | Add dependency | Install | Run command |
+|---------------|---------|---------------|---------|-------------|
+| `uv.lock` | uv | `uv add X` | `uv sync` | `uv run ...` |
+| `pdm.lock` | pdm | `pdm add X` | `pdm install` | `pdm run ...` |
+| `poetry.lock` | poetry | `poetry add X` | `poetry install` | `poetry run ...` |
+| None | **Suggest uv** | `uv init` then `uv add X` | `uv sync` | `uv run ...` |
 
-# NEVER edit pyproject.toml directly
-```
+### Rules
 
-### Rule
-- ALWAYS use `pdm add` for dependencies
+- ALWAYS use the detected package manager to add/remove dependencies
 - NEVER manually edit `pyproject.toml` to add dependencies
 - NEVER use `pip install` for persistent dependencies
+- ALWAYS commit the lockfile (uv.lock/pdm.lock/poetry.lock)
+- If no package manager is detected, suggest uv as the default
+
+### Supply Chain Security
+
+#### Mandatory Controls
+
+| Control | How | Enforcement |
+|---------|-----|-------------|
+| Lockfile with hashes | `uv lock` (hashes by default) or `pdm lock`/`poetry lock` | Pre-commit (OC009) |
+| Delayed ingestion | `uv pip compile --exclude-newer` with 7-day buffer | Pre-commit (OC010) |
+| Vulnerability scanning | `pip-audit` in CI on every push/PR | CI pipeline |
+| Security linting | Ruff `S` rules (Bandit: secrets, crypto, timeouts) | Pre-commit (ruff) |
+
+#### Hash Pinning
+
+Lockfiles with cryptographic hashes verify package integrity at install time. If an attacker modifies a package (even with the same version), the hash check fails and installation is blocked.
+
+```bash
+# uv: hashes included by default in uv.lock
+uv lock
+uv sync
+
+# uv: export with hashes for requirements-based workflows
+uv pip compile --generate-hashes requirements.in -o requirements.txt
+
+# pdm: lock with hashes
+pdm lock --hash
+
+# poetry: lock (hashes included by default in poetry.lock)
+poetry lock
+```
+
+#### Delayed Ingestion (--exclude-newer)
+
+The `--exclude-newer` flag prevents installing packages published within the last 7 days, giving the community time to detect malicious packages. This would have blocked the axios attack (plain-crypto-js was < 24h old) and the telnyx attack.
+
+```bash
+# uv: mandatory for pip compile workflows
+uv pip compile --exclude-newer $(date -v-7d +%Y-%m-%d) requirements.in -o requirements.txt
+
+# For pdm/poetry: use Dependabot with weekly schedule and pin to versions >= 7 days old
+```
+
+#### Vulnerability Scanning
+
+```bash
+# Run pip-audit against requirements
+uvx pip-audit --requirement requirements.txt
+
+# Run against a project
+uvx pip-audit
+
+# CI integration
+uvx pip-audit --requirement requirements.txt --desc
+```
+
+#### Why This Matters (Recent Incidents)
+
+- **axios (Mar 2026)**: Compromised maintainer npm account, malicious dep via postinstall hook, cross-platform RAT, self-destructing dropper. ~100M weekly downloads affected.
+- **telnyx (Mar 2026)**: TeamPCP compromised PyPI package used by AI companies.
+- **Ultralytics (Dec 2024)**: GitHub Actions script injection stole PyPI token, crypto miner injected.
+- **GhostAction (Sep 2025)**: 570+ repos, 3300+ secrets stolen including PyPI/npm tokens.
+
+Defense layers: hash pinning prevents tampering, delayed ingestion catches new malware, pip-audit catches known CVEs, Ruff `S` rules catch security bugs in your code.
 
 ## File Organization
 
@@ -603,7 +667,9 @@ Use `ruff check . --fix` to auto-format imports.
 - [ ] Tests written BEFORE implementation (TDD)
 - [ ] Coverage >= 80% for new code
 - [ ] `ruff check .` passes
-- [ ] Dependencies added via `pdm add` (not manual edit)
+- [ ] Dependencies added via detected package manager (not manual pyproject.toml edit)
+- [ ] Lockfile exists and is committed (uv.lock/pdm.lock/poetry.lock)
+- [ ] Supply chain: `pip-audit` passes with no known vulnerabilities
 - [ ] **ZERO `# noqa`, `@pytest.mark.skip`, or `@pytest.mark.xfail` in tests**
 - [ ] **All tests pass - none skipped or suppressed**
 

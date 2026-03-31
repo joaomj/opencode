@@ -20,7 +20,7 @@ Skills are loaded via deterministic triggers defined in `AGENTS.md` (decision-in
 
 | Skill | Purpose | Domains |
 |-------|---------|---------|
-| `python-best-practices` | Type hints, error handling, Pydantic patterns, testing (pytest), logging, Ruff rules, security, dependency management (pdm) | Python |
+| `python-best-practices` | Type hints, error handling, Pydantic patterns, testing (pytest), logging, Ruff rules, security, dependency management (uv/pdm/poetry) | Python |
 | `docker-best-practices` | Dockerfile patterns (non-root USER), Docker Compose (read_only), runtime security, network isolation, secrets handling | Docker |
 | `ml-best-practices` | CRISP-DM phases with STAR documentation, data quality (test set ONCE), preprocessing in Pipeline, evaluation metrics, MLflow tracking | Machine Learning |
 | `workflow-development` | Test-first where it fits (verify-first always), chronological document order (PRD -->Design --> Specs --> Plan), approval gates, todo tracking | Workflow |
@@ -130,7 +130,7 @@ Add `.test-mock-external-allowlist` in your repo to allow external module prefix
 | tdd-first | Test-first where it fits. Business logic needs tests. Bug fixes need regression tests. Config/spike work exempt. |
 | testing-policy | Prefer behavior/state assertions and real integrations; mock only external boundaries by default. |
 | env-files | Never view .env content. Read tool, cat, scripts printing envs are FORBIDDEN. Scripts can LOAD .env internally. Use .env.example for schema reference. |
-| python-deps | When changing/adding Python dependencies, you MUST use `pdm` commands, not directly edit `pyproject.toml`. |
+| python-deps | When changing/adding Python dependencies, you MUST use the project's detected package manager (uv/pdm/poetry), not directly edit `pyproject.toml`. If no manager is detected, suggest uv. |
 | tech-context | tech-context.md is the Single-File Memory Bank. |
 | ml-reporting | ML projects must include a CRISP-DM Build Report in tech-context.md. Each phase documented with STAR. |
 | doc-maintenance | Review documentation for obsolete content during code reviews, after major refactors, or when explicitly asked. |
