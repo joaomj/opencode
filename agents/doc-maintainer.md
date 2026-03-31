@@ -25,20 +25,22 @@ Update and prune project documentation to maintain accuracy and relevance.
 
 ## Workflow
 
-### Step 1: Analyze Documentation
+### Step 1: Find Documentation Files
 
-1. List documentation files:
-   ```bash
-   ls docs/*.md README.md 2>/dev/null
-   ```
+```bash
+find . -name "*.md" -not -path "./.git/*" | sort
+```
 
-2. For each document:
-   - Check for references to removed files
-   - Check for outdated commands/paths
-   - Check for stale version numbers
-   - Check for references to deprecated features
+### Step 2: Audit Each Document
 
-### Step 2: Identify Issues
+For each document:
+- Check for references to removed files
+- Check for outdated commands/paths
+- Check for stale version numbers
+- Check for deprecated features
+- Verify referenced components actually exist
+
+### Step 3: Identify Issues
 
 | Issue Type | Detection |
 |------------|-----------|
@@ -46,6 +48,7 @@ Update and prune project documentation to maintain accuracy and relevance.
 | Outdated commands | Commands that no longer work |
 | Stale versions | Version numbers that don't match current |
 | Obsolete features | References to removed functionality |
+| Missing skills | Table entries for skills that don't exist |
 | Inconsistent naming | Different terms for same concept |
 
 ### Step 3: Propose Changes

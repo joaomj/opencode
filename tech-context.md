@@ -23,10 +23,12 @@ Skills are loaded via deterministic triggers defined in `AGENTS.md` (decision-in
 | `python-best-practices` | Type hints, error handling, Pydantic patterns, testing (pytest), logging, Ruff rules, security, dependency management (uv/pdm/poetry) | Python |
 | `docker-best-practices` | Dockerfile patterns (non-root USER), Docker Compose (read_only), runtime security, network isolation, secrets handling | Docker |
 | `ml-best-practices` | CRISP-DM phases with STAR documentation, data quality (test set ONCE), preprocessing in Pipeline, evaluation metrics, MLflow tracking | Machine Learning |
-| `workflow-development` | Test-first where it fits (verify-first always), chronological document order (PRD -->Design --> Specs --> Plan), approval gates, todo tracking | Workflow |
-| `tdd-enforcement` | TDD discipline, coverage gates (80%), test-first workflow, behavior assertions, regression tests | TDD |
 | `github-cicd-lite` | Lean GitHub Actions CI pattern (Python-first, speed + security, deploy optional) | CI/CD |
-| `implementation-planning` | Propose and design implementation plans with workspace analysis, user interview, tradeoffs analysis, and approval gates | Planning |
+| `github-pr-workflow` | PR lifecycle management with automated context detection, PR description generation from templates, troubleshooting, and best practices for GitHub CLI operations | PRs |
+| `implementation-planning` | Propose and design implementation plans with workspace analysis, user interview, systems design, tradeoffs analysis, and approval gates before any code changes | Planning |
+| `jira-issues` | Fetch Jira issue details and comments, save as markdown to workspace root | Jira |
+| `context7` | Retrieve up-to-date documentation for software libraries, frameworks, and components via the Context7 API | Docs |
+| `firecrawl-web-scraper` | Scrape single web pages with Firecrawl to markdown and structured JSON, with dynamic-page actions and local .firecrawl output | Web Scraping |
 
 ## Available Commands
 
@@ -163,11 +165,8 @@ Add `.test-mock-external-allowlist` in your repo to allow external module prefix
 | Setting | Value |
 |---------|-------|
 | line-length | 100 |
-| target-version | py311 |
-| max-complexity | 15 |
-| max-args | 7 |
-| max-statements | 50 |
-| select | E, W, F, I, B, C4, UP, ARG, SIM, PTH, ERA, PL, RUF, S, NPY |
+| target-version | py310 |
+| select | E, W, F, I, S |
 
 ### Workflow
 
