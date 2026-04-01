@@ -29,6 +29,7 @@ git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 
 Once installed, the following commands are available:
 
+- `/plan` - Create phased implementation plan with SDD, testable gates, logging policy, config policy, and commit checkpoints
 - `/review` - Dual-agent code review with severity classification
 - `/update-docs` - Identify and remove obsolete documentation
 - `/standup` - Generate daily standup summaries from git activity

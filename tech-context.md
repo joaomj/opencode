@@ -25,7 +25,7 @@ Skills are loaded via deterministic triggers defined in `AGENTS.md` (decision-in
 | `ml-best-practices` | CRISP-DM phases with STAR documentation, data quality (test set ONCE), preprocessing in Pipeline, evaluation metrics, MLflow tracking | Machine Learning |
 | `github-cicd-lite` | Lean GitHub Actions CI pattern (Python-first, speed + security, deploy optional) | CI/CD |
 | `github-pr-workflow` | PR lifecycle management with automated context detection, PR description generation from templates, troubleshooting, and best practices for GitHub CLI operations | PRs |
-| `implementation-planning` | Propose and design implementation plans with workspace analysis, user interview, systems design, tradeoffs analysis, and approval gates before any code changes | Planning |
+| `implementation-planning` | Replaced by `/plan` command - Create phased implementation plans with SDD, testable gates, logging policy, config policy, and commit checkpoints | Planning |
 | `jira-issues` | Fetch Jira issue details and comments, save as markdown to workspace root | Jira |
 | `context7` | Retrieve up-to-date documentation for software libraries, frameworks, and components via the Context7 API | Docs |
 | `firecrawl-web-scraper` | Scrape single web pages with Firecrawl to markdown and structured JSON, with dynamic-page actions and local .firecrawl output | Web Scraping |
@@ -33,6 +33,27 @@ Skills are loaded via deterministic triggers defined in `AGENTS.md` (decision-in
 ## Available Commands
 
 Commands are prefixed with `/` and available in opencode CLI.
+
+### `/plan`
+
+Creates a phased implementation plan using Spec-Driven Design (SDD).
+
+**Usage:**
+```bash
+/plan
+```
+
+**Features:**
+- Workspace analysis and pattern detection
+- User interview for requirement clarification
+- Systems design with logging and config architecture
+- Tradeoffs analysis with recommendation
+- Phased plan with SDD flow: specs -> tests -> implement
+- Clear gate criteria between phases
+- Commit after each successful gate
+- Automatically loads relevant skills (Python/Docker/ML best practices) based on project type
+
+**Output:** `plan-[feature-name].md` at project root (not in docs/)
 
 ### `/review`
 
@@ -129,7 +150,8 @@ Add `.test-mock-external-allowlist` in your repo to allow external module prefix
 | simplicity | Prefer fewest moving parts. Ask "is this overkill?" before abstractions. |
 | no-emojis | Never use emojis in code, docs, or communication. |
 | security | No secrets in code. Use .env + pydantic-settings. Validate all inputs. |
-| tdd-first | Test-first where it fits. Business logic needs tests. Bug fixes need regression tests. Config/spike work exempt. |
+| sdd-first | Spec-Driven Design is MANDATORY. Specs before tests, tests before implementation. NO exceptions for business logic. Bug fixes REQUIRE spec + regression test first. |
+| no-hardcoding | No hardcoded values. All configurable values (URLs, timeouts, thresholds, file paths, magic numbers) in a config module using pydantic-settings. |
 | testing-policy | Prefer behavior/state assertions and real integrations; mock only external boundaries by default. |
 | env-files | Never view .env content. Read tool, cat, scripts printing envs are FORBIDDEN. Scripts can LOAD .env internally. Use .env.example for schema reference. |
 | python-deps | When changing/adding Python dependencies, you MUST use the project's detected package manager (uv/pdm/poetry), not directly edit `pyproject.toml`. If no manager is detected, suggest uv. |
@@ -137,28 +159,28 @@ Add `.test-mock-external-allowlist` in your repo to allow external module prefix
 | ml-reporting | ML projects must include a CRISP-DM Build Report in tech-context.md. Each phase documented with STAR. |
 | doc-maintenance | Review documentation for obsolete content during code reviews, after major refactors, or when explicitly asked. |
 
-### TDD Non-Negotiables
+### SDD (Spec-Driven Design) Non-Negotiables
 
 | Rule | Violation |
 |------|-----------|
-| Test-first for new features | WARN + require justification if skipped |
+| Specs before tests, tests before implementation | Block if code written without spec |
 | 80% coverage threshold | Block commit if below |
-| Critical path coverage | Business logic MUST have tests |
-| Behavior assertions | Tests must verify outcomes, not internals |
-| Bug fixes need regression tests | Block fix until test reproduces bug |
+| Critical path coverage | Business logic MUST have specs and tests |
+| Behavior assertions | Tests must verify outcomes against spec contracts |
+| Bug fixes need spec + regression test | Block fix until spec and test reproduce bug |
 
-### TDD Workflow
+### SDD Workflow
 
-1. **RED**: Write failing test for feature/bug
-2. **GREEN**: Write minimal code to pass
-3. **REFACTOR**: Improve while keeping tests green
-4. **VERIFY**: Coverage >= 80%, all tests pass
+1. **SPEC**: Define signatures, types, contracts, edge cases, errors
+2. **TEST**: Write tests validating spec compliance
+3. **IMPLEMENT**: Write code to fulfill spec contracts
+4. **VERIFY**: Coverage >= 80%, all specs have tests, all tests pass
 5. **COMMIT**: Only after all gates pass
 
-**Test-First Triggers:**
-- User says "implement" -> ASK: "Create test scaffold first?"
-- User says "fix bug" -> Block: "Write regression test that reproduces bug first"
-- Implementation without test file -> WARN: "No test found for this implementation"
+**Spec-First Triggers:**
+- User says "implement" -> Run `/plan` command
+- User says "fix bug" -> Block: "Write spec + regression test that reproduces bug first"
+- Implementation without spec -> WARN: "No spec defined for this implementation"
 
 ### Ruff Configuration
 
@@ -180,7 +202,7 @@ Add `.test-mock-external-allowlist` in your repo to allow external module prefix
 
 - **atomic-units** - Break tasks into smallest testable pieces
 - **todo-tracking** - Use TodoWrite for 3+ steps. Mark complete immediately.
-- **phase-plan-file** - After plan approval, write the plan as a phased todo list in a temporary markdown file under docs/
+- **phase-plan-file** - After plan approval, write the plan as a phased todo list in a markdown file at project root (not docs/)
 - **phase-gates** - Define explicit pass/fail gate criteria between phases and block next phase until pass
 - **gate-commits** - After each gate passes, create a commit (commit only, never push unless explicitly requested)
 

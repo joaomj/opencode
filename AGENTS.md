@@ -13,8 +13,8 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |User says "update docs"|`@doc-maintainer`|
 |User asks for CI/CD pipeline on GitHub|`/skill github-cicd-lite`|
 |User says "scrape this url/article/blog"|`/skill firecrawl-web-scraper`|
-|User says "implement" OR "build feature" OR "create endpoint" OR "add feature"|`/skill implementation-plan`|
-|User says "/plan" OR "create a plan"|`/skill implementation-plan`|
+|User says "implement" OR "build feature" OR "create endpoint" OR "add feature"|Run `/plan` command|
+|User says "/plan" OR "create a plan"|Run `/plan` command|
 |AFTER any code change|Run `/deslop` then ASK: "Update documentation?" → if yes: `@doc-maintainer`|
 |User says "commit" OR "/commit"|Run `/commit` command with semantic filtering|
 |See `import X` (X not stdlib)|ASK: "Fetch up-to-date docs for X?" → if yes: `/skill context7-docs`|
@@ -34,7 +34,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |OC003|Docker|No privileged containers|Lint + Pre-commit|`docker-best-practices`|
 |—|ML|Test set touched ONCE only|Manual review|`ml-best-practices`|
 |—|ML|Confusion matrix generated|Manual review|`ml-best-practices`|
-|OC006|Python|TDD - Test-first for new features|Manual review|`python-best-practices`|
+|OC006|Python|SDD - Spec-first for new features. Define contracts before tests, tests before implementation|Manual review|`python-best-practices`|
 |OC007|Python|80% coverage minimum|Optional pre-commit|`python-best-practices`|
 |OC008|Python|ZERO `noqa` or skip in tests - Fix root cause|Block commit|`python-best-practices`|
 
@@ -52,8 +52,8 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |"write a cicd pipeline" OR "github actions pipeline" OR "create github workflow"|`/skill github-cicd-lite`|
 |"create PR" OR "open pull request" OR "check PR status" OR "fetch PR comments"|`/skill github-pr-workflow`|
 |"scrape this url/website/article"|`/skill firecrawl-web-scraper`|
-|"implement" OR "build feature" OR "create endpoint" OR "add feature"|`/skill implementation-planning`|
-|"/plan" OR "create a plan"|`/skill implementation-planning`|
+|"implement" OR "build feature" OR "create endpoint" OR "add feature"|Run `/plan` command|
+|"/plan" OR "create a plan"|Run `/plan` command|
 |"fix bug" OR "fix this bug"|Block: "Write regression test that reproduces bug first"|
 |"standup" OR "/standup" OR "daily activity"|Run `/standup-prep` command|
 |"jira" OR "fetch jira issue"|`/skill jira-issues`|
@@ -89,8 +89,8 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 
 |Domain|Skill|
 |-------|------|
-|Implementation planning|`/skill implementation-plan`|
-|Python development (with TDD)|`/skill python-best-practices`|
+|Implementation planning|`/plan` command|
+|Python development (with SDD)|`/skill python-best-practices`|
 |Docker/containerization|`/skill docker-best-practices`|
 |Machine learning|`/skill ml-best-practices`|
 |GitHub CI/CD|`/skill github-cicd-lite`|
@@ -194,7 +194,8 @@ Installation: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/
 |simplicity|Prefer fewest moving parts. Ask "is this overkill?" before abstractions.|
 |no-emojis|Never use emojis in code, docs, or communication.|
 |security|No secrets in code. Use .env + pydantic-settings. Validate all inputs.|
-|tdd-first|Test-first is MANDATORY. RED-GREEN-REFACTOR is non-negotiable. NO exceptions for business logic. Bug fixes REQUIRE regression tests first.|
+|sdd-first|Spec-Driven Design is MANDATORY. Specs before tests, tests before implementation. NO exceptions for business logic. Bug fixes REQUIRE spec + regression test first.|
+|no-hardcoding|No hardcoded values. All configurable values (URLs, timeouts, thresholds, file paths, magic numbers) in a config module using pydantic-settings.|
 |no-test-skipping|NEVER use `# noqa`, `@pytest.mark.skip`, `@pytest.mark.xfail`, or any mechanism to bypass failing tests. The sole purpose of tests is to identify failures. When a test fails, fix the root cause - do NOT suppress the symptom.|
 |env-files|Never view .env content. Use .env.example for schema reference.|
 |python-deps|Use detected package manager (uv/pdm/poetry) to modify deps -- never edit pyproject.toml directly. If no manager detected, suggest uv.|
@@ -290,13 +291,8 @@ Skills provide specialized instructions for subagents and main agents.
 
 <available_skills>
   <skill>
-    <name>implementation-plan</name>
-    <description>Propose and design implementation plans with workspace analysis, user interview, tradeoffs analysis, and approval gates</description>
-    <location>file:///Users/admin/.config/opencode/skills/implementation-plan/SKILL.md</location>
-  </skill>
-  <skill>
     <name>python-best-practices</name>
-    <description>Complete Python development guide covering code quality, testing, security, dependency management, and TDD</description>
+    <description>Complete Python development guide covering code quality, testing, security, dependency management, and SDD</description>
     <location>file:///Users/admin/.config/opencode/skills/python-best-practices/SKILL.md</location>
   </skill>
   <skill>
