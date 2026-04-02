@@ -22,5 +22,46 @@
       "*": "allow"
     }
   },
-  "small_model": "opencode-go/minimax-m2.5"
+  "small_model": "opencode-go/minimax-m2.5",
+  "provider": {
+    "openai": {
+      "models": {
+        "gpt-5.4": {
+          "limit": {
+            "context": 200000,
+            "output": 128000
+          },
+          "options": {
+            "reasoningEffort": "high"
+          }
+        }
+      }
+    },
+    "zai-coding-plan": {
+      "models": {
+        "glm-5.1": {
+          "limit": {
+            "context": 200000,
+            "output": 128000
+          },
+          "options": {
+            "reasoningEffort": "high"
+          }
+        }
+      }
+    },
+    "opencode-go": {
+      "models": {
+        "minimax-m2.7": {
+          "limit": {
+            "context": 200000,
+            "output": 128000
+          },
+          "options": {
+            "reasoningEffort": "high"
+          }
+        }
+      }
+    }
+  }
 }
