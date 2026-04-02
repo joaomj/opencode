@@ -50,7 +50,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |"review" OR "code review" OR "review my changes" OR "check my code" OR "/review" OR "PR review"|`@code-reviewer`|
 |"update docs" OR "prune docs" OR "clean up docs" OR "update documentation"|`@doc-maintainer`|
 |"write a cicd pipeline" OR "github actions pipeline" OR "create github workflow"|`/skill github-cicd-lite`|
-|"create PR" OR "open pull request" OR "check PR status" OR "fetch PR comments"|`/skill github-pr-workflow`|
+|"create PR" OR "open pull request" OR "open a PR" OR "create pull request" OR "make a PR" OR "/pr"|`/skill create-pull-request`|
 |"scrape this url/website/article"|`/skill firecrawl-web-scraper`|
 |"implement" OR "build feature" OR "create endpoint" OR "add feature"|Run `/plan` command|
 |"/plan" OR "create a plan"|Run `/plan` command|
@@ -94,7 +94,7 @@ IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |Docker/containerization|`/skill docker-best-practices`|
 |Machine learning|`/skill ml-best-practices`|
 |GitHub CI/CD|`/skill github-cicd-lite`|
-|GitHub PR workflow|`/skill github-pr-workflow`|
+|GitHub PR creation|`/skill create-pull-request`|
 |Jira issues|`/skill jira-issues`|
 |Web scraping|`/skill firecrawl-web-scraper`|
 |Documentation lookup|`/skill context7-docs`|
@@ -311,9 +311,9 @@ Skills provide specialized instructions for subagents and main agents.
     <location>file:///Users/admin/.config/opencode/skills/github-cicd-lite/SKILL.md</location>
   </skill>
   <skill>
-    <name>github-pr-workflow</name>
-    <description>Guide PR lifecycle management with automated context detection, PR description generation from templates, troubleshooting, and best practices for GitHub CLI operations</description>
-    <location>file:///Users/admin/.config/opencode/skills/github-pr-workflow/SKILL.md</location>
+    <name>create-pull-request</name>
+    <description>End-to-end PR creation workflow with automated code review, fix verification, merge conflict detection, and professional PR description generation via GitHub CLI</description>
+    <location>file:///Users/admin/.config/opencode/skills/create-pull-request/SKILL.md</location>
   </skill>
   <skill>
     <name>context7-docs</name>
