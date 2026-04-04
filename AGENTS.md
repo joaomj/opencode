@@ -1,323 +1,109 @@
-# AGENTS.md
+# AGENTS.md - Local Configuration
 
-IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
+## Hierarchy
 
----
-
-## CRITICAL SAFETY RULES (NO EXCEPTIONS)
-
-### Zero-Tolerance Actions
-|Trigger|Action|
-|-------|-------|
-|User says "review"|`@code-reviewer`|
-|User says "update docs"|`@doc-maintainer`|
-|User asks for CI/CD pipeline on GitHub|`/skill github-cicd-lite`|
-|User says "scrape this url/article/blog"|`/skill firecrawl-web-scraper`|
-|User says "implement" OR "build feature" OR "create endpoint" OR "add feature"|Run `/plan` command|
-|User says "/plan" OR "create a plan"|Run `/plan` command|
-|AFTER any code change|Run `/deslop` then ASK: "Update documentation?" → if yes: `@doc-maintainer`|
-|User says "commit" OR "/commit"|Run `/commit` command with semantic filtering|
-|See `import X` (X not stdlib)|ASK: "Fetch up-to-date docs for X?" → if yes: `/skill context7-docs`|
-|Context7 fetch fails|Ask user: "Proceed without docs?"|
-|Task completed|ASK: "Update daily activity log?" → if yes: `/skill standup-prep`|
-|Phase gate passed|Run `/commit` to save progress|
-
-### Non-Negotiable Rules
-|Rule ID|Domain|Rule|Enforcement|Load Skill|
-|-------|------|----|-----------|----------|
-|OC005|Python|Every function has type hints|Pre-commit mypy|`python-best-practices`|
-|OC001|Python|No raw dicts for API schemas|Lint + Pre-commit|`python-best-practices`|
-|—|Python|Deps changed ONLY via detected package manager (uv/pdm/poetry), never direct pyproject.toml edit|Manual review|`python-best-practices`|
-|—|Python|If no manager detected, suggest uv|Manual review|`python-best-practices`|
-|OC002|Python|Never view .env content|Lint + Pre-commit|`python-best-practices`|
-|—|Docker|Dockerfile has non-root USER|Hadolint DL3002|`docker-best-practices`|
-|OC003|Docker|No privileged containers|Lint + Pre-commit|`docker-best-practices`|
-|—|ML|Test set touched ONCE only|Manual review|`ml-best-practices`|
-|—|ML|Confusion matrix generated|Manual review|`ml-best-practices`|
-|OC006|Python|SDD - Spec-first for new features. Define contracts before tests, tests before implementation|Manual review|`python-best-practices`|
-|OC007|Python|80% coverage minimum|Optional pre-commit|`python-best-practices`|
-|OC008|Python|ZERO `noqa` or skip in tests - Fix root cause|Block commit|`python-best-practices`|
-
-**Lint Rules Reference:** See `opencode_lint/` directory. Based on Factory.ai "Linters as Law Enforcement" concept.
+Remote AGENTS.md at `https://raw.githubusercontent.com/joaomj/skills/main/AGENTS.md` is the primary source of truth. This file contains local overrides and additions only. Where conflicts exist, this file takes precedence.
 
 ---
 
-## DETERMINISTIC SKILL TRIGGERS
+## OVERRIDES
 
-### User Request Triggers (EXACT MATCH)
-|User Says|Action|
-|---------|------|
-|"review" OR "code review" OR "review my changes" OR "check my code" OR "/review" OR "PR review"|`@code-reviewer`|
-|"update docs" OR "prune docs" OR "clean up docs" OR "update documentation"|`@doc-maintainer`|
-|"write a cicd pipeline" OR "github actions pipeline" OR "create github workflow"|`/skill github-cicd-lite`|
-|"create PR" OR "open pull request" OR "open a PR" OR "create pull request" OR "make a PR" OR "/pr"|`/skill create-pull-request`|
-|"scrape this url/website/article"|`/skill firecrawl-web-scraper`|
-|"implement" OR "build feature" OR "create endpoint" OR "add feature"|Run `/plan` command|
-|"/plan" OR "create a plan"|Run `/plan` command|
-|"fix bug" OR "fix this bug"|Block: "Write regression test that reproduces bug first"|
-|"standup" OR "/standup" OR "daily activity"|Run `/standup-prep` command|
-|"jira" OR "fetch jira issue"|`/skill jira-issues`|
-|"simplify code" OR "simplify this"|`@simplifier`|
-|"deslop" OR "clean up AI code" OR "remove slop"|Run `/deslop` command|
+| Remote Rule | Local Override | Reason |
+|-------------|---------------|--------|
+| Pre-commit hooks (enforced) | Optional. Install only on explicit request: "Install pre-commit hooks" or `/setup-hooks` | Lower friction |
+
+### Additional Core Principles
+
+| Principle | Description |
+|-----------|-------------|
+| sdd-first | Spec-Driven Design: specs before tests, tests before implementation. Bug fixes require spec + regression test. |
+| no-hardcoding | All configurable values in config module using pydantic-settings. |
+| no-test-skipping | Never use `# noqa`, `@pytest.mark.skip`, `@pytest.mark.xfail` in tests. Fix root cause. |
+
+---
+
+## TRIGGER TABLE
+
+| User Says | Action |
+|-----------|--------|
+| "review" / "code review" / "review my changes" / "check my code" / "/review" / "PR review" | `@code-reviewer` |
+| "update docs" / "prune docs" / "clean up docs" / "update documentation" | `@doc-maintainer` |
+| "write a cicd pipeline" / "github actions pipeline" / "create github workflow" | `/skill github-cicd-lite` |
+| "create PR" / "open pull request" / "open a PR" / "create pull request" / "make a PR" / "/pr" | `/skill create-pull-request` |
+| "scrape this url/website/article" | `/skill firecrawl-web-scraper` |
+| "implement" / "build feature" / "create endpoint" / "add feature" | Run `/plan` |
+| "/plan" / "create a plan" | Run `/plan` |
+| "fix bug" / "fix this bug" | Block: "Write regression test that reproduces bug first" |
+| "standup" / "/standup" / "daily activity" | Run `/standup-prep` |
+| "jira" / "fetch jira issue" | `/skill jira-issues` |
+| "simplify code" / "simplify this" | `@simplifier` |
+| "deslop" / "clean up AI code" / "remove slop" | Run `/deslop` |
+
+### Automatic Triggers
+
+| Condition | Action |
+|-----------|--------|
+| AFTER any code change | Run `/deslop` then ASK: "Update documentation?" |
+| See `import X` (X not stdlib) | ASK: "Fetch up-to-date docs for X?" -> `/skill context7-docs` |
+| Context7 fetch fails | Ask: "Proceed without docs?" |
+| Task completed | ASK: "Update daily activity log?" |
+| Phase gate passed | Run `/commit` |
+| User says "commit" / "/commit" | Run `/commit` |
 
 ### File Pattern Triggers (BEFORE reading file)
-|File Pattern|Action|
-|-----------|----------|
-|`Dockerfile` OR `Dockerfile.*` OR `docker-compose*.yml`|ASK: "Load Docker best practices?"|
-|`train.py` OR `model.py` OR `pipeline.py` OR `features.py`|ASK: "Load ML best practices?"|
-|`*.env.example`|STOP - see env-files rule|
-|`setup.py` OR `pyproject.toml`|ASK: "Load Python best practices?"|
+
+| File Pattern | Action |
+|-------------|--------|
+| `Dockerfile` / `Dockerfile.*` / `docker-compose*.yml` | ASK: "Load Docker best practices?" |
+| `train.py` / `model.py` / `pipeline.py` / `features.py` | ASK: "Load ML best practices?" |
+| `*.env.example` | STOP - see env-files rule |
+| `setup.py` / `pyproject.toml` | ASK: "Load Python best practices?" |
 
 ### Import Statement Triggers (WHILE reading file)
-|Import Statement|Action|
-|--------------|----------|
-|`import pandas` OR `import numpy` OR `from sklearn` OR `import torch`|ASK: "Load ML best practices?"|
-|`from pydantic` OR `import pytest`|ASK: "Load Python best practices?"|
-|`from fastapi` OR `from flask` OR `from django`|ASK: "Load Python best practices + fetch up-to-date docs?"|
+
+| Import Statement | Action |
+|-----------------|--------|
+| `import pandas` / `import numpy` / `from sklearn` / `import torch` | ASK: "Load ML best practices?" |
+| `from pydantic` / `import pytest` | ASK: "Load Python best practices?" |
+| `from fastapi` / `from flask` / `from django` | ASK: "Load Python best practices + fetch docs?" |
+
+---
+
+## NON-NEGOTIABLE RULES
+
+| Rule ID | Domain | Rule |
+|---------|--------|------|
+| OC001 | Type Safety | No raw dicts for API schemas - use Pydantic models |
+| OC002 | Security | Never view .env content (use .env.example for schema) |
+| OC003 | Security | No privileged containers |
+| OC004 | Grep-ability | Absolute imports preferred over relative |
+| OC005 | Type Safety | Strict type hints for all functions |
+| OC006 | Process | SDD: specs before tests, tests before implementation |
+| OC007 | Quality | 80% test coverage minimum |
+| OC008 | Test Integrity | Zero `# noqa` or skip in tests - fix root cause |
+| OC009 | Supply Chain | Lockfile required and committed |
+| OC010 | Supply Chain | Delayed ingestion with 7-day buffer recommended |
 
 ---
 
 ## SUBAGENT INDEX
 
-|Subagent|Invoke|Description|
+| Subagent | Invoke | Description |
 |----------|--------|-------------|
-|code-reviewer|`@code-reviewer`|Expert code review with P0-P3 severity levels|
-|simplifier|`@simplifier`|Apply project standards to simplify code|
-|doc-maintainer|`@doc-maintainer`|Update and prune project documentation|
+| code-reviewer | `@code-reviewer` | Expert code review with P0-P3 severity |
+| simplifier | `@simplifier` | Apply project standards to simplify code |
+| doc-maintainer | `@doc-maintainer` | Update and prune documentation |
 
-## SKILL INDEX (Reference Guides - Use `/skill name`)
+## SKILL INDEX
 
-|Domain|Skill|
-|-------|------|
-|Implementation planning|`/plan` command|
-|Python development (with SDD)|`/skill python-best-practices`|
-|Docker/containerization|`/skill docker-best-practices`|
-|Machine learning|`/skill ml-best-practices`|
-|GitHub CI/CD|`/skill github-cicd-lite`|
-|GitHub PR creation|`/skill create-pull-request`|
-|Jira issues|`/skill jira-issues`|
-|Web scraping|`/skill firecrawl-web-scraper`|
-|Documentation lookup|`/skill context7-docs`|
-
----
-
-## CONTEXT7 DOCS API
-
-Use Context7 for ANY external library (React, Vue, Next.js, FastAPI, Django, Flask, Pydantic, SQLAlchemy, pandas, etc.)
-
-1. Detect version from `package.json` OR `requirements.txt` OR `pyproject.toml`
-2. Find library ID: `curl -s "https://context7.com/api/v2/libs/search?libraryName=LIBRARY_NAME&query=USER_QUESTION"`
-3. Fetch docs: `curl -s "https://context7.com/api/v2/context?libraryId=LIBRARY_ID&query=TOPIC&type=txt"`
-
-|Scenario|Action|
-|--------|------|
-|User specifies version|Fetch that version|
-|Project has version|Fetch matching major version|
-|Cannot detect version|Fetch latest, WARN user|
-|Library not found|Tell user, proceed with knowledge|
-
----
-
-## PRE-COMMIT HOOKS (OPTIONAL)
-
-Only install if user explicitly requests: "Install pre-commit hooks" or "/setup-hooks"
-Installation: `curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash`
-
----
-
-## COMMIT PROTOCOL
-
-### Before First Git Operation
-**CRITICAL:** Verify identities BEFORE any git commands.
-
-1. Check git identity: `git config user.name && git config user.email`
-2. Check remote URL: `git remote -v`
-3. If GitHub remote: `gh auth status` (fallback: `ssh -T git@github.com`)
-4. **Check SSH key alignment**:
-   ```bash
-   REMOTE_URL=$(git remote get-url origin 2>/dev/null)
-   if [[ "$REMOTE_URL" == git@* ]]; then
-       SSH_HOST=$(echo "$REMOTE_URL" | sed 's/.*@//' | sed 's/:.*//')
-       EXPECTED_KEY=$(ssh -G "$SSH_HOST" 2>/dev/null | grep '^identityfile' | head -1 | awk '{print $2}' | sed "s|~|$HOME|")
-       LOADED_KEYS=$(ssh-add -l 2>/dev/null | awk '{print $3}')
-       if [[ -n "$EXPECTED_KEY" ]] && ! echo "$LOADED_KEYS" | grep -q "$EXPECTED_KEY"; then
-           echo "SSH Key Mismatch Detected"
-           echo "  Expected key: $EXPECTED_KEY"
-           echo "  Currently loaded: $LOADED_KEYS"
-           # Prompt user to switch
-           read -p "Switch SSH agent to correct profile? (y/n) " response
-           if [[ "$response" =~ ^[Yy]$ ]]; then
-               ssh-add -D
-               ssh-add "$EXPECTED_KEY"
-           fi
-       fi
-   fi
-   ```
-5. If identity mismatch: Present both identities, ask user which to use
-
-### When to Invoke `/commit`
-- After completing a logical unit of work
-- At phase gates in implementation plans
-- Before switching to a different task
-- When user explicitly requests to save progress
-
-### Commit Rules
-|Rule|Requirement|
-|------|-----------|
-|Agent generates message|User does NOT write commit messages|
-|Respect .gitignore|Automatically excludes gitignored files|
-|Exclude planning files|Files with PLAN/TODO/DRAFT/WIP/TEMP/BACKUP/OLD in name|
-|One-line only|Maximum 72 characters, no body text|
-|No scope|Format: `type: description` (no parentheses)|
-|Imperative mood|"Add" not "Added", "Fix" not "Fixed"|
-
-### Commit Type Detection
-|Type|When to Use|
-|------|-----------|
-|`feat:`|New features, added functionality|
-|`fix:`|Bug fixes, corrections|
-|`docs:`|Documentation changes|
-|`style:`|Formatting (no logic change)|
-|`refactor:`|Code restructuring without behavior change|
-|`test:`|Test files, testing infrastructure|
-|`chore:`|Dependencies, build process, configuration|
-
----
-
-## CORE PRINCIPLES
-
-|Principle|Description|
-|---------|-----------|
-|investigate-first|NEVER edit without approval. Analyze, plan, ask permission.|
-|tradeoffs-required|Every suggestion MUST include: pros, cons, alternatives.|
-|consistency|Follow existing patterns. Scan codebase before writing new code.|
-|simplicity|Prefer fewest moving parts. Ask "is this overkill?" before abstractions.|
-|no-emojis|Never use emojis in code, docs, or communication.|
-|security|No secrets in code. Use .env + pydantic-settings. Validate all inputs.|
-|sdd-first|Spec-Driven Design is MANDATORY. Specs before tests, tests before implementation. NO exceptions for business logic. Bug fixes REQUIRE spec + regression test first.|
-|no-hardcoding|No hardcoded values. All configurable values (URLs, timeouts, thresholds, file paths, magic numbers) in a config module using pydantic-settings.|
-|no-test-skipping|NEVER use `# noqa`, `@pytest.mark.skip`, `@pytest.mark.xfail`, or any mechanism to bypass failing tests. The sole purpose of tests is to identify failures. When a test fails, fix the root cause - do NOT suppress the symptom.|
-|env-files|Never view .env content. Use .env.example for schema reference.|
-|python-deps|Use detected package manager (uv/pdm/poetry) to modify deps -- never edit pyproject.toml directly. If no manager detected, suggest uv.|
-|tech-context|MANDATORY: tech-context.md is single source of truth.|
-|doc-maintenance|After completing a task, ASK: "Update documentation?"|
-
----
-
-## LINT RULES REFERENCE (Factory.ai Concept)
-
-All rules are enforced via `opencode-lint` package. Run with: `python -m opencode_lint.cli`
-
-|Rule ID|Category|Description|Severity|Auto-fix|
-|-------|--------|-------------|--------|--------|
-|OC001|Type Safety|No raw dicts for API schemas - Use Pydantic models|Error|No|
-|OC002|Security|Never view .env content - Use os.getenv() or pydantic-settings|Error|No|
-|OC003|Security|No privileged containers in docker-compose|Error|No|
-|OC004|Grep-ability|Absolute imports preferred over relative|Warning|No|
-|OC005|Type Safety|Strict type hints required for all functions|Warning|No|
-|OC008|Test Integrity|ZERO tolerance for `# noqa` or `@pytest.mark.skip` in tests. Tests exist to catch failures. Fix the code or fix the test.|Error|No|
-
-### How It Works (Factory.ai Pattern)
-
-1. **Agent generates code**
-2. **Lint check runs** (`python -m opencode_lint.cli`)
-3. **Violations displayed with Rule ID**
-4. **Agent warns user**: "Fix OC001 violation? (y/n)"
-5. **Pre-commit blocks** if violations remain
-
-This implements the Factory.ai concept: "Linters are the executable spec that ties human intent to agent output."
-
-### Special Handling for Test Failures
-
-**When encountering a failing test:**
-- Ask: "Fix the implementation or fix the test?"
-- Investigate root cause
-- Make minimal fix
-- Verify test passes
-- **NEVER suggest**: `noqa`, `skip`, `xfail`, or any suppression mechanism
-
-**When seeing `# noqa` in test files:**
-- Immediately remove it
-- Fix the underlying issue
-- Explain: "Tests exist to identify failures, not hide them"
-
-**When user says "just make the tests pass":**
-- Clarify: "All tests must pass without suppression"
-- Proceed only with proper fixes
-
----
-
-## SUPPLY CHAIN SECURITY
-
-### Mandatory Controls
-
-| Control | Rule | Enforcement |
-|---------|------|-------------|
-| Lockfile required | No lockfile found -> agent MUST ask user to create one | Agent asks user |
-| Delayed ingestion | `--exclude-newer` with 7-day buffer recommended | Agent asks user |
-| Vulnerability scanning | `pip-audit` in CI on every push/PR | CI pipeline |
-| Security linting | Ruff `S` rules (Bandit: secrets, crypto, timeouts) | Pre-commit (ruff) |
-
-### Dependency Manager Detection
-
-When working on a Python project, detect the package manager from existing files:
-
-| Detected file | Manager | Commands |
-|---------------|---------|----------|
-| `uv.lock` | uv | `uv add`, `uv run`, `uv lock` |
-| `pdm.lock` | pdm | `pdm add`, `pdm run`, `pdm lock` |
-| `poetry.lock` | poetry | `poetry add`, `poetry run`, `poetry lock` |
-| None | **Suggest uv** | `uv init` to bootstrap |
-
-Rules:
-- NEVER edit `pyproject.toml` dependencies directly
-- ALWAYS use the detected manager's add/remove commands
-- ALWAYS commit the lockfile
-- If no manager is detected, suggest uv
-
-### Supply Chain Attack Context
-
-Recent incidents (axios Mar 2026, telnyx Mar 2026, Ultralytics Dec 2024) demonstrate:
-- Compromised maintainer accounts publish malicious versions
-- Malicious dependencies injected via postinstall hooks
-- Self-destructing droppers hide evidence
-- Lockfiles + hash pinning + delayed ingestion are the primary defenses
-
----
-
-## AVAILABLE SKILLS (For Subagent Use)
-
-Skills provide specialized instructions for subagents and main agents.
-
-<available_skills>
-  <skill>
-    <name>python-best-practices</name>
-    <description>Complete Python development guide covering code quality, testing, security, dependency management, and SDD</description>
-    <location>file:///Users/admin/.config/opencode/skills/python-best-practices/SKILL.md</location>
-  </skill>
-  <skill>
-    <name>docker-best-practices</name>
-    <description>Complete containerization guide covering Dockerfile patterns, Docker Compose, security, and networking</description>
-    <location>file:///Users/admin/.config/opencode/skills/docker-best-practices/SKILL.md</location>
-  </skill>
-  <skill>
-    <name>ml-best-practices</name>
-    <description>Complete ML development guide covering CRISP-DM, data quality, evaluation, and MLflow</description>
-    <location>file:///Users/admin/.config/opencode/skills/ml-best-practices/SKILL.md</location>
-  </skill>
-  <skill>
-    <name>github-cicd-lite</name>
-    <description>Lean GitHub-only CI pipelines for small Python projects, optimized for speed and security</description>
-    <location>file:///Users/admin/.config/opencode/skills/github-cicd-lite/SKILL.md</location>
-  </skill>
-  <skill>
-    <name>create-pull-request</name>
-    <description>End-to-end PR creation workflow with automated code review, fix verification, merge conflict detection, and professional PR description generation via GitHub CLI</description>
-    <location>file:///Users/admin/.config/opencode/skills/create-pull-request/SKILL.md</location>
-  </skill>
-  <skill>
-    <name>context7-docs</name>
-    <description>Retrieve up-to-date documentation for software libraries and frameworks via Context7 API</description>
-    <location>file:///Users/admin/.config/opencode/skills/context7-docs/SKILL.md</location>
-  </skill>
-</available_skills>
+| Domain | Command |
+|--------|---------|
+| Implementation planning | `/plan` |
+| Python development | `/skill python-best-practices` |
+| Docker/containerization | `/skill docker-best-practices` |
+| Machine learning | `/skill ml-best-practices` |
+| GitHub CI/CD | `/skill github-cicd-lite` |
+| GitHub PR creation | `/skill create-pull-request` |
+| Jira issues | `/skill jira-issues` |
+| Web scraping | `/skill firecrawl-web-scraper` |
+| Documentation lookup | `/skill context7-docs` |

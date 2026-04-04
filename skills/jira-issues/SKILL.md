@@ -31,6 +31,8 @@ This script will:
   ```
 - curl and jq installed
 
+Note: The helper script sources `.env` to load credentials but never logs or outputs env values. This is acceptable per OC002 (which restricts viewing/displaying .env content, not programmatic loading).
+
 ## Output
 
 Creates `{issue-key}.md` with:

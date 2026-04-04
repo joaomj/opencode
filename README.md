@@ -7,7 +7,7 @@ Personal [opencode](https://opencode.ai) configuration with development guidelin
 This configuration enhances opencode with:
 
 - **Skill-based architecture** - Domain-specific skills loaded on-demand for Python, Docker, ML, workflows, code review, and more
-- **Decision-index approach** - AGENTS.md provides deterministic skill triggers
+- **Hierarchical config** - Local AGENTS.md references remote as primary source; local overrides take precedence
 - **Dual-agent code review** - Two independent AI reviewers cross-check code changes
 - **Documentation maintenance** - Automated detection of outdated documentation
 - **Optional pre-commit hooks** - Quality checks for any project (user must opt-in)
@@ -29,7 +29,7 @@ git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 
 Once installed, the following commands are available:
 
-- `/plan` - Create phased implementation plan with SDD, testable gates, logging policy, config policy, and commit checkpoints
+- `/plan` - Create phased implementation plan with SDD, testable gates, and commit checkpoints
 - `/review` - Dual-agent code review with severity classification
 - `/update-docs` - Identify and remove obsolete documentation
 - `/standup` - Generate daily standup summaries from git activity
