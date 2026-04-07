@@ -2,6 +2,10 @@
 
 This document provides detailed technical information about the opencode configuration system, including skills, commands, and development guidelines.
 
+## Configuration Note
+
+`opencode.json` contains personal model and provider settings, including the small model selection and provider limits. These values are known to work in my environment, but they are not guaranteed to work for every user without equivalent provider access or credentials.
+
 ## Skills Architecture
 
 This configuration uses a skill-based architecture with domain-specific skills loaded on-demand.
@@ -24,8 +28,7 @@ Skills are loaded via deterministic triggers defined in `AGENTS.md` (decision-in
 | `docker-best-practices` | Dockerfile patterns (non-root USER), Docker Compose (read_only), runtime security, network isolation, secrets handling | Docker |
 | `ml-best-practices` | CRISP-DM phases with STAR documentation, data quality (test set ONCE), preprocessing in Pipeline, evaluation metrics, MLflow tracking | Machine Learning |
 | `github-cicd-lite` | Lean GitHub Actions CI pattern (Python-first, speed + security, deploy optional) | CI/CD |
-| `github-pr-workflow` | PR lifecycle management with automated context detection, PR description generation from templates, troubleshooting, and best practices for GitHub CLI operations | PRs |
-| `implementation-planning` | Replaced by `/plan` command - Create phased implementation plans with SDD, testable gates, logging policy, config policy, and commit checkpoints | Planning |
+| `create-pull-request` | End-to-end PR creation with code review, merge conflict detection, and professional descriptions via GitHub CLI | PRs |
 | `jira-issues` | Fetch Jira issue details and comments, save as markdown to workspace root | Jira |
 | `context7` | Retrieve up-to-date documentation for software libraries, frameworks, and components via the Context7 API | Docs |
 | `firecrawl-web-scraper` | Scrape single web pages with Firecrawl to markdown and structured JSON, with dynamic-page actions and local .firecrawl output | Web Scraping |
@@ -57,7 +60,7 @@ Creates a phased implementation plan using Spec-Driven Design (SDD).
 
 ### `/review`
 
-Performs dual-agent code review with severity classification (P0-P3).
+Performs task-scoped code review with severity classification (P0-P3).
 
 **Usage:**
 ```bash
@@ -65,7 +68,7 @@ Performs dual-agent code review with severity classification (P0-P3).
 /review from X to Y        # Review specific branch range
 ```
 
-Two independent reviewers analyze the same code and findings are consolidated into a review report.
+The `code-reviewer` subagent analyzes the diff and reports findings by severity.
 
 **Severity Levels:**
 - **P0** - Critical security/performance issues, blockers
@@ -118,7 +121,7 @@ Stages and commits recent changes with auto-generated conventional commit messag
 Install quality checks in any project:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash
+curl -sSL https://raw.githubusercontent.com/joaomj/opencode/master/setup-hooks.sh | bash
 ```
 
 **Important:** Pre-commit hooks are optional. The installer will ask for confirmation before proceeding.
@@ -241,7 +244,7 @@ The AGENTS.md file uses a compressed, pipe-delimited table format for fast scann
 
 | Trigger | Action |
 |---------|--------|
-| User says "review" | `/skill code-review-expert` |
+| User says "review" | `@code-reviewer` |
 | File pattern `test_*.py` | `/skill python-best-practices` |
 | Import `import pandas` | `/skill ml-best-practices` |
 
@@ -253,11 +256,11 @@ This approach:
 
 ### Code Review
 
-Code reviews use the code-review-expert skill with severity classification (P0-P3):
+Code reviews use the `code-reviewer` subagent with severity classification (P0-P3):
 - Task-scoped reviews focus only on relevant code changes
 - Ask user for context before reviewing
 - Ask user before writing review document
-- Single reviewer flow (no subagents) for reliability
+- Single reviewer flow for reliability
 
 ### Skill-Based Architecture Benefits
 

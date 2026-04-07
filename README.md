@@ -1,16 +1,14 @@
 # opencode-config
 
-Personal [opencode](https://opencode.ai) configuration with development guidelines, custom agents, and skills for enhanced AI-assisted development.
+Personal [opencode](https://opencode.ai) configuration with development guidelines and custom agents for enhanced AI-assisted development.
 
 ## Overview
 
-This configuration enhances opencode with:
+This configuration keeps opencode focused on a few core ideas:
 
-- **Skill-based architecture** - Domain-specific skills loaded on-demand for Python, Docker, ML, workflows, code review, and more
-- **Hierarchical config** - Local AGENTS.md references remote as primary source; local overrides take precedence
-- **Dual-agent code review** - Two independent AI reviewers cross-check code changes
-- **Documentation maintenance** - Automated detection of outdated documentation
-- **Optional pre-commit hooks** - Quality checks for any project (user must opt-in)
+- A hierarchical config model where local `AGENTS.md` overrides remote defaults
+- Clear development rules for safer, more consistent AI-assisted changes
+- Lightweight optional tooling for validation and repo hygiene
 
 ## Prerequisites
 
@@ -25,29 +23,23 @@ This configuration enhances opencode with:
 git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 ```
 
-## Quick Start
+## Configuration Note
 
-Once installed, the following commands are available:
-
-- `/plan` - Create phased implementation plan with SDD, testable gates, and commit checkpoints
-- `/review` - Dual-agent code review with severity classification
-- `/update-docs` - Identify and remove obsolete documentation
-- `/standup` - Generate daily standup summaries from git activity
-- `/commit` - Stage and commit changes with auto-generated conventional commit messages
+`opencode.json` includes opinionated model and provider settings, including a small model and provider-specific limits. They work in my setup, but other users may need to adjust them if they do not have the same API keys, subscriptions, or model access.
 
 ## Pre-Commit Hooks (Optional)
 
 Install quality checks in any project:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash
+curl -sSL https://raw.githubusercontent.com/joaomj/opencode/master/setup-hooks.sh | bash
 ```
 
 The installer will ask for confirmation before proceeding.
 
 ## Technical Documentation
 
-For detailed information about skills, commands, development guidelines, and architecture decisions, see [tech-context.md](tech-context.md).
+For detailed architecture and workflow notes, see [tech-context.md](tech-context.md).
 
 ## Multi-Machine Setup
 

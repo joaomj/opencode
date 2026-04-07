@@ -10,7 +10,7 @@ pip install -e opencode_lint
 
 Or use the pre-commit hook setup:
 ```bash
-curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash
+curl -sSL https://raw.githubusercontent.com/joaomj/opencode/master/setup-hooks.sh | bash
 ```
 
 ## Usage
