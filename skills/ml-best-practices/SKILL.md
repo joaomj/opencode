@@ -22,7 +22,7 @@ Core rules defined in AGENTS.md. ML-specific additions:
 ## CRISP-DM Framework
 
 ### Phase 1: Business Understanding
-Document in `docs/tech-context.md` using STAR format:
+Document in `tech-context.md` using STAR format:
 
 **Situation:**
 - What business problem are we solving?
@@ -43,7 +43,7 @@ Document in `docs/tech-context.md` using STAR format:
 - What are the key challenges identified?
 
 ### Phase 2: Data Understanding
-Document in `docs/tech-context.md` using STAR format:
+Document in `tech-context.md` using STAR format:
 
 **Situation:**
 - What is the data volume and structure?
@@ -64,7 +64,7 @@ Document in `docs/tech-context.md` using STAR format:
 - Identified patterns/outliers
 
 ### Phase 3: Data Preparation
-Document in `docs/tech-context.md` using STAR format:
+Document in `tech-context.md` using STAR format:
 
 **Situation:**
 - What preprocessing is needed?
@@ -87,7 +87,7 @@ Document in `docs/tech-context.md` using STAR format:
 - Data split completed
 
 ### Phase 4: Modeling
-Document in `docs/tech-context.md` using STAR format:
+Document in `tech-context.md` using STAR format:
 
 **Situation:**
 - What modeling techniques will be used?
@@ -109,7 +109,7 @@ Document in `docs/tech-context.md` using STAR format:
 - Feature importance analysis
 
 ### Phase 5: Evaluation
-Document in `docs/tech-context.md` using STAR format:
+Document in `tech-context.md` using STAR format:
 
 **Situation:**
 - How will model be evaluated?
@@ -132,7 +132,7 @@ Document in `docs/tech-context.md` using STAR format:
 - Deployment recommendation
 
 ### Phase 6: Deployment
-Document in `docs/tech-context.md` using STAR format:
+Document in `tech-context.md` using STAR format:
 
 **Situation:**
 - What are deployment constraints?

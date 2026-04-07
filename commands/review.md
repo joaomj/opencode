@@ -23,10 +23,10 @@ description: Perform code review with P0-P3 severity levels
    - Write CODE_REVIEW.md at project root
    - Include task context, scope, and iteration history
 
-Default scope: git diff origin/main...HEAD
+Default scope: git diff origin/master...HEAD
 
 Custom scopes available:
-- "from feature-x to main" - branch comparison
+- "from feature-x to master" - branch comparison
 - "commit abc123 vs def456" - commit comparison
 - "PR #42" - pull request review
 

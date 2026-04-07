@@ -41,7 +41,7 @@ If skill loading fails, ASK user: "Proceed without [domain] best practices?"
 ### Step 1.1: Scan Project Context
 
 ```bash
-ls docs/tech-context.md
+ls tech-context.md
 ls pyproject.toml package.json requirements.txt Cargo.toml go.mod
 find . -name "main.py" -o -name "index.ts" -o -name "app.py" -o -name "main.go" | head -5
 ls -la src/ lib/ app/ cmd/ 2>/dev/null || ls -la
@@ -51,13 +51,13 @@ ls -la src/ lib/ app/ cmd/ 2>/dev/null || ls -la
 
 | Priority | File | Purpose |
 |----------|------|---------|
-| 1 | `docs/tech-context.md` | Single source of truth for architecture |
+| 1 | `tech-context.md` | Single source of truth for architecture |
 | 2 | `pyproject.toml` / `package.json` | Dependencies, scripts, config |
 | 3 | Entry point | Application bootstrap |
 | 4 | Related modules | Existing patterns to follow |
 | 5 | Tests for related modules | Testing conventions |
 
-ALWAYS read `docs/tech-context.md` first if it exists.
+ALWAYS read `tech-context.md` first if it exists.
 
 ### Step 1.3: Identify Existing Patterns
 
