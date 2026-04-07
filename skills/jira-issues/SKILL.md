@@ -1,25 +1,108 @@
 ---
 name: jira-issues
-description: Fetch Jira issue details and comments, save as markdown to workspace root
+description: Fetch, create, and search Jira issues - agnostic to Jira host (Cloud/Server)
 compatibility: opencode
 ---
 
-## Trigger
-When user asks to fetch a Jira issue (e.g., "get Jira issue ML-502" or "fetch TDT-2558")
+## Triggers
+
+| User says | Command invoked |
+|-----------|-----------------|
+| "get issue ML-502" / "fetch PROJ-123" | `jira.py fetch <key>` |
+| "create jira issue" / "/create-jira" | `jira.py create` (interactive) |
+| "search jira" / "jira search" | `jira.py search <jql>` |
 
 ## Workflow
 
-Run the helper script with the issue key:
+### Setup: Venv Detection
 
+When first using the skill, the skill directory is checked for a Python virtual environment.
+
+**Search order:**
+1. `$HOME/.config/opencode/skills/jira-issues/.venv`
+2. `.venv` in current directory
+3. `venv` in current directory
+
+If found → ask user: "Use existing venv or create new?"
+
+If not found → create `.venv` in `$HOME/.config/opencode/skills/jira-issues/.venv`
+
+**To activate venv before running scripts:**
 ```bash
-$HOME/.config/opencode/skills/jira-issues/bin/jira_fetch.sh TDT-2554
+source $HOME/.config/opencode/skills/jira-issues/.venv/bin/activate
 ```
 
-This script will:
-1. Load `.env` from current directory (which contains JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_KEY)
-2. Fetch issue details and comments from Jira API v3
-3. Convert Atlassian Document Format (ADF) description and comments to markdown
-4. Save to `{lowercase-issue-key}.md` in current directory
+---
+
+### Fetch Issue
+
+**Trigger:** "get issue ML-502" or "fetch PROJ-123"
+
+**Command:**
+```bash
+$HOME/.config/opencode/skills/jira-issues/.venv/bin/python \
+  $HOME/.config/opencode/skills/jira-issues/jira.py fetch <issue-key>
+```
+
+**What it does:**
+1. Loads `.env` from current directory (JIRA_BASE_URL, JIRA_EMAIL, JIRA_API_KEY)
+2. Fetches issue details and comments via Jira REST API v3
+3. Converts ADF description and comments to markdown
+4. Saves to `{lowercase-issue-key}.md` in current directory
+
+---
+
+### Create Issue
+
+**Trigger:** "create jira issue" or "/create-jira"
+
+**Command:**
+```bash
+$HOME/.config/opencode/skills/jira-issues/.venv/bin/python \
+  $HOME/.config/opencode/skills/jira-issues/jira.py create \
+  --project-key <KEY> --summary "Issue summary"
+```
+
+**Interactive mode (no args):**
+```bash
+$HOME/.config/opencode/skills/jira-issues/.venv/bin/python \
+  $HOME/.config/opencode/skills/jira-issues/jira.py create
+```
+Prompts for: project_key, summary, description, issue_type, story_points, labels, assignee
+
+**Options:**
+| Flag | Description |
+|------|-------------|
+| `--project-key` | Jira project key (required) |
+| `--summary` | Issue summary (required) |
+| `--description` | Issue description text |
+| `--issue-type` | Type name, default: Story |
+| `--story-points` | Numeric story points |
+| `--labels` | Comma-separated labels |
+| `--assignee` | accountId, "self", or "none" |
+| `--story-points-field` | Custom field ID (default: customfield_10016) |
+| `--dry-run` | Show what would be created without creating |
+| `--yes` | Skip confirmation prompt |
+
+---
+
+### Search Issues
+
+**Trigger:** "search jira" or "jira search"
+
+**Command:**
+```bash
+$HOME/.config/opencode/skills/jira-issues/.venv/bin/python \
+  $HOME/.config/opencode/skills/jira-issues/jira.py search "project = MYPROJ AND status = Open"
+```
+
+**Options:**
+| Flag | Description |
+|------|-------------|
+| `--max-results` | Max results (default: 50) |
+| `--fields` | Comma-separated fields to include |
+
+---
 
 ## Requirements
 
@@ -29,52 +112,42 @@ This script will:
   JIRA_EMAIL=your.email@company.com
   JIRA_API_KEY=your_api_token_here
   ```
-- curl and jq installed
+- Python 3.11+
+- curl (for API calls)
 
-Note: The helper script sources `.env` to load credentials but never logs or outputs env values. This is acceptable per OC002 (which restricts viewing/displaying .env content, not programmatic loading).
+Note: Credentials are loaded from `.env` programmatically - never logged or displayed per OC002.
 
-## Output
+## Output Formats
 
-Creates `{issue-key}.md` with:
+### Fetch Output (`{key}.md`)
 - Issue key and summary (H1)
 - Metadata table (type, status, priority, assignee, dates, labels, components)
-- Description with full ADF to markdown conversion
-- Comments (if any) with author and date
+- Description with ADF→markdown conversion
+- Comments section (if any)
 
-## ADF to Markdown Conversion
+### Create Output (stdout)
+- Logs project, type, summary, assignee, story points, labels
+- On success: `Created: PROJ-123`
+- On dry-run: shows what would be created
 
-The converter supports:
+### Search Output (stdout)
+- One line per issue: `PROJ-123: Issue summary`
 
-**Text Marks:**
-- Bold (`**text**`)
-- Italic (`*text*`)
-- Strikethrough (`~~text~~`)
-- Inline code (`` `text` ``)
-- Underline (`<u>text</u>`)
-- Links (`[text](url)`)
+## ADF to Markdown
 
-**Block Nodes:**
-- Headings (H1-H6)
-- Paragraphs
-- Bullet lists
-- Numbered lists
-- Code blocks with language support
-- Blockquotes
-- Horizontal rules
-- Tables
-- Panels (info/warning/error)
-- Expandable sections
+The Python converter handles:
 
-**Inline Nodes:**
-- Mentions (@username)
-- Emojis
-- Status badges
-- Dates
+**Text Marks:** bold, italic, strikethrough, inline code, underline, links
+
+**Block Nodes:** headings, paragraphs, bullet/ordered lists, code blocks, blockquotes, horizontal rules, tables, panels, expandable sections
+
+**Inline Nodes:** mentions, emojis, status badges, dates, hard breaks
 
 ## Error Handling
 
-If script fails:
-- Check `.env` exists in current directory
-- Verify all three JIRA_* variables are set
-- Ensure issue key is valid and accessible
-- Raw curl errors displayed for debugging
+| Error | Resolution |
+|-------|------------|
+| "Missing Jira credentials" | Check `.env` exists with all JIRA_* vars |
+| "Invalid issue key format" | Use format PROJ-123 (uppercase) |
+| "curl failed" | Check network and Jira host accessibility |
+| "Jira API 4xx/5xx" | Check permissions and issue key validity |
