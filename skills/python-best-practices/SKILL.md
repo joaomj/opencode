@@ -209,7 +209,7 @@ For bug fixes, write a regression test that reproduces the bug BEFORE fixing it.
 
 Exempt from SDD: config files, boilerplate, type definitions, migrations, documentation. Add comment: `# test-exempt: [reason]`
 
-See `/plan` command for full SDD workflow.
+See the Plan agent (`@plan` or Tab) for full SDD workflow.
 
 ## Security
 

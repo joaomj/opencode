@@ -30,7 +30,7 @@ When the user's intent matches a category below, invoke the corresponding agent 
 | Web scraping / extracting content from URLs | Load `firecrawl-web-scraper` skill |
 | Jira issue management | Load `jira-issues` skill |
 | Notion search / fetch notion docs / read notion page | Load `notion-reader` skill |
-| Planning a feature or implementation | Write a phased plan with testable checkpoints before coding |
+| Planning a feature or implementation | Switch to `@plan` agent (or press Tab to select Plan) |
 | Bug fixing | Write a regression test that reproduces the bug before fixing |
 
 ---

@@ -42,26 +42,27 @@ Skills are loaded from `AGENTS.md` using intent-aware routing rather than exact 
 
 Commands are prefixed with `/` and available in opencode CLI.
 
-### `/plan`
+### Plan Agent
 
-Creates a phased implementation plan using Spec-Driven Design (SDD).
+Switch to the Plan agent (press Tab or `@plan`) for structured implementation planning using Spec-Driven Design (SDD).
 
-**Usage:**
-```bash
-/plan
-```
+**How to invoke:**
+- Press Tab to cycle to the Plan agent
+- Type `@plan` in your message
 
 **Features:**
 - Workspace analysis and pattern detection
 - User interview for requirement clarification
-- Systems design with logging and config architecture
-- Tradeoffs analysis with recommendation
+- Systems design with architecture components and data flow
+- Tradeoffs analysis with at least 2-3 options
 - Phased plan with SDD flow: specs -> tests -> implement
-- Clear gate criteria between phases
-- Commit after each successful gate
-- Automatically loads relevant skills (Python/Docker/ML best practices) based on project type
+- Clear gate criteria between phases with commit triggers
+- Approval gate before execution
+- Conditional skill loading (Python/Docker/ML best practices) based on project type
 
 **Output:** `plan-[feature-name].md` at project root (not in docs/)
+
+**Agent config:** `~/.config/opencode/agents/plan.md`
 
 ### `/review`
 
@@ -186,7 +187,7 @@ Add `.test-mock-external-allowlist` in your repo to allow external module prefix
 5. **COMMIT**: Only after all gates pass
 
 **Spec-First Triggers:**
-- User says "implement" -> Run `/plan` command
+- User says "implement" -> Switch to Plan agent (Tab or `@plan`)
 - User says "fix bug" -> Block: "Write spec + regression test that reproduces bug first"
 - Implementation without spec -> WARN: "No spec defined for this implementation"
 
