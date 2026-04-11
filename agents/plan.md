@@ -1,5 +1,29 @@
 ---
 description: Create phased implementation plan with testable gates, SDD, and commit checkpoints
+mode: primary
+model: openai/gpt-5.4
+temperature: 0.1
+permission:
+  edit:
+    "*": ask
+  bash:
+    "git diff*": allow
+    "git log*": allow
+    "git status*": allow
+    "git show*": allow
+    "ls*": allow
+    "find *": allow
+    "cat *": allow
+    "rg *": allow
+    "grep*": allow
+    "pytest*": allow
+    "ruff*": allow
+    "mypy*": allow
+    "pdm*": allow
+    "npm*": ask
+    "rm *": ask
+    "*": ask
+  webfetch: ask
 ---
 
 # Implementation Planning (SDD - Spec-Driven Design)
@@ -21,14 +45,14 @@ Create a structured implementation plan following the investigate-first principl
 
 ## Conditional Skill Loading
 
-DETECT project type and LOAD relevant skills BEFORE Phase 5 (Action Plan).
+Detect project intent and load relevant skills before Phase 5 (Action Plan).
 
-| Detected Signal | Action |
-|-----------------|--------|
-| `pyproject.toml` / `setup.py` / `requirements.txt` | Load `/skill python-best-practices` |
-| `Dockerfile` / `Dockerfile.*` / `docker-compose*.yml` | Load `/skill docker-best-practices` |
-| `import sklearn` / `import torch` / `import pandas` / `import numpy` | Load `/skill ml-best-practices` |
-| None of the above | Skip skill loading |
+| Context | Action |
+|---------|--------|
+| Python project setup, packaging, testing, or typing concerns | Load `python-best-practices` skill |
+| Docker, container, or compose concerns | Load `docker-best-practices` skill |
+| ML pipelines, model training, or data science imports | Load `ml-best-practices` skill |
+| No clear domain signal | Skip skill loading |
 
 If skill loading fails, ASK user: "Proceed without [domain] best practices?"
 
@@ -206,7 +230,7 @@ pytest tests/test_module.py -v --cov=src/module --cov-fail-under=80
 ruff check src/module
 
 #### Commit Trigger
-After gate passes: `/commit` with message: "feat: [phase objective]"
+After gate passes: commit with message: "feat: [phase objective]"
 ```
 
 ### Plan Document
@@ -304,4 +328,4 @@ After final phase:
 2. Run full lint
 3. Verify no regressions
 4. Commit final state
-5. ASK: "Update documentation?" -> if yes, run `/update-docs`
+5. ASK: "Update documentation?" -> if yes, suggest running the doc-maintainer subagent
