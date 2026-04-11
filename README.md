@@ -25,7 +25,7 @@ git clone https://github.com/joaomj/opencode.git ~/.config/opencode
 
 ## Configuration Note
 
-`opencode.json` includes opinionated model and provider settings, including a small model and provider-specific limits. They work in my setup, but other users may need to adjust them if they do not have the same API keys, subscriptions, or model access.
+`opencode.json` includes opinionated model and provider settings, including a small model, provider-specific limits, and a fast read-only `explore` agent pinned to `openai/gpt-5.4-mini`. They work in my setup, but other users may need to adjust them if they do not have the same API keys, subscriptions, or model access.
 
 ## Pre-Commit Hooks (Optional)
 

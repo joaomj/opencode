@@ -12,13 +12,12 @@ This configuration uses a skill-based architecture with domain-specific skills l
 
 ### Skill Loading Pattern
 
-Skills are loaded via deterministic triggers defined in `AGENTS.md` (decision-index approach following Vercel's pattern):
+Skills are loaded from `AGENTS.md` using intent-aware routing rather than exact phrase matching.
 
-1. **User Request Triggers** - Exact match patterns (e.g., "/review", "update docs")
-2. **File Pattern Triggers** - Based on file types (e.g., `test_*.py`, `Dockerfile`)
-3. **Import Statement Triggers** - Based on imports (e.g., `import pandas`)
-4. **Code Pattern Triggers** - Based on detected patterns (e.g., missing type hints)
-5. **Conversation Triggers** - Based on context (e.g., stack traces, test failures)
+1. **User intent** - Match the requested task category, not literal keywords.
+2. **Code context** - Load domain skills when the file, import, or architecture context suggests them.
+3. **Conversation context** - Use surrounding discussion, errors, or task scope to decide which skill is relevant.
+4. **User confirmation** - Ask before loading a skill unless the request clearly implies it.
 
 ### Available Skills
 
@@ -32,6 +31,12 @@ Skills are loaded via deterministic triggers defined in `AGENTS.md` (decision-in
 | `jira-issues` | Fetch Jira issue details and comments, save as markdown to workspace root | Jira |
 | `context7` | Retrieve up-to-date documentation for software libraries, frameworks, and components via the Context7 API | Docs |
 | `firecrawl-web-scraper` | Scrape single web pages with Firecrawl to markdown and structured JSON, with dynamic-page actions and local .firecrawl output | Web Scraping |
+
+### Agent Configuration
+
+| Agent | Model | Notes |
+|-------|-------|-------|
+| `explore` | `openai/gpt-5.4-mini` | Fast read-only subagent for codebase exploration |
 
 ## Available Commands
 
@@ -238,21 +243,21 @@ For external libraries (React, FastAPI, Pandas, etc.), this configuration uses C
 
 ## Architecture Decisions
 
-### Decision-Index Format (AGENTS.md)
+### Intent-Driven Routing (AGENTS.md)
 
-The AGENTS.md file uses a compressed, pipe-delimited table format for fast scanning and deterministic routing:
+The AGENTS.md file uses a compressed, pipe-delimited table format for fast scanning and intent-driven routing:
 
 | Trigger | Action |
 |---------|--------|
-| User says "review" | `@code-reviewer` |
-| File pattern `test_*.py` | `/skill python-best-practices` |
-| Import `import pandas` | `/skill ml-best-practices` |
+| User asks for code review | `@code-reviewer` |
+| Python project context appears | Load `python-best-practices` skill |
+| ML library imports appear | Load `ml-best-practices` skill |
 
 This approach:
-- Enables deterministic skill loading (no model decisions)
+- Enables intent-driven skill loading without keyword matching
 - Provides clear IF-THEN rules
 - Allows fast scanning without parsing natural language
-- Follows Vercel's pattern for their AI systems
+- Keeps the routing logic easy to maintain
 
 ### Code Review
 
