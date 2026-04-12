@@ -1,13 +1,13 @@
 # OpenCode Auto-Update Setup Guide
 
-This guide configures your shell to automatically sync `~/.config/opencode` from your remote repository while preserving local AGENTS.md customizations.
+This guide configures your shell to automatically sync `~/.config/opencode` from your remote repository while preserving local customizations.
 
 ## What It Does
 
 When you type `opencode`:
-1. Backs up local `AGENTS.md` custom content
-2. Syncs `~/.config/opencode` from `origin/master` (remote overwrites local)
-3. Appends your local AGENTS.md content to the remote version
+1. Preserves local `AGENTS.md` and `opencode.json`
+2. Fetches remote changes and merges them (appends new content to existing files)
+3. Restores your local `AGENTS.md` and `opencode.json`
 4. Launches OpenCode in your current working directory
 
 ## Prerequisites
@@ -55,31 +55,41 @@ opencode() {
     (
         cd "$HOME/.config/opencode" 2>/dev/null || exit 0
         
-        # Extract local AGENTS.md custom section (after the first marker line)
-        LOCAL_AGENTS=""
-        if [ -f "AGENTS.md" ]; then
-            # Look for a marker line like "# LOCAL CUSTOMIZATIONS" or similar
-            # If marker exists, extract everything after it
-            if grep -q "^# LOCAL CUSTOMIZATIONS" AGENTS.md 2>/dev/null; then
-                LOCAL_AGENTS=$(sed -n '/^# LOCAL CUSTOMIZATIONS/,$p' AGENTS.md)
-            else
-                # No marker: treat entire file as local customizations
-                LOCAL_AGENTS=$(cat AGENTS.md)
+        PRESERVED_FILES="AGENTS.md opencode.json"
+        
+        for file in $PRESERVED_FILES; do
+            if [ -f "$file" ]; then
+                cp "$file" "$file.local.bak"
             fi
-        fi
+        done
         
         echo "[OpenCode Sync] Fetching remote changes..."
         git fetch origin master 2>/dev/null || echo "[OpenCode Sync] Warning: Could not fetch from remote"
         
-        # Reset to remote version
-        git reset --hard origin/master 2>/dev/null || echo "[OpenCode Sync] Warning: Could not reset to remote"
+        for remote_file in $(git ls-tree -r --name-only origin/master); do
+            if echo "$PRESERVED_FILES" | grep -qw "$remote_file"; then
+                continue
+            fi
+            
+            local_file="./${remote_file}"
+            if [ -f "$local_file" ]; then
+                remote_content=$(git show "origin/master:${remote_file}" 2>/dev/null)
+                if [ -n "$remote_content" ]; then
+                    printf '\n\n' >> "$local_file"
+                    printf '%s\n' "$remote_content" >> "$local_file"
+                fi
+            else
+                mkdir -p "$(dirname "$local_file")"
+                git checkout "origin/master" -- "$remote_file" 2>/dev/null
+            fi
+        done
         
-        # Append local customizations back to AGENTS.md
-        if [ -n "$LOCAL_AGENTS" ]; then
-            echo "" >> AGENTS.md
-            echo "$LOCAL_AGENTS" >> AGENTS.md
-            echo "[OpenCode Sync] Local AGENTS.md customizations preserved"
-        fi
+        for file in $PRESERVED_FILES; do
+            if [ -f "$file.local.bak" ]; then
+                mv "$file.local.bak" "$file"
+                echo "[OpenCode Sync] $file preserved"
+            fi
+        done
     )
     echo "[OpenCode Sync] Starting OpenCode..."
     command opencode "$@"
@@ -130,22 +140,36 @@ opencode is a function
 opencode () 
 { 
     ( cd "$HOME/.config/opencode" 2> /dev/null || exit 0;
-    LOCAL_AGENTS="";
-    if [ -f "AGENTS.md" ]; then
-        if grep -q "^# LOCAL CUSTOMIZATIONS" AGENTS.md 2> /dev/null; then
-            LOCAL_AGENTS=$( sed -n '/^# LOCAL CUSTOMIZATIONS/,$p' AGENTS.md );
-        else
-            LOCAL_AGENTS=$( cat AGENTS.md );
+    PRESERVED_FILES="AGENTS.md opencode.json";
+    for file in $PRESERVED_FILES; do
+        if [ -f "$file" ]; then
+            cp "$file" "$file.local.bak";
         fi;
-    fi;
+    done;
     echo "[OpenCode Sync] Fetching remote changes...";
     git fetch origin master 2> /dev/null || echo "[OpenCode Sync] Warning: Could not fetch from remote";
-    git reset --hard origin/master 2> /dev/null || echo "[OpenCode Sync] Warning: Could not reset to remote";
-    if [ -n "$LOCAL_AGENTS" ]; then
-        echo "" >> AGENTS.md;
-        echo "$LOCAL_AGENTS" >> AGENTS.md;
-        echo "[OpenCode Sync] Local AGENTS.md customizations preserved";
-    fi );
+    for remote_file in $(git ls-tree -r --name-only origin/master); do
+        if echo "$PRESERVED_FILES" | grep -qw "$remote_file"; then
+            continue;
+        fi;
+        local_file="./${remote_file}";
+        if [ -f "$local_file" ]; then
+            remote_content=$(git show "origin/master:${remote_file}" 2>/dev/null);
+            if [ -n "$remote_content" ]; then
+                printf '\n\n' >> "$local_file";
+                printf '%s\n' "$remote_content" >> "$local_file";
+            fi;
+        else
+            mkdir -p "$(dirname "$local_file")";
+            git checkout "origin/master" -- "$remote_file" 2>/dev/null;
+        fi;
+    done;
+    for file in $PRESERVED_FILES; do
+        if [ -f "$file.local.bak" ]; then
+            mv "$file.local.bak" "$file";
+            echo "[OpenCode Sync] $file preserved";
+        fi;
+    done );
     echo "[OpenCode Sync] Starting OpenCode...";
     command opencode "$@"
 }
@@ -162,13 +186,15 @@ opencode
 **You should see:**
 ```
 [OpenCode Sync] Fetching remote changes...
-[OpenCode Sync] Local AGENTS.md customizations preserved
+[OpenCode Sync] AGENTS.md preserved
+[OpenCode Sync] opencode.json preserved
 [OpenCode Sync] Starting OpenCode...
 ```
 
-If you have no local customizations, you'll see:
+If you don't have a local `opencode.json`, you'll only see:
 ```
 [OpenCode Sync] Fetching remote changes...
+[OpenCode Sync] AGENTS.md preserved
 [OpenCode Sync] Starting OpenCode...
 ```
 
@@ -195,24 +221,21 @@ Then OpenCode starts in your current directory (not in `~/.config/opencode`).
 ## How It Works
 
 1. **Subshell isolation**: The parentheses `(...)` create a subshell, so `cd` doesn't affect your current directory
-2. **Local preservation**: Extracts your custom AGENTS.md content (everything after `# LOCAL CUSTOMIZATIONS` marker, or entire file if no marker)
+2. **Local backup**: Backs up `AGENTS.md` and `opencode.json` to `.local.bak` files
 3. **Silent failures**: `2>/dev/null` suppresses error output for cleaner startup
-4. **Remote sync**: `git reset --hard origin/master` updates to remote state
-5. **Merge back**: Appends local customizations to the remote AGENTS.md file
+4. **Merge strategy**: For existing files, appends remote content; for new files, checks them out
+5. **Preserve local**: Restores backed-up `AGENTS.md` and `opencode.json` after merge
 6. **Preserves working directory**: OpenCode launches from where you invoked it
 
 ## Important Notes
 
-✅ **AGENTS.md preserved**: Your local AGENTS.md customizations are automatically appended to the remote version after each sync.
+✅ **AGENTS.md preserved**: Your local AGENTS.md is backed up and restored after sync.
 
-⚠️ **Other files overwritten**: All other files in `~/.config/opencode` will be replaced with remote versions (except AGENTS.md).
+✅ **opencode.json preserved**: Your local opencode.json is backed up and restored after sync.
 
-⚠️ **Use marker for clarity**: To clearly separate your customizations from the remote content, add a marker line in your local AGENTS.md:
-```
-# LOCAL CUSTOMIZATIONS
-Your custom configurations here...
-```
-This ensures only your custom section is preserved during sync.
+⚠️ **Merge, not replace**: Remote changes are appended to existing files (except preserved ones), not wholesale replaced.
+
+⚠️ **No marker needed**: Unlike the previous approach, the entire file is preserved - no marker required.
 
 ## Rollback / Disable Auto-Update
 
@@ -269,11 +292,7 @@ The subshell isolation isn't working. Check that your function uses parentheses 
 
 ### Change Remote Repository
 
-Edit the function and replace:
-```bash
-git fetch origin master
-```
-with:
+Edit the function and replace `origin master` with your remote and branch:
 ```bash
 git fetch <remote-name> <branch-name>
 ```
@@ -287,49 +306,54 @@ opencode() {
     (
         cd "$HOME/.config/opencode" || exit 0
         
-        LOCAL_AGENTS=""
-        if [ -f "AGENTS.md" ]; then
-            if grep -q "^# LOCAL CUSTOMIZATIONS" AGENTS.md; then
-                LOCAL_AGENTS=$(sed -n '/^# LOCAL CUSTOMIZATIONS/,$p' AGENTS.md)
-            else
-                LOCAL_AGENTS=$(cat AGENTS.md)
+        PRESERVED_FILES="AGENTS.md opencode.json"
+        
+        for file in $PRESERVED_FILES; do
+            if [ -f "$file" ]; then
+                cp "$file" "$file.local.bak"
             fi
-        fi
+        done
         
         echo "[OpenCode Sync] Fetching remote changes..."
         git fetch origin master || echo "Warning: fetch failed"
-        git reset --hard origin/master || echo "Warning: reset failed"
         
-        if [ -n "$LOCAL_AGENTS" ]; then
-            echo "" >> AGENTS.md
-            echo "$LOCAL_AGENTS" >> AGENTS.md
-            echo "[OpenCode Sync] Local AGENTS.md customizations preserved"
-        fi
+        for remote_file in $(git ls-tree -r --name-only origin/master); do
+            if echo "$PRESERVED_FILES" | grep -qw "$remote_file"; then
+                continue
+            fi
+            
+            local_file="./${remote_file}"
+            if [ -f "$local_file" ]; then
+                remote_content=$(git show "origin/master:${remote_file}" 2>/dev/null)
+                if [ -n "$remote_content" ]; then
+                    printf '\n\n' >> "$local_file"
+                    printf '%s\n' "$remote_content" >> "$local_file"
+                fi
+            else
+                mkdir -p "$(dirname "$local_file")"
+                git checkout "origin/master" -- "$remote_file"
+            fi
+        done
+        
+        for file in $PRESERVED_FILES; do
+            if [ -f "$file.local.bak" ]; then
+                mv "$file.local.bak" "$file"
+                echo "[OpenCode Sync] $file preserved"
+            fi
+        done
     )
     echo "[OpenCode Sync] Starting OpenCode..."
     command opencode "$@"
 }
 ```
 
-### Multi-Machine Setup
+### Add More Preserved Files
 
-If you use OpenCode across multiple machines/clients, structure your AGENTS.md like this:
+To preserve additional files, edit the `PRESERVED_FILES` variable:
 
-```markdown
-# AGENTS.md
-
-[Remote shared content...]
-
-# LOCAL CUSTOMIZATIONS
-
-## Machine 1 - Client A
-Specific instructions for client A project...
-
-## Machine 2 - Client B  
-Specific instructions for client B project...
+```bash
+PRESERVED_FILES="AGENTS.md opencode.json custom-config.yml secrets.json"
 ```
-
-Each machine will preserve only its relevant section after sync.
 
 ---
 
