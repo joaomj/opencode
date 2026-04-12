@@ -4,26 +4,21 @@ mode: primary
 model: openai/gpt-5.4
 temperature: 0.1
 permission:
-  edit:
-    "*": ask
   bash:
-    "git diff*": allow
-    "git log*": allow
-    "git status*": allow
-    "git show*": allow
-    "ls*": allow
-    "find *": allow
-    "cat *": allow
-    "rg *": allow
-    "grep*": allow
-    "pytest*": allow
-    "ruff*": allow
-    "mypy*": allow
-    "pdm*": allow
-    "npm*": ask
+    "*": allow
+    "git add *": ask
+    "git commit *": ask
+    "git push *": ask
+    "git merge *": ask
     "rm *": ask
-    "*": ask
-  webfetch: ask
+    "npm *": ask
+    "ssh *": ask
+    "brew *": ask
+    "* .env *": ask
+    "docker *": ask
+  edit:
+    "*": deny
+  webfetch: allow
 ---
 
 # Implementation Planning (SDD - Spec-Driven Design)
