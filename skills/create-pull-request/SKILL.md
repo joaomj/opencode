@@ -1,6 +1,6 @@
 ---
 name: create-pull-request
-description: End-to-end PR creation with code review, merge conflict detection, and professional descriptions via GitHub CLI
+description: End-to-end PR creation with merge conflict detection and professional descriptions via GitHub CLI
 license: MIT
 ---
 
@@ -38,9 +38,14 @@ git status --porcelain
 ```bash
 git branch --show-current
 gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'
+git ls-remote --heads origin 2>/dev/null | awk '{print $2}' | sed 's|refs/heads/||' | sort | uniq
 ```
 
-Present detected branches and ask user to confirm or specify alternatives.
+Present detected branches. **Ask user which remote branch to compare against:**
+- If `main` exists, suggest as default
+- If `master` exists, offer as alternative
+- Allow custom branch input
+- Default: compare current branch against `origin/main` (or `origin/master` if main doesn't exist)
 
 Validate destination branch exists:
 
@@ -48,42 +53,7 @@ Validate destination branch exists:
 git ls-remote --heads origin <destination-branch>
 ```
 
-### Phase 3: Code Review
-
-Collect diff data:
-
-```bash
-git diff origin/<destination-branch>...HEAD
-git diff origin/<destination-branch>...HEAD --name-status
-git log origin/<destination-branch>...HEAD --oneline
-```
-
-Run `@code-reviewer` subagent on the full diff. Present findings by severity:
-
-| Severity | Meaning |
-|----------|---------|
-| P0 | Critical: security, data loss, breaking bugs |
-| P1 | High: logic errors, performance issues |
-| P2 | Medium: code quality, missing error handling |
-| P3 | Low: minor improvements, naming |
-
-If P0 issues found, strongly recommend fixing before creating the PR.
-
-### Phase 4: Review & Fix
-
-Ask user:
-
-```
-Would you like me to fix these issues before creating the PR?
-1. Fix all issues
-2. Fix P0 and P1 only
-3. Fix specific issues
-4. Skip fixes, proceed to PR
-```
-
-If fixing: apply fixes, run lint/test, commit.
-
-### Phase 5: Merge Conflict Check
+### Phase 3: Merge Conflict Check
 
 ```bash
 git fetch origin <destination-branch>
@@ -95,7 +65,7 @@ If conflicts found, present files and ask user how to proceed:
 2. Abort and resolve manually
 3. Continue with PR creation
 
-### Phase 6: PR Description
+### Phase 4: PR Description
 
 Collect git data and check for repo PR template:
 
@@ -117,10 +87,11 @@ ls .github/PULL_REQUEST_TEMPLATE.md .github/pull_request_template.md .github/PUL
 
 Present preview. Validate no placeholder text remains (`[TODO]`, empty sections).
 
-### Phase 7: Create the PR
+### Phase 5: Create the PR
 
 ```bash
 git push -u origin <source-branch>
+gh api user --jq '.login'
 ```
 
 Generate title from commits (format: `type: description`, imperative mood, max 72 chars).
@@ -132,8 +103,11 @@ gh pr create \
   --base <destination-branch> \
   --head <source-branch> \
   --title "<title>" \
-  --body "<description>"
+  --body "<description>" \
+  --assignee "@me"
 ```
+
+The `--assignee "@me"` automatically assigns the PR to the current authenticated user.
 
 Post-creation:
 
@@ -159,6 +133,9 @@ Use when no repository-specific template exists. Remove unused sections before c
 **Impact:**
 <!-- Asked from user -->
 
+**Jira Issue:**
+<!-- Asked from user, e.g.: [ML-123](https://company.atlassian.net/browse/ML-123) -->
+
 ## Related Work
 
 <!-- Auto-populated from commit messages: Fixes #, Closes #, Relates to # -->
@@ -175,14 +152,6 @@ Use when no repository-specific template exists. Remove unused sections before c
 | Docs | |
 | Config | |
 | Chore | |
-
-## Code Review
-
-<!-- Populated from Phase 3 findings -->
-
-- Issues found: <count> (P0: X, P1: Y, P2: Z, P3: W)
-- Issues fixed: <count>
-- Remaining: <list or "None">
 
 ## Testing
 
@@ -217,7 +186,6 @@ Use when no repository-specific template exists. Remove unused sections before c
 ## Anti-Patterns
 
 - Never skip branch confirmation
-- Never create PR without code review
 - Never auto-fix without user permission
 - Never leave placeholder text in description
 - Never push to default branch without explicit confirmation
