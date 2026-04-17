@@ -1,7 +1,7 @@
 ---
 description: Apply project standards to simplify code when explicitly requested
 mode: subagent
-model: opencode-go/kimi-k2.5
+model: opencode-go/minimax-m2.7
 temperature: 0.2
 permission:
   edit: ask

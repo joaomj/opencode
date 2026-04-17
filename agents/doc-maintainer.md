@@ -1,7 +1,7 @@
 ---
 description: Update and prune project documentation for accuracy and relevance
 mode: subagent
-model: opencode-go/minimax-m2.5
+model: opencode-go/minimax-m2.7
 temperature: 0.2
 permission:
   edit: ask
