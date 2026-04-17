@@ -32,6 +32,7 @@ When the user's intent matches a category below, invoke the corresponding agent 
 | Notion search / fetch notion docs / read notion page | Load `notion-reader` skill |
 | Planning a feature or implementation | Switch to `@plan` agent (or press Tab to select Plan) |
 | Bug fixing | Write a regression test that reproduces the bug before fixing |
+| Architecture / infrastructure / system diagram | Load `architecture-diagram` skill |
 
 ---
 
@@ -48,6 +49,7 @@ Load relevant skills when the context matches, regardless of whether it's a file
 | Python project setup / pydantic / pytest / fastapi / flask / django | `python-best-practices` |
 | New or unfamiliar library import (`import X`) | `context7` (fetch up-to-date docs) |
 | Notion / notion API / fetch notion content | `notion-reader` |
+| Architecture diagram / system diagram / infrastructure visualization | `architecture-diagram` |
 | `.env.example` file | STOP — see env-files rule (never read `.env`) |
 
 When a skill fetch fails, ask the user: "Proceed without docs?"

@@ -31,6 +31,7 @@ Skills are loaded from `AGENTS.md` using intent-aware routing rather than exact 
 | `jira-issues` | Fetch Jira issue details and comments, save as markdown to workspace root | Jira |
 | `context7` | Retrieve up-to-date documentation for software libraries, frameworks, and components via the Context7 API | Docs |
 | `firecrawl-web-scraper` | Scrape single web pages with Firecrawl to markdown and structured JSON, with dynamic-page actions and local .firecrawl output | Web Scraping |
+| `architecture-diagram` | Generate professional dark-themed architecture diagrams as standalone HTML/SVG files | Architecture, Infrastructure |
 
 ### Agent Configuration
 
