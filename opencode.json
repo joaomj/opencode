@@ -22,7 +22,7 @@
       "*": "allow"
     }
   },
-  "small_model": "openai/gpt-5.4-nano",
+  "small_model": "opencode-go/minimax-m2.5",
   "compaction": {
     "auto": true,
     "prune": true,
@@ -30,7 +30,7 @@
   },
   "agent": {
     "explore": {
-      "model": "openai/gpt-5.4-mini"
+      "model": "opencode-go/minimax-m2.7"
     }
   },
   "provider": {
@@ -95,6 +95,16 @@
           }
         },
         "qwen3.6-plus": {
+          "limit": {
+            "context": 200000,
+            "input": 200000,
+            "output": 64000
+          },
+          "options": {
+            "reasoningEffort": "high"
+          }
+        },
+        "minimax-m2.5": {
           "limit": {
             "context": 200000,
             "input": 200000,
