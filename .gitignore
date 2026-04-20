@@ -220,3 +220,11 @@ pnpm-lock.yaml
 # Sensitive data
 antigravity-accounts.json
 *.credentials.json
+
+# Personal config (use examples as templates)
+AGENTS.md
+opencode.json
+tech-context.md
+
+# Package manager (not needed for install script)
+package.json

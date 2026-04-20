@@ -1,57 +1,115 @@
-# opencode-config
+# OpenCode Skills Installer
 
-Personal [opencode](https://opencode.ai) configuration with development guidelines and custom agents for enhanced AI-assisted development.
+One-line installer for [OpenCode](https://opencode.ai) skills, commands, and agents.
 
-## Overview
-
-This configuration keeps opencode focused on a few core ideas:
-
-- A hierarchical config model where local `AGENTS.md` overrides remote defaults
-- Clear development rules for safer, more consistent AI-assisted changes
-- Lightweight optional tooling for validation and repo hygiene
-
-## Prerequisites
-
-- [opencode CLI](https://opencode.ai) installed
-- API keys for your preferred model providers
-- `websearch` support via OpenCode provider or Exa (`OPENCODE_ENABLE_EXA=1`)
-
-## Installation
+## Quick Start
 
 ```bash
-# Clone to opencode config directory
-git clone https://github.com/joaomj/opencode.git ~/.config/opencode
+curl -sSL https://raw.githubusercontent.com/joaomj/skills/main/install.sh | bash
 ```
 
-## Configuration Note
+This interactive script asks which components you want, then downloads them to `~/.config/opencode/`.
 
-`opencode.json` includes opinionated model and provider settings, including a small model, provider-specific limits, and a fast read-only `explore` agent pinned to `openai/gpt-5.4-mini`. They work in my setup, but other users may need to adjust them if they do not have the same API keys, subscriptions, or model access.
+## What You Get
+
+### 11 Skills
+
+| Skill | Description |
+|-------|-------------|
+| `architecture-diagram` | Generate dark-themed system architecture diagrams as standalone HTML/SVG |
+| `context7-docs` | Fetch up-to-date library documentation via the Context7 API |
+| `create-pull-request` | End-to-end PR creation with branch selection and GitHub CLI |
+| `docker-best-practices` | Dockerfile patterns, Docker Compose security, network isolation |
+| `firecrawl-web-scraper` | Scrape URLs to markdown/JSON with browser actions and structured extraction |
+| `github-cicd-lite` | Lean GitHub Actions CI for Python projects, auto-detects package manager |
+| `google-drive-reader` | Read Google Drive files via OAuth (Docs, Sheets, Slides, generic downloads) |
+| `jira-issues` | Fetch, create, and search Jira issues using Atlassian CLI |
+| `ml-best-practices` | ML development guide: CRISP-DM, evaluation metrics, MLflow tracking |
+| `notion-reader` | Search and fetch Notion content using notion-cli |
+| `python-best-practices` | Python development: type hints, pydantic, Ruff, testing, SDD |
+
+### 6 Commands
+
+| Command | Description |
+|---------|-------------|
+| `/commit` | Stage and commit with atomic principles and conventional commit messages |
+| `/deslop` | Remove AI-generated code slop (extra comments, defensive checks, casts) |
+| `/review` | Task-scoped code review with P0-P3 severity levels |
+| `/standup-prep` | Generate daily standup summaries from git activity |
+| `/update-docs` | Identify and remove obsolete documentation |
+| `/update-opencode` | Sync skills/commands/agents from the remote repository |
+
+### 4 Agents
+
+| Agent | Description |
+|-------|-------------|
+| `@code-reviewer` | Expert code review with P0-P3 severity (SOLID, security, performance) |
+| `@doc-maintainer` | Update and prune documentation for accuracy |
+| `@plan` | Primary implementation planner using Spec-Driven Design (SDD) |
+| `@simplifier` | Apply project standards to simplify code |
+
+## Customization
+
+After installation, edit `~/.config/opencode/AGENTS.md` to customize rules for your project. The template includes:
+
+- Core principles (pick the ones that matter for your stack)
+- Intent-driven agent routing (enable agents you want)
+- Context-aware skill loading (enable skills for your tech stack)
+- Workflow triggers (define your team's conventions)
+- Non-negotiable rules (set your quality bar)
+- Subagent index (register custom agents)
+
+Edit `~/.config/opencode/opencode.json` to add your model providers and API keys.
+
+## Updating
+
+Re-run the installer with the `--update` flag to re-download previously selected components:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/joaomj/skills/main/install.sh | bash -s -- --update
+```
+
+The installer reads the manifest at `~/.config/opencode/.opencode-manifest` and re-downloads everything.
+
+## Manual Installation
+
+If you prefer, clone the repo and copy files manually:
+
+```bash
+git clone https://github.com/joaomj/skills.git /tmp/opencode-skills
+cp -r /tmp/opencode-skills/skills/* ~/.config/opencode/skills/
+cp -r /tmp/opencode-skills/commands/* ~/.config/opencode/commands/
+cp -r /tmp/opencode-skills/agents/* ~/.config/opencode/agents/
+```
 
 ## Pre-Commit Hooks (Optional)
 
-Install quality checks in any project:
+Install quality checks in any Python project:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/joaomj/opencode/master/setup-hooks.sh | bash
+curl -sSL https://raw.githubusercontent.com/joaomj/skills/main/setup-hooks.sh | bash
 ```
 
-The installer will ask for confirmation before proceeding.
+Enforces: secrets detection (gitleaks), file length limits, Ruff formatting, Dockerfile linting, mock abuse checks.
 
-## Technical Documentation
+## Architecture
 
-For detailed architecture and workflow notes, see [tech-context.md](tech-context.md).
+The configuration follows a hierarchical model:
 
-## Multi-Machine Setup
+1. **Remote AGENTS.md** (`joaomj/skills/main/AGENTS.md`) contains the primary guidelines
+2. **Local AGENTS.md** (`~/.config/opencode/AGENTS.md`) overrides remote rules
+3. **opencode.json** (`~/.config/opencode/opencode.json`) configures models and permissions
 
-Clone to `~/.config/opencode/` on each machine for consistent configuration. Update with:
+This means you get automatic guideline updates from the remote, while your local rules take precedence.
 
-```bash
-cd ~/.config/opencode && git pull
-```
+## Contributing
 
-## Disclaimer
+To add a new skill, command, or agent:
 
-This is not built by the [OpenCode](https://github.com/anomalyco/opencode) team and is not affiliated with them in any way.
+1. Create a new `.md` file in the appropriate directory (`skills/`, `commands/`, `agents/`)
+2. Follow the existing format (front matter with name/description, then markdown content)
+3. Update the component catalog in `install.sh`
+4. Submit a PR
 
 ## License
 

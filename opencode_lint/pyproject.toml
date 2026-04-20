@@ -35,8 +35,8 @@ dev = [
 opencode-lint = "opencode_lint.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/joaomj/opencode"
-Repository = "https://github.com/joaomj/opencode"
+Homepage = "https://github.com/joaomj/skills"
+Repository = "https://github.com/joaomj/skills"
 
 [tool.hatch.build.targets.wheel]
 packages = ["opencode_lint"]

@@ -1,8 +1,17 @@
 # AGENTS.md - Local Configuration
 
+# CUSTOMIZE: Copy this file to AGENTS.md and customize for your project.
+# This is a template showing all available options. Remove sections you don't need,
+# uncomment sections you want, and customize rules to match your project's needs.
+# The remote AGENTS.md at the URL below serves as the primary source of truth.
+
 ## Hierarchy
 
 Remote AGENTS.md at `https://raw.githubusercontent.com/joaomj/skills/main/AGENTS.md` is the primary source of truth.
+Your local AGENTS.md (this file) overrides rules from the remote.
+
+# CUSTOMIZE: Replace the URL above if you are using a forked or custom remote AGENTS.md.
+
 ---
 
 ## Core Principles
@@ -12,7 +21,12 @@ Remote AGENTS.md at `https://raw.githubusercontent.com/joaomj/skills/main/AGENTS
 | sdd-first | Spec-Driven Design: specs before tests, tests before implementation. Bug fixes require spec + regression test. |
 | no-hardcoding | All configurable values in config module using pydantic-settings. |
 | no-test-skipping | Never use `# noqa`, `@pytest.mark.skip`, `@pytest.mark.xfail` in tests. Fix root cause. |
-| intent-driven | Match user intent, not exact phrases. LLMs understand synonyms and indirect requests — act on meaning, not keyword triggers. |
+| intent-driven | Match user intent, not exact phrases. LLMs understand synonyms and indirect requests -- act on meaning, not keyword triggers. |
+
+# CUSTOMIZE: Add your own core principles here. Remove any that don't apply to your project.
+# Example additions:
+# | docs-first | Every public API change requires documentation update before implementation. |
+# | no-legacy-patterns | Do not use deprecated patterns (e.g., urllib2, optparse). |
 
 ---
 
@@ -34,6 +48,11 @@ When the user's intent matches a category below, invoke the corresponding agent 
 | Bug fixing | Write a regression test that reproduces the bug before fixing |
 | Architecture / infrastructure / system diagram | Load `architecture-diagram` skill |
 
+# CUSTOMIZE: Uncomment or add any agent routing rules specific to your project.
+# Example:
+# | Database schema review | Load `db-reviewer` agent |
+# | Security audit | Load `security-reviewer` agent |
+
 ---
 
 ## Context-Aware Skill Loading
@@ -50,7 +69,7 @@ Load relevant skills when the context matches, regardless of whether it's a file
 | New or unfamiliar library import (`import X`) | `context7` (fetch up-to-date docs) |
 | Notion / notion API / fetch notion content | `notion-reader` |
 | Architecture diagram / system diagram / infrastructure visualization | `architecture-diagram` |
-| `.env.example` file | STOP — see env-files rule (never read `.env`) |
+| `.env.example` file | STOP -- see env-files rule (never read `.env`) |
 
 When a skill fetch fails, ask the user: "Proceed without docs?"
 
@@ -59,6 +78,12 @@ When a skill fetch fails, ask the user: "Proceed without docs?"
 1. Ask the user before loading a skill (unless they directly requested it).
 2. Example: when opening a Dockerfile, ask "Load Docker best practices?" before invoking the skill.
 3. If the user's request already implies the domain (e.g., "help me write a Dockerfile"), load without asking.
+
+# CUSTOMIZE: Add project-specific skills here. If you have custom skills in your repo,
+# list them so the agent knows when to load them.
+# Example:
+# | GraphQL schema | Load `graphql-best-practices` skill |
+# | React component | Load `react-guidelines` skill |
 
 ---
 
@@ -71,22 +96,32 @@ When a skill fetch fails, ask the user: "Proceed without docs?"
 | User requests commit | Commit changes (no push unless requested) |
 | Task completed | Ask: "Update daily activity log?" |
 
+# CUSTOMIZE: Add your own workflow triggers. Example:
+# | After test failure | Show failing test output before suggesting fix |
+# | Before commit | Run linters and show any violations |
+
 ---
 
-## NON-NEGOTIABLE RULES
+## Non-Negotiable Rules
 
 | Rule ID | Domain | Rule |
 |---------|--------|------|
-| OC001 | Type Safety | No raw dicts for API schemas — use Pydantic models |
+| OC001 | Type Safety | No raw dicts for API schemas -- use Pydantic models |
 | OC002 | Security | Never view `.env` content (use `.env.example` for schema only) |
 | OC003 | Security | No privileged containers |
 | OC004 | Grep-ability | Absolute imports preferred over relative |
 | OC005 | Type Safety | Strict type hints for all functions |
 | OC006 | Process | SDD: specs before tests, tests before implementation |
 | OC007 | Quality | 80% test coverage minimum |
-| OC008 | Test Integrity | Zero `# noqa` or skip in tests — fix root cause |
+| OC008 | Test Integrity | Zero `# noqa` or skip in tests -- fix root cause |
 | OC009 | Supply Chain | Lockfile required and committed |
 | OC010 | Supply Chain | Delayed ingestion with 7-day buffer recommended |
+
+# CUSTOMIZE: Add, remove, or modify rules for your project. These are examples;
+# your project may have different non-negotiables.
+# Example:
+# | MY001 | Accessibility | All UI components must pass axe-core checks |
+# | MY002 | Performance | API endpoints must respond in <200ms p95 |
 
 ---
 
@@ -97,3 +132,9 @@ When a skill fetch fails, ask the user: "Proceed without docs?"
 | code-reviewer | `@code-reviewer` | Expert code review with P0-P3 severity |
 | simplifier | `@simplifier` | Apply project standards to simplify code |
 | doc-maintainer | `@doc-maintainer` | Update and prune documentation |
+| plan | `@plan` or Tab menu | Primary implementation planner using SDD |
+
+# CUSTOMIZE: Add your own subagents if you have custom ones.
+# Example:
+# | security-reviewer | `@security-reviewer` | Security-focused code review |
+# | db-reviewer | `@db-reviewer` | Database schema and query review |

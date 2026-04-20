@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # Downloads and installs OpenCode Skills pre-commit hooks in the current project
-# Usage: curl -sSL https://raw.githubusercontent.com/joaomj/opencode/main/setup-hooks.sh | bash
+# Usage: curl -sSL https://raw.githubusercontent.com/joaomj/skills/main/setup-hooks.sh | bash
 
-RAW_URL="https://raw.githubusercontent.com/joaomj/opencode/main"
+RAW_URL="https://raw.githubusercontent.com/joaomj/skills/main"
 
 echo "Downloading pre-commit config..."
 curl -sSL "$RAW_URL/.pre-commit-config.yaml" -o .pre-commit-config.yaml

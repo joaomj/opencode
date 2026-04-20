@@ -7,6 +7,20 @@ description: Sync skills, commands, and agents from remote repository with inter
 Sync skills, commands, and agents from the remote repository.
 Never touches AGENTS.md or opencode.json.
 
+## Quick Update (Recommended)
+
+If you used the installer script, the fastest way to update is:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/joaomj/skills/main/install.sh | bash -s -- --update
+```
+
+This re-downloads all components you previously selected using the manifest at `~/.config/opencode/.opencode-manifest`.
+
+## Git-Based Update (Alternative)
+
+If you cloned the repository manually, use the git-based approach below.
+
 ## Before You Start
 
 If you previously set up the shell-based auto-update (the `opencode()` function in `.zshrc` or `.bashrc`), remove it now. This command replaces that entirely.
