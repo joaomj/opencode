@@ -18,7 +18,7 @@ Your local AGENTS.md (this file) overrides rules from the remote.
 
 | Principle | Description |
 |-----------|-------------|
-| sdd-first | Spec-Driven Design: specs before tests, tests before implementation. Bug fixes require spec + regression test. |
+| gdd-first | Goal-Driven Development: transform tasks into verifiable goals with tests as guardrail. Bug fixes require failing test that reproduces the bug. |
 | no-hardcoding | All configurable values in config module using pydantic-settings. |
 | no-test-skipping | Never use `# noqa`, `@pytest.mark.skip`, `@pytest.mark.xfail` in tests. Fix root cause. |
 | intent-driven | Match user intent, not exact phrases. LLMs understand synonyms and indirect requests -- act on meaning, not keyword triggers. |
@@ -111,7 +111,7 @@ When a skill fetch fails, ask the user: "Proceed without docs?"
 | OC003 | Security | No privileged containers |
 | OC004 | Grep-ability | Absolute imports preferred over relative |
 | OC005 | Type Safety | Strict type hints for all functions |
-| OC006 | Process | SDD: specs before tests, tests before implementation |
+| OC006 | Process | GDD: define success criteria (failing test) before implementation |
 | OC007 | Quality | 80% test coverage minimum |
 | OC008 | Test Integrity | Zero `# noqa` or skip in tests -- fix root cause |
 | OC009 | Supply Chain | Lockfile required and committed |
@@ -132,7 +132,7 @@ When a skill fetch fails, ask the user: "Proceed without docs?"
 | code-reviewer | `@code-reviewer` | Expert code review with P0-P3 severity |
 | simplifier | `@simplifier` | Apply project standards to simplify code |
 | doc-maintainer | `@doc-maintainer` | Update and prune documentation |
-| plan | `@plan` or Tab menu | Primary implementation planner using SDD |
+| plan | `@plan` or Tab menu | Primary implementation planner using GDD |
 
 # CUSTOMIZE: Add your own subagents if you have custom ones.
 # Example:

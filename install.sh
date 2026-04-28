@@ -43,7 +43,7 @@ COMMANDS=(
 AGENTS=(
   "code-reviewer|Expert code review with P0-P3 severity|agents/code-reviewer.md"
   "doc-maintainer|Update and prune project documentation|agents/doc-maintainer.md"
-  "plan|Primary planner using Spec-Driven Design|agents/plan.md"
+  "plan|Primary planner using Goal-Driven Development|agents/plan.md"
   "simplifier|Apply project standards to simplify code|agents/simplifier.md"
 )
 

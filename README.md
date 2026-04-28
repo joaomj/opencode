@@ -26,7 +26,7 @@ This interactive script asks which components you want, then downloads them to `
 | `jira-issues` | Fetch, create, and search Jira issues using Atlassian CLI |
 | `ml-best-practices` | ML development guide: CRISP-DM, evaluation metrics, MLflow tracking |
 | `notion-reader` | Search and fetch Notion content using notion-cli |
-| `python-best-practices` | Python development: type hints, pydantic, Ruff, testing, SDD |
+| `python-best-practices` | Python development: type hints, pydantic, Ruff, testing, GDD |
 
 ### 6 Commands
 
@@ -45,7 +45,7 @@ This interactive script asks which components you want, then downloads them to `
 |-------|-------------|
 | `@code-reviewer` | Expert code review with P0-P3 severity (SOLID, security, performance) |
 | `@doc-maintainer` | Update and prune documentation for accuracy |
-| `@plan` | Primary implementation planner using Spec-Driven Design (SDD) |
+| `@plan` | Primary implementation planner using Goal-Driven Development (GDD) |
 | `@simplifier` | Apply project standards to simplify code |
 
 ## Customization
