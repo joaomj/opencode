@@ -19,6 +19,7 @@ NC='\033[0m' # No Color
 # Component catalog: name|description|files...
 SKILLS=(
   "architecture-diagram|Generate dark-themed system architecture diagrams|skills/architecture-diagram/SKILL.md"
+  "c4-diagram|Generate C4 model diagrams (System Context, Container, Component)|skills/c4-diagram/SKILL.md"
   "context7-docs|Fetch up-to-date library docs via Context7 API|skills/context7-docs/SKILL.md"
   "create-pull-request|End-to-end PR creation with GitHub CLI|skills/create-pull-request/SKILL.md"
   "docker-best-practices|Dockerfile patterns, security, networking|skills/docker-best-practices/SKILL.md"

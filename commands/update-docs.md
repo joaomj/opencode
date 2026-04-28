@@ -14,7 +14,6 @@ find . -name "*.md" -not -path "./.git/*" | sort
 ```
 
 Focus on:
-- `tech-context.md` (source of truth)
 - `README.md`
 - `docs/*.md`
 - Command docs in `commands/`

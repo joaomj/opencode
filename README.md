@@ -12,11 +12,12 @@ This interactive script asks which components you want, then downloads them to `
 
 ## What You Get
 
-### 11 Skills
+### 12 Skills
 
 | Skill | Description |
 |-------|-------------|
 | `architecture-diagram` | Generate dark-themed system architecture diagrams as standalone HTML/SVG |
+| `c4-diagram` | Generate C4 model architecture diagrams (System Context, Container, Component) |
 | `context7-docs` | Fetch up-to-date library documentation via the Context7 API |
 | `create-pull-request` | End-to-end PR creation with branch selection and GitHub CLI |
 | `docker-best-practices` | Dockerfile patterns, Docker Compose security, network isolation |
