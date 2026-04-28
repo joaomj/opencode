@@ -1,6 +1,6 @@
 ---
 name: python-best-practices
-description: Complete Python development guide covering code quality, testing, security, dependency management, and SDD
+description: Complete Python development guide covering code quality, testing, security, dependency management, and Goal-Driven Development
 license: MIT
 ---
 
@@ -16,7 +16,7 @@ Core rules defined in AGENTS.md (OC001-OC010). Python-specific enforcement:
 | No raw dicts for API schemas (OC001) | Block if detected |
 | Use detected package manager for deps | Block if direct pyproject.toml edit |
 | Lockfile must exist and be committed (OC009) | Block if no lockfile |
-| SDD: specs before tests, tests before implementation (OC006) | Block until spec + failing test exists |
+| TDD guardrail: define success criteria before implementation (OC006) | Block until failing test exists |
 | 80% coverage minimum (OC007) | Block if `pytest --cov` < 80% |
 | ZERO test skipping (OC008) | Block if `# noqa`, `skip`, or `xfail` found in tests |
 
@@ -196,20 +196,29 @@ There is no option 4: "suppress the failure."
 - Mocking every collaborator by default
 - Asserting implementation internals instead of observable outcomes
 
-## Spec-Driven Development (SDD)
+## Test-Driven Development (TDD) as Guardrail
 
-SDD replaces traditional TDD for all business logic. Flow:
+TDD is not the primary methodology — it's a guardrail against agent non-determinism. The primary approach is Goal-Driven Development (GDD), which uses tests to define success criteria and verify goals are met.
 
-1. **Define specs first** - Write type signatures, contracts, Pydantic models, and edge cases BEFORE any implementation
-2. **Write tests against specs** - Tests validate spec compliance
-3. **Implement to fulfill specs** - Write minimal code
-4. **Refactor** - Improve while keeping tests green
+Flow:
+1. **Write a failing test** defining what "done" looks like
+2. **Implement minimum code** to pass the test
+3. **Refactor** while keeping tests green
+4. **Repeat** until goal met
 
 For bug fixes, write a regression test that reproduces the bug BEFORE fixing it.
 
-Exempt from SDD: config files, boilerplate, type definitions, migrations, documentation. Add comment: `# test-exempt: [reason]`
+For multi-step tasks, state a brief plan with verification points:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+```
 
-See the Plan agent (`@plan` or Tab) for full SDD workflow.
+Strong success criteria let the agent loop independently. Weak criteria ("make it work") require clarification.
+
+Exempt from TDD: config files, boilerplate, type definitions, migrations, documentation. Add comment: `# test-exempt: [reason]`
+
+See the Plan agent (`@plan` or Tab) for full GDD workflow.
 
 ## Security
 
@@ -266,7 +275,7 @@ Recent incidents: axios (Mar 2026), telnyx (Mar 2026), Ultralytics (Dec 2024). D
 - [ ] No secrets hardcoded
 - [ ] Tests written for new functionality
 - [ ] Tests assert behavior (not implementation)
-- [ ] SDD followed: specs -> tests -> implementation
+- [ ] TDD guardrail: failing test exists before implementation
 - [ ] Coverage >= 80% for new code
 - [ ] `ruff check .` passes
 - [ ] Dependencies added via package manager
