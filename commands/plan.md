@@ -1,29 +1,8 @@
 ---
 description: Create implementation plan using Goal-Driven Development (GDD) with TDD as guardrail
-mode: primary
-model: openai/gpt-5.4
-temperature: 0.1
-permission:
-  bash:
-    "*": allow
-    "git add *": ask
-    "git commit *": ask
-    "git push *": ask
-    "git merge *": ask
-    "rm *": ask
-    "npm *": ask
-    "ssh *": ask
-    "brew *": ask
-    "* .env *": ask
-    "docker *": ask
-  edit:
-    "*": deny
-  webfetch: allow
 ---
 
 # Goal-Driven Development (GDD) Planning
-
-Based on Karpathy-inspired guidelines: transform imperative tasks into verifiable goals with success criteria. TDD serves as a guardrail — tests keep agents in check.
 
 ## Core Principles
 
@@ -46,38 +25,6 @@ Based on Karpathy-inspired guidelines: transform imperative tasks into verifiabl
 
 ---
 
-## Two-Layer Output
-
-### Layer 1: User-Facing (Brief)
-
-Default output. Concise, no implementation detail unless requested.
-
-```
-## Plan: [Feature Name]
-
-**Summary:** One sentence.
-
-**Decision:** Chosen approach and rationale (only if tradeoffs existed).
-
-**Todos:**
-1. [Step] → verify: [success check]
-2. [Step] → verify: [success check]
-
-[expand for full details]
-```
-
-### Layer 2: Agent Internal (Full GDD)
-
-Hidden by default. Available on explicit user request ("expand", "show full plan").
-
-Contains:
-- Assumptions made explicit
-- Multiple approaches considered
-- Success criteria (tests)
-- Implementation steps with verification points
-
----
-
 ## Workflow
 
 ### Phase 1: Think & Clarify
@@ -88,20 +35,6 @@ Contains:
 2. **Identify ambiguity** — If anything is unclear, ask. Don't guess.
 3. **Present alternatives** — If multiple interpretations exist, present them briefly.
 4. **Push back if warranted** — If a simpler approach exists, say so.
-
-**Output for user:**
-```
-I'm assuming:
-- [assumption 1]
-- [assumption 2]
-
-[If ambiguity exists:]
-Options I see:
-1. [Option A]
-2. [Option B]
-
-Which interpretation is correct?
-```
 
 **Gate:** If ambiguity exists, STOP and ask. If clear, proceed.
 
@@ -120,20 +53,13 @@ For EVERY task, write a failing test that defines success:
 | "Refactor X" | "Ensure tests pass before and after" |
 | "Implement feature" | "Write tests for expected behavior, then implement" |
 
-**Test-first policy:**
-- No implementation without a failing test (except config, boilerplate, migrations, docs)
-- Tests must be specific and verifiable
-- Weak criteria ("make it work") require clarification; strong criteria let the agent loop independently
-
 **Gate:** Block if no failing test exists before implementation begins.
 
 ---
 
-### Phase 3: Brief Plan (User-Facing)
+### Phase 3: Brief Plan
 
 **Goal:** Show what will be done, in what order, with success checks.
-
-For multi-step tasks:
 
 ```
 ## Plan: [Feature Name]
@@ -146,37 +72,38 @@ For multi-step tasks:
 1. [Step 1] → verify: [how to check step 1 is done]
 2. [Step 2] → verify: [how to check step 2 is done]
 3. [Step 3] → verify: [how to check step 3 is done]
-
-[expand for full details]
 ```
 
 **Approval Gate:**
-- **If tradeoffs exist** (genuine decisions to make): Present options, wait for explicit "yes"
-- **If no tradeoffs** (only one sensible path): Show brief plan, proceed unless user says "wait"
+- **If tradeoffs exist**: Present options, wait for explicit "yes"
+- **If no tradeoffs**: Show brief plan, proceed unless user says "wait"
 
 ---
 
-### Phase 4: Execute with Verification
+### Phase 4: Temporary Plan File
+
+Before executing, ask the user:
+
+> "Would you like me to write a temporary `PLAN.md` file to the workspace root for reference during execution?"
+
+If yes, write the plan to `PLAN.md` at the workspace root. Delete it after completion if requested.
+
+---
+
+### Phase 5: Execute with Verification
 
 **Goal:** Loop until all success criteria are met.
 
 For each todo step:
 1. Execute the step
 2. Verify: does the success check pass?
-3. If yes, move to next step
-4. If no, diagnose and fix, then re-verify
-
-**Verification commands (example):**
-```bash
-pytest tests/test_module.py -v
-ruff check src/module
-```
+3. If no, diagnose and fix, then re-verify
 
 **Gate:** All tests must pass. Lint must pass. No regressions.
 
 ---
 
-### Phase 5: Completion
+### Phase 6: Completion
 
 After all todos complete:
 1. Run full test suite
@@ -193,43 +120,8 @@ After all todos complete:
 |--------------|----------------|
 | (default) | Brief plan: summary + todos + success criteria |
 | "expand" / "show full plan" | Full internal plan: assumptions, alternatives, detailed steps, test code |
-| "simplify" | Aggressive simplification review, reduce to minimum viable implementation |
+| "simplify" | Aggressive simplification review |
 | "just do it" | Execute immediately with minimal planning, still use TDD guardrail |
-
----
-
-## Internal Plan Document (Hidden by Default)
-
-When user requests full details, maintain this structure internally:
-
-```markdown
-# Internal Plan: [Feature Name]
-
-## Assumptions Made Explicit
-- [assumption 1]
-- [assumption 2]
-
-## Alternatives Considered
-1. **Option A**: [description] → [why not chosen]
-2. **Option B**: [description] → [why chosen]
-
-## Success Criteria (Tests)
-```python
-def test_[feature]_expected_behavior():
-    ...
-
-def test_[feature]_edge_case():
-    ...
-```
-
-## Todo with Verification
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-
-## Execution Log
-- [timestamp] Step 1 complete: [result]
-- [timestamp] Step 2 complete: [result]
-```
 
 ---
 
@@ -243,13 +135,3 @@ TDD is not the primary methodology — it's a guardrail against agent non-determ
 | Prevents "run along" behavior | Test failure = stop and fix |
 | Provides verification loop | Tests pass = goal met |
 | Catches regressions early | Full suite must pass |
-
-Flow:
-1. Write failing test defining success
-2. Implement minimum code to pass
-3. Refactor (tests keep you honest)
-4. Repeat until goal met
-
----
-
-

@@ -30,7 +30,8 @@ When the user's intent matches a category below, invoke the corresponding agent 
 | Web scraping / extracting content from URLs | Load `firecrawl-web-scraper` skill |
 | Jira issue management | Load `jira-issues` skill |
 | Notion search / fetch notion docs / read notion page | Load `notion-reader` skill |
-| Planning a feature or implementation | Switch to `@plan` agent (or press Tab to select Plan) |
+| Planning a feature or implementation | Use `/plan` command |
+| Bug fixing | Write a regression test that reproduces the bug before fixing |
 | Bug fixing | Write a regression test that reproduces the bug before fixing |
 | Architecture / infrastructure / system diagram | Load `architecture-diagram` skill |
 | C4 model / C4 architecture / system context / container / component diagram | Load `c4-diagram` skill (preferred over `architecture-diagram` for C4-specific requests) |
@@ -99,3 +100,11 @@ When a skill fetch fails, ask the user: "Proceed without docs?"
 | code-reviewer | `@code-reviewer` | Expert code review with P0-P3 severity |
 | simplifier | `@simplifier` | Apply project standards to simplify code |
 | doc-maintainer | `@doc-maintainer` | Update and prune documentation |
+
+---
+
+## COMMAND INDEX
+
+| Command | Usage | Description |
+|---------|-------|-------------|
+| plan | `/plan` | Goal-Driven Development planning with TDD guardrail |
