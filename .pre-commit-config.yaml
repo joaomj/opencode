@@ -77,6 +77,16 @@ repos:
       #   stages: [pre-commit]
       #   always_run: true
 
+  # Supply chain security checks
+  - repo: local
+    hooks:
+      - id: check-supply-chain
+        name: Supply chain security checks (OC009-OC012)
+        entry: python .hooks/check_supply_chain.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
   # Prevent commits to main/master
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0

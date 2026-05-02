@@ -40,6 +40,14 @@ STOP with error "Must run from ~/.config/opencode with a configured remote."
 
 If fetch fails: STOP with error "Could not fetch from remote."
 
+## Step 2.5: Verify Remote Integrity
+
+Check if fetched commits are GPG-signed:
+!`git -C "$HOME/.config/opencode" log --show-signature -1 origin/master`
+
+If unsigned, show warning: "Remote HEAD is not GPG-signed. Proceed with caution."
+Continue anyway (allow.sh override) — do not block, just warn.
+
 ## Step 3: Compare Remote vs Local
 
 For each directory in scope (skills/, commands/, agents/), list remote files:

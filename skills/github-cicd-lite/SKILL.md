@@ -55,7 +55,11 @@ Keep one primary workflow unless the user requests split workflows.
    - Add at least one dependency/security check suitable for project size
    - Set per-job `timeout-minutes`
 
-5. Reliability
+5. Supply chain enforcement (OC011)
+   - Use `--locked` on all install commands to prevent lockfile drift
+   - Add `exclude-newer` gate job that verifies config in pyproject.toml
+
+6. Reliability
    - Pin action versions to stable releases (and SHA pinning for third-party actions when feasible)
    - Avoid brittle shell one-liners without `set -euo pipefail` for multiline scripts
 
@@ -67,9 +71,9 @@ Use this as the default pattern. Adapt to project tooling by detecting the packa
 
 | Detected file | Install command | Run command | Lockfile check |
 |---------------|----------------|-------------|----------------|
-| `uv.lock` | `uv sync` | `uv run ...` | `uv.lock` exists |
-| `pdm.lock` | `pdm install --dev` | `pdm run ...` | `pdm.lock` exists |
-| `poetry.lock` | `poetry install --with dev` | `poetry run ...` | `poetry.lock` exists |
+| `uv.lock` | `uv sync --locked` | `uv run ...` | `uv.lock` exists |
+| `pdm.lock` | `pdm install --dev --locked` | `pdm run ...` | `pdm.lock` exists |
+| `poetry.lock` | `poetry install --with dev --locked` | `poetry run ...` | `poetry.lock` exists |
 | `requirements*.txt` | `pip install -r ...` | direct call | N/A |
 
 Do not introduce a new package manager if one is already in use.
@@ -92,6 +96,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lockfile-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check exclude-newer configured
+        run: |
+          if ! grep -q 'exclude-newer' pyproject.toml; then
+            echo 'ERROR: exclude-newer not configured in pyproject.toml (OC010)'
+            exit 1
+          fi
+      - name: Verify lockfile integrity
+        run: |
+          if [ -f uv.lock ]; then uv lock --locked
+          elif [ -f pdm.lock ]; then pdm lock --check
+          elif [ -f poetry.lock ]; then poetry lock --check
+          fi
+
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -99,7 +121,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --locked
       - name: Lint
         run: uv run ruff check .
 
@@ -110,7 +132,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - name: Install dependencies
-        run: uv sync
+        run: uv sync --locked
       - name: Test
         run: uv run pytest -q
 
@@ -182,5 +204,8 @@ Only add deployment when user requests it. If requested:
 - CI runs quickly with caching and cancellation
 - Security baseline check present (lint + pip-audit)
 - Package manager auto-detected from lockfile (uv.lock/pdm.lock/poetry.lock)
+- All install commands use `--locked` (OC011)
+- Lockfile integrity gate in CI (lockfile-check job)
+- exclude-newer verified in pyproject.toml (OC010)
 - No secrets required for PR validation path
 - Deployment omitted unless explicitly requested

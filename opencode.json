@@ -6,17 +6,22 @@
   "autoupdate": true,
   "permission": {
     "bash": {
-      "*": "allow",
-      "git add *": "ask",
+      "*": "ask",
+      "git log *": "allow",
+      "git diff *": "allow",
+      /*"git add *": "ask",
       "git commit *": "ask",
       "git push *": "ask",
       "git merge *": "ask",
+      "mv *": "ask",
+      "pip *": "ask",
+      "uv *": "ask",
       "npm *": "ask",
       "rm *": "ask",
       "ssh *": "ask",
-      "brew *": "ask",
-      "* .env *": "ask",
-      "docker *": "ask"
+      "brew *": "ask",*/
+      "* .env *": "deny"
+      //"docker *": "ask"
     },
     "skill": {
       "*": "allow"

@@ -12,6 +12,8 @@ from opencode_lint.rules.no_env_file_access import NoEnvFileAccess
 from opencode_lint.rules.no_privileged_containers import NoPrivilegedContainers
 from opencode_lint.rules.absolute_imports import AbsoluteImportsPreferred
 from opencode_lint.rules.strict_type_hints import StrictTypeHints
+from opencode_lint.rules.lockfile_required import LockfileRequired, check_root_for_lockfile
+from opencode_lint.rules.exclude_newer_configured import ExcludeNewerConfigured, check_global_uv_config
 
 RULE_REGISTRY: List[Type[Rule]] = [
     NoRawDictAPISchema,
@@ -19,6 +21,8 @@ RULE_REGISTRY: List[Type[Rule]] = [
     NoPrivilegedContainers,
     AbsoluteImportsPreferred,
     StrictTypeHints,
+    LockfileRequired,
+    ExcludeNewerConfigured,
 ]
 
 
@@ -109,7 +113,28 @@ class LinterRunner:
             elif target.is_dir():
                 all_violations.extend(self.check_directory(target))
 
+        project_root = self._find_project_root(targets)
+        if project_root:
+            all_violations.extend(check_root_for_lockfile(project_root))
+            all_violations.extend(check_global_uv_config())
+
         error_count = sum(1 for v in all_violations if v.severity == "error")
         exit_code = 1 if error_count > 0 else 0
 
         return all_violations, exit_code
+
+    def _find_project_root(self, targets: List[Path]) -> Path | None:
+        """Find the project root directory from targets."""
+        for target in targets:
+            if target.is_dir():
+                pyproject = target / "pyproject.toml"
+                if pyproject.exists():
+                    return target
+            else:
+                parent = target.parent
+                pyproject = parent / "pyproject.toml"
+                if pyproject.exists():
+                    return parent
+        if targets:
+            return targets[0].parent if targets[0].is_file() else targets[0]
+        return None

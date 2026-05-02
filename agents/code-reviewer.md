@@ -76,6 +76,12 @@ Before analyzing code:
 | Auth/Authorization | Missing checks | P0-P1 |
 | Race Conditions | Check-then-act | P1 |
 | Secrets | Hardcoded keys/tokens | P0 |
+| Unpinned dependency | `>=` without upper bound in requirements | P1 |
+| Missing lockfile update | Lockfile not updated with dependency changes | P0 |
+| No hash in lockfile | Requirements compiled without `--generate-hashes` | P1 |
+| Blind upgrade | `uv lock --upgrade` without `--upgrade-package` | P2 |
+| Unsafe download | `curl | bash` patterns in CI/scripts | P1 |
+| exclude-newer missing | `pyproject.toml` lacks `exclude-newer` config | P1 |
 
 ### 4. Performance Issues
 

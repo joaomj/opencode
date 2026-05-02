@@ -245,7 +245,9 @@ See the Plan agent (`@plan` or Tab) for full GDD workflow.
 | Control | How | Enforcement |
 |---------|-----|-------------|
 | Lockfile with hashes | `uv lock` / `pdm lock --hash` / `poetry lock` | OC009 |
-| Delayed ingestion | `--exclude-newer` with 7-day buffer | OC010 |
+| Delayed ingestion | `exclude-newer` with 7-day buffer in pyproject.toml | OC010 |
+| CI lockfile enforcement | `uv sync --locked` in CI pipeline | OC011 |
+| Targeted upgrades | `uv lock --upgrade-package <name>` only | OC012 |
 | Vulnerability scanning | `pip-audit` in CI on every push/PR | CI pipeline |
 | Security linting | Ruff `S` rules (Bandit: secrets, crypto, timeouts) | Pre-commit |
 
@@ -253,11 +255,16 @@ See the Plan agent (`@plan` or Tab) for full GDD workflow.
 # Hash pinning
 uv pip compile --generate-hashes requirements.in -o requirements.txt
 
-# Delayed ingestion
-uv pip compile --exclude-newer $(date -v-7d +%Y-%m-%d) requirements.in -o requirements.txt
+# Delayed ingestion (required - OC010)
+# Add to pyproject.toml:
+# [tool.uv]
+# exclude-newer = "1 week"
 
-# Vulnerability scanning
-uvx pip-audit --desc
+# In CI, verify lockfile hasn't drifted (OC011)
+uv sync --locked
+
+# Targeted upgrade only (OC012)
+uv lock --upgrade-package package-name
 ```
 
 Recent incidents: axios (Mar 2026), telnyx (Mar 2026), Ultralytics (Dec 2024). Defense: hash pinning + delayed ingestion + pip-audit + Ruff S rules.
@@ -281,3 +288,6 @@ Recent incidents: axios (Mar 2026), telnyx (Mar 2026), Ultralytics (Dec 2024). D
 - [ ] Dependencies added via package manager
 - [ ] Lockfile committed
 - [ ] ZERO test suppression mechanisms
+- [ ] `exclude-newer = "1 week"` configured in pyproject.toml (OC010)
+- [ ] CI uses `uv sync --locked` / `poetry install --locked` (OC011)
+- [ ] Dependency upgrades use `--upgrade-package` only (OC012)
