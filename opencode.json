@@ -7,6 +7,10 @@
   "permission": {
     "bash": {
       "*": "ask",
+      "grep *": "allow",
+      "ls *": "allow",
+      "wc *": "allow",
+      "find *": "allow",
       "git log *": "allow",
       "git diff *": "allow",
       "git status *": "allow",
@@ -31,8 +35,8 @@
   "small_model": "opencode-go/minimax-m2.5",
   "compaction": {
     "auto": true,
-    "prune": true,
-    "reserved": 100000
+    "prune": true
+    //"reserved": 100000
   },
   "agent": {
     "explore": {
