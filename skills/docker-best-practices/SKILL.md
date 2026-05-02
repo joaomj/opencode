@@ -205,6 +205,42 @@ services:
       - api_key
 ```
 
+## Security Scanning
+
+### Trivy Image Scanning
+```dockerfile
+# Scan base images before using them
+FROM python:3.11-slim
+
+# Add Trivy for vulnerability scanning
+RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+# Scan at build time (optional, fails on critical vulnerabilities)
+RUN trivy image --severity HIGH,CRITICAL python:3.11-slim || true
+```
+
+### CI/CD Security Scanning
+Add Trivy to your GitHub workflow to scan container images:
+
+```yaml
+  trivy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan container image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: myapp:latest
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+      - name: Upload results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+```
+
 ## Network Isolation
 
 ### Separate Networks
@@ -393,3 +429,4 @@ secrets:
 - [ ] Internal networks for backend services
 - [ ] Health checks defined
 - [ ] Resource limits configured
+- [ ] Trivy or similar scanner used for image vulnerability scanning

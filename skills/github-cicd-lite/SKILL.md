@@ -181,6 +181,36 @@ For projects with requirements.txt:
         run: uvx pip-audit --requirement requirements.txt --desc
 ```
 
+### Container Image Scanning (Trivy)
+
+For projects building Docker images, add Trivy scanning:
+
+```yaml
+  container-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t myapp:${{ github.sha }} .
+      - name: Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: myapp:${{ github.sha }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: HIGH,CRITICAL
+      - name: Upload results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+```
+
+And add to job dependencies:
+```yaml
+    needs: [lockfile-check, lint, test, security, container-scan]
+```
+
 ## Optional Deployment Block
 
 Only add deployment when user requests it. If requested:
@@ -203,6 +233,7 @@ Only add deployment when user requests it. If requested:
 - Workflow validates in GitHub Actions syntax
 - CI runs quickly with caching and cancellation
 - Security baseline check present (lint + pip-audit)
+- Container image scanning with Trivy (for projects building images)
 - Package manager auto-detected from lockfile (uv.lock/pdm.lock/poetry.lock)
 - All install commands use `--locked` (OC011)
 - Lockfile integrity gate in CI (lockfile-check job)
