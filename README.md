@@ -1,35 +1,30 @@
-# OpenCode Skills
+# opencode skills
 
-Skills, commands, and agents for [OpenCode](https://opencode.ai).
+Skills, commands, agents, and git hooks for [OpenCode](https://opencode.ai) — the AI coding assistant that lives in your terminal.
 
-## Install
+## Quick Start
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/joaomj/skills/main/install.sh | bash
 ```
 
-## What's Included
+Customize your setup via `AGENTS.md` (rules + routing) and `opencode.json` (models + permissions).
 
-| Type | Count | Examples |
-|------|-------|----------|
-| Skills | 12 | architecture diagrams, CI/CD, Jira, Notion, ML |
-| Commands | 6 | `/commit`, `/plan`, `/review`, `/deslop` |
-| Agents | 3 | `@code-reviewer`, `@doc-maintainer`, `@simplifier` |
+## What's Inside
 
-## After Install
+- Skills for domain-specific workflows (architecture, CI/CD, issue tracking, docs, ML, Python, PRs, scraping, Docker)
+- Slash commands for planning, reviewing, committing, and updating
+- Agent personas for code review, documentation, and simplification
+- Git hooks for enforcing code quality
+- Config templates with sensible defaults
 
-- `AGENTS.md` — customize rules and routing for your project
-- `opencode.json` — add your model providers and API keys
-
-## Update
+## Updating
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/joaomj/skills/main/install.sh | bash -s -- --update
 ```
 
-## Docs
-
-Each component is self-documenting — read the `.md` files in `skills/`, `commands/`, and `agents/`.
+Or run `/update-opencode` from within OpenCode.
 
 ## License
 
