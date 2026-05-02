@@ -33,10 +33,12 @@ Remote AGENTS.md at `https://raw.githubusercontent.com/joaomj/skills/main/AGENTS
 ## Workflow
 
 | Condition | Action |
-|-----------|-------|
+|-----------|--------|
 | Code changes affect public API | Suggest documentation updates |
 | Phase gate passed | Ask to commit |
 | User requests commit | Commit changes (no push unless requested) |
+| Dependency upgrade | Use `--upgrade-package`, not blind `--upgrade` |
+| CI setup | Use `--locked` install to enforce lockfile integrity |
 
 ## Rules
 
@@ -51,4 +53,6 @@ Remote AGENTS.md at `https://raw.githubusercontent.com/joaomj/skills/main/AGENTS
 | OC007 | Quality | 80% test coverage minimum |
 | OC008 | Test Integrity | Zero `# noqa` or skip in tests — fix root cause |
 | OC009 | Supply Chain | Lockfile required and committed |
-| OC010 | Supply Chain | Delayed ingestion with 7-day buffer recommended |
+| OC010 | Supply Chain | `exclude-newer` with 7-day buffer required in `pyproject.toml` or env |
+| OC011 | Supply Chain | CI must enforce lockfile integrity with `--locked` |
+| OC012 | Supply Chain | No blind `--upgrade` — use targeted `--upgrade-package` only |
