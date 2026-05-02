@@ -9,6 +9,7 @@
       "*": "ask",
       "git log *": "allow",
       "git diff *": "allow",
+      "git status *": "allow",
       /*"git add *": "ask",
       "git commit *": "ask",
       "git push *": "ask",
