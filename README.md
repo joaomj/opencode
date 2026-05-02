@@ -1,4 +1,4 @@
-# opencode skills
+# Opencode Setup
 
 Skills, commands, agents, and git hooks for [OpenCode](https://opencode.ai) — the AI coding assistant that lives in your terminal.
 
