@@ -27,6 +27,7 @@ Remote AGENTS.md at `https://raw.githubusercontent.com/joaomj/skills/main/AGENTS
 | Python project | Load `python-best-practices` |
 | Architecture diagram | Load `architecture-diagram` or `c4-diagram` |
 | Unfamiliar library | Load `context7` |
+| Browser debugging | Load `brave-devtools` |
 | Planning | Use `/plan` |
 | Bug fix | Write regression test before fixing |
 
