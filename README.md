@@ -12,9 +12,9 @@ Customize your setup via `AGENTS.md` (rules + routing) and `opencode.json` (mode
 
 ## What's Inside
 
-- Skills for domain-specific workflows (architecture, CI/CD, issue tracking, docs, ML, Python, PRs, scraping, Docker)
-- Slash commands for planning, reviewing, committing, and updating
-- Agent personas for code review, documentation, and simplification
+- Skills for domain-specific workflows (architecture, CI/CD, issue tracking, docs, ML, Python, PRs, scraping, Docker, browser debugging)
+- Slash commands for committing, standup prep, and updating
+- Agent personas for Python/ML coding, frontend testing, research, code review, documentation, and simplification
 - Git hooks for enforcing code quality
 - Config templates with sensible defaults
 

@@ -1,6 +1,6 @@
 # OpenCode Lint - Custom Linter for AGENTS.md Rules
 
-A custom linter that enforces AGENTS.md guidelines from the Factory.ai "Linters as Law Enforcement" concept.
+A custom linter that enforces core AGENTS.md guidelines from the Factory.ai "Linters as Law Enforcement" concept. Additional policies are enforced by pre-commit hooks and sub-agents.
 
 ## Installation
 
@@ -38,8 +38,8 @@ The linter runs automatically on commit if hooks are installed.
 | Rule ID | Description | Severity | Auto-fix |
 |---------|-------------|----------|----------|
 | OC001 | No raw dicts for API schemas | Error | No |
-| OC002 | Never view .env content | Error | No |
-| OC003 | No privileged containers in docker-compose | Error | No |
+| OC002 | Never read/print `.env` values | Error | No |
+| OC003 | No privileged containers | Error | No |
 | OC004 | Absolute imports preferred | Warning | No |
 | OC005 | Strict type hints required | Warning | No |
 
