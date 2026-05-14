@@ -67,6 +67,31 @@ repos:
         pass_filenames: false
         always_run: true
 
+      # OC013: Prevent direct pyproject.toml edits
+      - id: check-pyproject-edits
+        name: Check direct pyproject.toml edits (OC013)
+        entry: python .hooks/check_pyproject_edits.py
+        language: system
+        files: pyproject\.toml$
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # OC008: Prevent test skipping
+      - id: check-no-test-skip
+        name: Check test skip/noqa patterns (OC008)
+        entry: python .hooks/check_no_test_skip.py
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # OC016: Enforce e2e/integration tests
+      - id: check-e2e-exists
+        name: Check e2e/integration tests exist (OC016)
+        entry: python .hooks/check_e2e_exists.py
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
       # Optional: TDD coverage gate (requires pytest-cov)
       # Uncomment to enforce 80% coverage before commit
       # - id: tdd-coverage-gate
