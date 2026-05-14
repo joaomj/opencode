@@ -1,20 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "instructions": [
-    "https://raw.githubusercontent.com/joaomj/skills/main/AGENTS.md"
-  ],
   "autoupdate": true,
   "permission": {
     "bash": {
-      "*": "ask",
-      "grep *": "allow",
-      "ls *": "allow",
-      "wc *": "allow",
-      "find *": "allow",
-      "git log *": "allow",
-      "git diff *": "allow",
-      "git status *": "allow",
-      /*"git add *": "ask",
+      "*": "allow",
+      "git add *": "ask",
       "git commit *": "ask",
       "git push *": "ask",
       "git merge *": "ask",
@@ -24,10 +14,12 @@
       "npm *": "ask",
       "rm *": "ask",
       "ssh *": "ask",
-      "brew *": "ask",*/
+      "brew *": "ask",
+      "docker *": "ask",
       "* .env *": "deny"
-      //"docker *": "ask"
     },
+    "websearch": "allow",
+    "webfetch": "allow",
     "skill": {
       "*": "allow"
     }
@@ -58,14 +50,6 @@
     },
     "opencode-go": {
       "models": {
-        "minimax-m2.7": {
-          "name": "MiniMax M2.7",
-          "limit": {
-            "context": 200000,
-            "input": 200000,
-            "output": 64000
-          }
-        },
         "mimo-v2.5-pro": {
           "name": "MiMo V2.5 Pro",
           "limit": {
@@ -88,22 +72,9 @@
             "context": 200000,
             "input": 200000,
             "output": 64000
-          }
-        },
-        "kimi-k3.6": {
-          "name": "Kimi K3.6",
-          "limit": {
-            "context": 200000,
-            "input": 200000,
-            "output": 64000
-          }
-        },
-        "qwen3.6-plus": {
-          "name": "Qwen 3.6 Plus",
-          "limit": {
-            "context": 200000,
-            "input": 200000,
-            "output": 64000
+          },
+          "options": {
+            "reasoningEffort": "max"
           }
         }
       }
