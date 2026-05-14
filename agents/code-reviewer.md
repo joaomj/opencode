@@ -82,6 +82,7 @@ Before analyzing code:
 | Blind upgrade | `uv lock --upgrade` without `--upgrade-package` | P2 |
 | Unsafe download | `curl | bash` patterns in CI/scripts | P1 |
 | exclude-newer missing | `pyproject.toml` lacks `exclude-newer` config | P1 |
+| Trivy scan missing | No `trivy fs` run before PR; HIGH/CRITICAL CVEs | P0 |
 
 ### 4. Performance Issues
 
@@ -124,7 +125,17 @@ Once context provided:
 2. Identify which changed files are directly related vs tangential
 3. Create review scope document
 
-### Step 2: Analyze Code Against Checklists
+### Step 2: Security Scan (Trivy)
+
+Before code analysis, run the security scanner:
+
+```bash
+trivy fs --scanners vuln,secret,misconfig .
+```
+
+Any HIGH or CRITICAL finding is a **P0** blocker.
+
+### Step 3: Analyze Code Against Checklists
 
 1. **Get the diff**: `git diff <scope>`
 2. **Apply each checklist category**:
@@ -136,7 +147,7 @@ Once context provided:
 3. **Categorize findings by severity** (P0-P3)
 4. **Filter findings to task scope only**
 
-### Step 3: Ask User Before Writing Report (REQUIRED)
+### Step 4: Ask User Before Writing Report (REQUIRED)
 
 **BEFORE writing CODE_REVIEW.md, ask the user**:
 
@@ -153,7 +164,7 @@ Write the review report to CODE_REVIEW.md? (yes/no)
 **If user says "yes"**: Write CODE_REVIEW.md
 **If user says "no"**: Present findings inline, do NOT create file
 
-### Step 4: Write Report (After User Approval)
+### Step 5: Write Report (After User Approval)
 
 **Output Format:**
 
