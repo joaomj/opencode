@@ -31,6 +31,9 @@
     //"reserved": 100000
   },
   "agent": {
+    "compaction": {
+      "model": "opencode-go/deepseek-v4-flash"
+    },
     "explore": {
       "model": "opencode-go/deepseek-v4-flash"
     }

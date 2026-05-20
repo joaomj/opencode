@@ -1,11 +1,12 @@
 ---
 description: Expert code review with P0-P3 severity levels covering SOLID, security, performance
 mode: subagent
-model: openai/gpt-5.4
+model: openai/gpt-5.5
 temperature: 0.1
+reasoningEffort: high
 permission:
   edit: deny
-  write: ask
+  write: deny
   bash:
     "git diff*": allow
     "git log*": allow
