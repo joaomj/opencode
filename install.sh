@@ -29,7 +29,7 @@ SKILLS=(
   "jira-issues|Fetch, create, and search Jira issues|skills/jira-issues/SKILL.md"
   "ml-best-practices|ML dev guide: CRISP-DM, evaluation, MLflow|skills/ml-best-practices/SKILL.md"
   "notion-reader|Search and fetch Notion content via CLI (multi-file)|skills/notion-reader/SKILL.md:skills/notion-reader/.env.example"
-  "python-best-practices|Python dev guide: type hints, pydantic, testing|skills/python-best-practices/SKILL.md"
+  "coding-best-practices|Universal coding standards: quality, idempotency, error treatment, async safety, hardcoding avoidance|skills/coding-best-practices/SKILL.md"
 )
 
 COMMANDS=(

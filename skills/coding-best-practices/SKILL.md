@@ -1,14 +1,106 @@
 ---
-name: python-best-practices
-description: Complete Python development guide covering code quality, testing, security, dependency management, and Goal-Driven Development
+name: coding-best-practices
+description: Universal coding standards covering quality, idempotency, error treatment, async safety, hardcoding avoidance, logging; with Python-specific enforcement rules
 license: MIT
 ---
 
-# Python Best Practices
+# Coding Best Practices
 
-## Non-Negotiable Rules
+## Quality Standards
 
-Core rules defined in AGENTS.md (OC001-OC010). Python-specific enforcement:
+### Memory & Speed
+- Prefer lazy/streaming patterns over loading everything into memory
+- Avoid unnecessary allocations in hot paths
+- Profile or benchmark before optimizing — measure, don't guess
+- Use appropriate data structures for access patterns
+
+### Robustness
+- Validate all external input at the boundary
+- Handle edge cases explicitly (empty collections, None/null, overflow)
+- Use defensive checks to protect invariants
+- Favor explicit early returns over deep nesting
+
+### Idempotency
+- Every mutating operation must be safe to retry
+- Use upserts (`INSERT ... ON CONFLICT` / `update_or_create`) instead of blind inserts
+- Use `if-not-exists` guards before creating resources
+- Use dedup keys (idempotency keys / request IDs) for state changes
+- Design for at-least-once or exactly-once semantics, never best-effort
+
+### Error & Exception Treatment
+- Never silently swallow exceptions — no bare `except:` or `except Exception: pass`
+- Every error path must either:
+  - Propagate with context (wrap: `raise SomeError("context") from e`)
+  - Handle gracefully with a fallback (default value, degraded mode)
+  - Log with a clear message + stack trace
+- Use specific exception types, not generic ones
+- Python: use `logger.exception()` inside except blocks
+
+### Logging
+- Log at appropriate levels: debug (diagnostic), info (normal ops), warn (unexpected but handled), error (failure)
+- Include enough context to trace failures (correlation IDs, request IDs, function inputs)
+- NEVER log secrets, tokens, or PII
+- Ensure logs are structured (JSON) where the infrastructure expects it
+
+### Race Conditions & Async
+- Acquire locks (`asyncio.Lock`, `threading.Lock`) when shared state is modified
+- Prefer structured concurrency (`asyncio.TaskGroup`, `concurrent.futures`)
+- Document thread-safety assumptions on every shared data structure
+- Avoid `sync_to_async` / `async_to_sync` crossovers where possible
+- Use atomic operations (or database transactions) for critical sections
+
+## Hardcoding Avoidance
+
+All configurable values MUST live in centralized config files/modules — never inline in source.
+
+### Blocked Patterns (manual + automated enforcement via OC014)
+- **Magic numbers**: `price * 0.19` → `price * TAX_RATE` (with TAX_RATE in config)
+- **Inline URLs**: `"https://api.example.com/v1"` in function body
+- **Hardcoded ports**: `port=5432` in source (not in config/env)
+- **Literal credentials**: API keys, tokens, passwords
+- **Environment-specific values**: paths, db names, hostnames
+- **Toggle flags / thresholds / timeouts / retry counts**: extract to config
+
+### Allowed Patterns
+- **Secrets**: env vars loaded at startup, never committed
+- **App defaults & constants**: a `config.py` / `settings.py` module with validated schema
+- **Env-specific values**: `.env` file loaded via validated config loader
+- **Feature flags / tunables**: same config module, with sensible defaults
+
+### Python Example
+```python
+# config/settings.py
+from pydantic_settings import BaseSettings
+
+class AppConfig(BaseSettings):
+    database_url: str
+    api_base_url: str = "https://default.api.com"
+    max_retries: int = 3
+    request_timeout_seconds: float = 30.0
+
+    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+config = AppConfig()
+```
+
+### Enforcement
+- **OC014** (automated): `opencode-lint` detects magic numbers, inline URLs, hardcoded ports/timeouts/thresholds in source
+- **Manual guardrail (agent)**: if you see a literal value that looks like it should be configurable, STOP and ask: "Should this be in config?" If yes, extract it before proceeding
+
+## Pre-Commit Enforcement
+
+- Linter MUST pass zero-warnings before every commit: `ruff check .`
+- Pre-commit hook chain (`.pre-commit-config.yaml`) enforces this automatically
+- Agent instruction: run `ruff check .` before staging files and block if any errors remain
+- Python-specific hooks in `hooks/` enforce supply-chain, test integrity, file length, and mock-abuse policies
+
+---
+
+## Python-Specific
+
+### Non-Negotiable Rules
+
+Core rules defined in `opencode_lint/rules/` and enforced via `.pre-commit-config.yaml`. Python-specific enforcement:
 
 | Rule | Violation = STOP |
 |------|-----------------|
@@ -19,10 +111,12 @@ Core rules defined in AGENTS.md (OC001-OC010). Python-specific enforcement:
 | TDD guardrail: define success criteria before implementation (OC006) | Block until failing test exists |
 | 80% coverage minimum (OC007) | Block if `pytest --cov` < 80% |
 | ZERO test skipping (OC008) | Block if `# noqa`, `skip`, or `xfail` found in tests |
+| No hardcoded configurable values (OC014) | Block if magic numbers, inline URLs, hardcoded ports/timeouts/thresholds |
+| Hardcoding avoidance | Block if literal values belong in config |
 
-## Type Hints
+### Type Hints
 
-### Function Signatures
+#### Function Signatures
 
 ```python
 def process_data(input_data: dict[str, Any]) -> Result[str]:
@@ -38,14 +132,14 @@ class DataProcessor:
         return [self._process_item(item) for item in data]
 ```
 
-### Rules
+#### Rules
 - Always specify return types (even `None`)
 - Use `-> NoReturn` for functions that always raise
 - Prefer `list[str]` over `List[str]` (PEP 585)
 - Every argument must have a type hint
 - Use `Any` only when truly necessary
 
-## Pydantic for API Schemas
+### Pydantic for API Schemas
 
 ```python
 from pydantic import BaseModel, Field, field_validator
@@ -67,7 +161,7 @@ class CreateRequest(BaseModel):
 - Never accept `dict[str, Any]` directly in API endpoints
 - Validate all inputs at the boundary
 
-## Error Handling
+### Error Handling
 
 ```python
 # BAD
@@ -95,7 +189,7 @@ except ProcessError as e:
 - Add context: `raise SomeError("context") from e`
 - Handle specific exceptions, not generic ones
 
-## Logging
+### Logging
 
 ```python
 import logging
@@ -117,7 +211,7 @@ def process_data(data: dict[str, Any]) -> Result[str]:
 - Use `logger.exception()` inside except blocks
 - Never expose sensitive data in log messages
 
-## Ruff Configuration
+### Ruff Configuration
 
 ```toml
 [tool.ruff]
@@ -133,9 +227,9 @@ max-statements = 50
 
 Before committing: `ruff check .`
 
-## Testing with Pytest
+### Testing with Pytest
 
-### Structure
+#### Structure
 
 ```python
 import pytest
@@ -161,13 +255,13 @@ def test_process_calculation(processor, input, expected):
     assert result[0].processed_value == expected
 ```
 
-### Core Policy
+#### Core Policy
 - Test behavior, not implementation details
 - Do not test private methods directly
 - Prefer integration tests for I/O boundaries
 - A good test must fail when behavior regresses
 
-### Test Integrity (OC008)
+#### Test Integrity (OC008)
 
 **NEVER skip failing tests.** No `# noqa`, `@pytest.mark.skip`, `@pytest.mark.xfail`, or any suppression mechanism.
 
@@ -179,7 +273,7 @@ When a test fails:
 
 There is no option 4: "suppress the failure."
 
-### Mock Usage
+#### Mock Usage
 
 | Need | Preferred Double |
 |------|------------------|
@@ -191,12 +285,12 @@ There is no option 4: "suppress the failure."
 **Allowed:** Mock external services (HTTP SDKs, cloud clients, payment gateways).
 **Not allowed by default:** Mocking internal domain/services. If needed, add comment: `mock-allow-internal: <reason>` and pair with an integration test.
 
-### LLM Anti-Patterns to Reject
+#### LLM Anti-Patterns to Reject
 - Patching the function/class under test
 - Mocking every collaborator by default
 - Asserting implementation internals instead of observable outcomes
 
-## Test-Driven Development (TDD) as Guardrail
+### Test-Driven Development (TDD) as Guardrail
 
 TDD is not the primary methodology — it's a guardrail against agent non-determinism. The primary approach is Goal-Driven Development (GDD), which uses tests to define success criteria and verify goals are met.
 
@@ -220,14 +314,14 @@ Exempt from TDD: config files, boilerplate, type definitions, migrations, docume
 
 See the Plan agent (`@plan` or Tab) for full GDD workflow.
 
-## Security
+### Security
 
 - Never hardcode secrets in code
 - Never commit `.env` files
 - Validate all inputs at boundaries using Pydantic
 - Use parameterized queries to prevent SQL injection
 
-## Dependency Management
+### Dependency Management
 
 | Detected file | Manager | Add | Install | Run |
 |---------------|---------|-----|---------|-----|
@@ -240,7 +334,7 @@ See the Plan agent (`@plan` or Tab) for full GDD workflow.
 - NEVER manually edit `pyproject.toml` for dependencies
 - ALWAYS commit the lockfile
 
-## Supply Chain Security
+### Supply Chain Security
 
 | Control | How | Enforcement |
 |---------|-----|-------------|
@@ -269,17 +363,18 @@ uv lock --upgrade-package package-name
 
 Recent incidents: axios (Mar 2026), telnyx (Mar 2026), Ultralytics (Dec 2024). Defense: hash pinning + delayed ingestion + pip-audit + Ruff S rules.
 
-## File Organization
+### File Organization
 
 - Python files: max 300 lines
 - Import order: stdlib -> third-party -> local
 - Auto-format: `ruff check . --fix`
 
-## Completion Checklist
+### Completion Checklist
 
 - [ ] All functions have type hints
 - [ ] Error handling is specific (no bare except)
 - [ ] No secrets hardcoded
+- [ ] No magic numbers, inline URLs, or hardcoded config values (OC014)
 - [ ] Tests written for new functionality
 - [ ] Tests assert behavior (not implementation)
 - [ ] TDD guardrail: failing test exists before implementation
