@@ -14,24 +14,24 @@ from opencode_lint.violation import Violation
 
 class NoEnvFileAccess(Rule):
     """Rule OC002: Never view .env content.
-    
+
     Prevents:
     - open(".env").read()
     - Path(".env").read_text()
     - with open(".env") as f: ...
     - etc.
-    
+
     Allows:
     - load_dotenv() from python-dotenv
     - os.getenv("KEY")
     - pydantic-settings BaseSettings
     """
-    
+
     rule_id = "OC002"
     description = "Never view .env content directly"
     severity = "error"
     categories = ["security"]
-    
+
     # Patterns that indicate direct .env access
     VIOLATION_PATTERNS = [
         '.env',
@@ -40,34 +40,34 @@ class NoEnvFileAccess(Rule):
         '.env.development',
         '.env.test',
     ]
-    
+
     # Safe patterns that are allowed
     SAFE_FUNCTIONS = [
         'load_dotenv',
         'dotenv_values',
         'find_dotenv',
     ]
-    
+
     def check_file(self, file_path: Path, content: str) -> List[Violation]:
         """Check file for .env access violations."""
         violations = []
-        
+
         try:
             tree = ast.parse(content)
         except SyntaxError:
             return violations
-        
+
         for node in ast.walk(tree):
             # Check for open(".env", ...) calls
             if isinstance(node, ast.Call):
                 violation = self._check_open_call(node, file_path, content)
                 if violation:
                     violations.append(violation)
-                
+
                 violation = self._check_path_methods(node, file_path, content)
                 if violation:
                     violations.append(violation)
-            
+
             # Check for string literals containing .env in suspicious contexts
             if isinstance(node, ast.Constant) and isinstance(node.value, str):
                 if self._is_env_file_path(node.value):
@@ -89,17 +89,17 @@ class NoEnvFileAccess(Rule):
                                 fix="Use os.getenv('KEY') or BaseSettings from pydantic-settings",
                             )
                         )
-        
+
         return violations
-    
+
     def _check_open_call(self, node: ast.Call, file_path: Path, content: str) -> Violation | None:
         """Check for open(".env", ...) calls."""
         if not isinstance(node.func, ast.Name) or node.func.id != 'open':
             return None
-        
+
         if not node.args:
             return None
-        
+
         first_arg = node.args[0]
         if isinstance(first_arg, ast.Constant) and isinstance(first_arg.value, str):
             if self._is_env_file_path(first_arg.value):
@@ -116,18 +116,20 @@ class NoEnvFileAccess(Rule):
                     ),
                     fix="Use os.getenv('KEY') or BaseSettings from pydantic-settings",
                 )
-        
+
         return None
-    
-    def _check_path_methods(self, node: ast.Call, file_path: Path, content: str) -> Violation | None:
+
+    def _check_path_methods(
+        self, node: ast.Call, file_path: Path, content: str
+    ) -> Violation | None:
         """Check for Path(".env").read_text() or similar."""
         if not isinstance(node.func, ast.Attribute):
             return None
-        
+
         method_name = node.func.attr
         if method_name not in ['read_text', 'read_bytes', 'open']:
             return None
-        
+
         # Check if parent is Path(".env")
         parent_node = self._get_parent_context(ast.parse(content), node)
         if isinstance(parent_node, ast.Call):
@@ -148,9 +150,9 @@ class NoEnvFileAccess(Rule):
                             ),
                             fix="Use os.getenv('KEY') or BaseSettings from pydantic-settings",
                         )
-        
+
         return None
-    
+
     def _is_env_file_path(self, path: str | None) -> bool:
         """Check if path is a .env file."""
         if not isinstance(path, str):
@@ -160,29 +162,29 @@ class NoEnvFileAccess(Rule):
             path_lower == pattern or path_lower.endswith(f'/{pattern}')
             for pattern in self.VIOLATION_PATTERNS
         )
-    
+
     def _is_suspicious_context(self, parent: ast.AST) -> bool:
         """Check if parent context is suspicious (e.g., not load_dotenv, not a list)."""
         # Skip if in a list/tuple definition (likely just data patterns like VIOLATION_PATTERNS)
         if isinstance(parent, (ast.List, ast.Tuple, ast.Set)):
             return False
-        
+
         # Skip if in a dict key/value (likely just data)
         if isinstance(parent, ast.Dict):
             return False
-        
+
         # Skip if it's an assignment target (like VIOLATION_PATTERNS = [...])
         if isinstance(parent, ast.Assign):
             return False
-        
+
         # Skip if calling a safe function
         if isinstance(parent, ast.Call):
             if isinstance(parent.func, ast.Name):
                 if parent.func.id in self.SAFE_FUNCTIONS:
                     return False
-        
+
         return True
-    
+
     def _get_parent_context(self, tree: ast.AST, target_node: ast.AST) -> ast.AST | None:
         """Find the parent node of target_node in the AST."""
         for node in ast.walk(tree):

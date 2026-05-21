@@ -6,8 +6,6 @@ temperature: 0.1
 permission:
   edit: deny
   bash: deny
-  skill:
-    "brave-devtools": allow
   webfetch: allow
 ---
 
@@ -30,19 +28,17 @@ The parent agent (`ml-engineer`) must start the application server before invoki
 
 ### Step 2: Navigate and Clear Console
 
-```
-brave-navigate <url> --wait networkidle
-brave-console --clear
-```
+Navigate via `navigate_page`, then clear old console entries.
 
 ### Step 3: Interact
 
-Perform user actions (clicks, form submissions, navigation) via `brave-evaluate` with JavaScript.
+Perform user actions (clicks, form fills, navigation) via MCP tools (`click`, `fill`, `evaluate_script`, `navigate_page`).
 
 ### Step 4: Read Console
 
 ```
-brave-console --get --level error
+list_console_messages
+list_network_requests
 ```
 
 ### Step 5: Assert

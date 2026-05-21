@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import List
 
 try:
-    import yaml
-    HAS_YAML = True
+    import importlib.util  # noqa: F401
+    HAS_YAML = importlib.util.find_spec('yaml') is not None
 except ImportError:
     HAS_YAML = False
 
@@ -19,72 +19,72 @@ from opencode_lint.violation import Violation
 
 class NoPrivilegedContainers(Rule):
     """Rule OC003: No privileged containers in docker-compose.
-    
+
     Prevents:
     - privileged: true
     - cap_add: [ALL]
     - security_opt: ["seccomp:unconfined"]
-    
+
     Why: Privileged containers have full access to host resources,
     bypassing security boundaries. Agents often add this to "fix"
     permission issues.
     """
-    
+
     rule_id = "OC003"
     description = "No privileged containers in docker-compose"
     severity = "error"
     categories = ["security", "docker"]
-    
+
     VIOLATION_KEYS = {
         'privileged': True,
         'security_opt': lambda x: isinstance(x, list) and any(
             'unconfined' in str(item).lower() for item in x
         ),
     }
-    
+
     def should_check_file(self, file_path: Path) -> bool:
         """Only check docker-compose files."""
         if not super().should_check_file(file_path):
             return False
-        
+
         name = file_path.name.lower()
         # Check if file is a yaml file AND contains docker-compose pattern
         if not name.endswith(('.yml', '.yaml')):
             return False
-        
+
         # Match docker-compose, compose, or files with "compose" in the name
         return any(
             pattern in name
             for pattern in ['docker-compose', 'compose', 'docker_compose']
         )
-    
+
     def check_file(self, file_path: Path, content: str) -> List[Violation]:
         """Check docker-compose file for privileged containers."""
         violations: List[Violation] = []
-        
+
         # Import yaml here to avoid issues if not available
         try:
             import yaml
         except ImportError:
             # Can't parse without PyYAML
             return violations
-        
+
         try:
             data = yaml.safe_load(content)
         except Exception:
             return violations
-        
+
         if not isinstance(data, dict):
             return violations
-        
+
         services = data.get('services', {})
         if not isinstance(services, dict):
             return violations
-        
+
         for service_name, service_config in services.items():
             if not isinstance(service_config, dict):
                 continue
-            
+
             # Check privileged: true
             if service_config.get('privileged') is True:
                 violations.append(
@@ -101,7 +101,7 @@ class NoPrivilegedContainers(Rule):
                         fix="Remove privileged: true and add only required capabilities",
                     )
                 )
-            
+
             # Check cap_add: [ALL]
             cap_add = service_config.get('cap_add', [])
             if isinstance(cap_add, list) and any(
@@ -121,7 +121,7 @@ class NoPrivilegedContainers(Rule):
                         fix="Replace 'ALL' with specific required capabilities",
                     )
                 )
-            
+
             # Check security_opt for unconfined
             security_opt = service_config.get('security_opt', [])
             if isinstance(security_opt, list):
@@ -141,9 +141,9 @@ class NoPrivilegedContainers(Rule):
                             )
                         )
                         break
-        
+
         return violations
-    
+
     def _find_line_number(self, content: str, key: str) -> int:
         """Find the line number of a key in the content."""
         lines = content.split('\n')

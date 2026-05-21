@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import re
 import subprocess
-import sys
 
 
 def get_staged_pyproject_changes() -> list[str]:

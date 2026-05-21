@@ -60,13 +60,11 @@ def check_root_for_lockfile(root: Path) -> List[Violation]:
     """Check project root for lockfile presence."""
     violations = []
     lockfile_found = False
-    lockfile_name = None
 
     for name in LockfileRequired.LOCKFILE_NAMES:
         lockfile_path = root / name
         if lockfile_path.exists():
             lockfile_found = True
-            lockfile_name = name
             break
 
     if not lockfile_found:

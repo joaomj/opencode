@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass(frozen=True)
 class Violation:
     """Represents a single lint violation."""
-    
+
     rule_id: str
     file_path: Path
     line_number: int
@@ -16,14 +16,14 @@ class Violation:
     message: str
     severity: str  # "error" or "warning"
     fix: Optional[str] = None  # Suggested fix if available
-    
+
     def __str__(self) -> str:
         severity_marker = "✗" if self.severity == "error" else "⚠"
         return (
             f"{severity_marker} {self.rule_id}: {self.file_path}:{self.line_number}:{self.column}\n"
             f"   {self.message}\n"
         )
-    
+
     def to_dict(self) -> dict:
         """Convert violation to dictionary for serialization."""
         return {

@@ -1,15 +1,10 @@
 from __future__ import annotations
 
 import argparse
-import csv
-import io
-import json
 import logging
 import os
 import re
-import sys
 from pathlib import Path
-from typing import Any
 
 LOGGER = logging.getLogger("drive-reader")
 

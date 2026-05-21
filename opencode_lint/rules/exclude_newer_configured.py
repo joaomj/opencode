@@ -5,7 +5,6 @@ a 7-day cutoff, protecting against fresh malicious releases.
 """
 
 import os
-import re
 from pathlib import Path
 from typing import List
 
