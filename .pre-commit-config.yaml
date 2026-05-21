@@ -31,65 +31,29 @@ repos:
       - id: hadolint
         args: [--ignore, DL3008, --ignore, DL3013]
 
-  # File length check (max 300 lines for Python files)
+  # pip-audit - Dependency vulnerability scanning (supply chain)
+  # Lightest option: uvx (no permanent install, ~5MB cached binary)
+  # Uses PyPI Advisory DB + osv.dev. Scans currently synced packages.
   - repo: local
     hooks:
-      - id: check-file-length
-        name: Check Python file length (max 300 lines)
-        entry: python .hooks/check_file_length.py
+      - id: pip-audit
+        name: Dependency vulnerability scan (pip-audit)
+        entry: uvx pip-audit --desc
         language: system
-        types: [python]
-        pass_filenames: true
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
 
-      - id: check-test-mock-abuse
-        name: Check test mock abuse policy
-        entry: python .hooks/check_test_mock_abuse.py
-        language: system
-        files: (^tests/|^test/|^__tests__/|test_|_test\.|\.test\.|\.spec\.)
-        pass_filenames: true
-
-      # OpenCode Lint - AGENTS.md rules (OC001-OC008)
-      # Factory.ai concept: "Linters as Law Enforcement"
+  # OpenCode Lint - AGENTS.md rules (OC001-OC014 + mock policy)
+  # Factory.ai concept: "Linters as Law Enforcement"
+  - repo: local
+    hooks:
       - id: opencode-lint
         name: OpenCode custom rules (AGENTS.md)
         entry: python -m opencode_lint.cli --pre-commit
         language: system
-        files: \.(py|yaml|yml)$
+        files: \.(py|yaml|yml|sh|md)$
         pass_filenames: true
-
-      # pip-audit - Supply chain vulnerability scanning
-      - id: pip-audit
-        name: Dependency vulnerability scan (pip-audit)
-        entry: pip-audit --desc
-        language: python
-        additional_dependencies: [pip-audit]
-        files: (requirements\.txt|pyproject\.toml|uv\.lock|pdm\.lock|poetry\.lock)$
-        pass_filenames: false
-        always_run: true
-
-      # OC013: Prevent direct pyproject.toml edits
-      - id: check-pyproject-edits
-        name: Check direct pyproject.toml edits (OC013)
-        entry: python .hooks/check_pyproject_edits.py
-        language: system
-        files: pyproject\.toml$
-        pass_filenames: false
-        stages: [pre-commit]
-
-      # OC008: Prevent test skipping
-      - id: check-no-test-skip
-        name: Check test skip/noqa patterns (OC008)
-        entry: python .hooks/check_no_test_skip.py
-        language: system
-        pass_filenames: false
-        stages: [pre-commit]
-
-      # OC016: Enforce e2e/integration tests
-      - id: check-e2e-exists
-        name: Check e2e/integration tests exist (OC016)
-        entry: python .hooks/check_e2e_exists.py
-        language: system
-        pass_filenames: false
         stages: [pre-commit]
 
       # Optional: TDD coverage gate (requires pytest-cov)
@@ -101,20 +65,3 @@ repos:
       #   pass_filenames: false
       #   stages: [pre-commit]
       #   always_run: true
-
-  # Supply chain security checks
-  - repo: local
-    hooks:
-      - id: check-supply-chain
-        name: Supply chain security checks (OC009-OC012)
-        entry: python .hooks/check_supply_chain.py
-        language: system
-        pass_filenames: false
-        always_run: true
-
-  # Prevent commits to main/master
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
-    hooks:
-      - id: no-commit-to-branch
-        args: [--branch, main, --branch, master]

@@ -90,9 +90,9 @@ config = AppConfig()
 ## Pre-Commit Enforcement
 
 - Linter MUST pass zero-warnings before every commit: `ruff check .`
-- Pre-commit hook chain (`.pre-commit-config.yaml`) enforces this automatically
+- Pre-commit hook chain (`.pre-commit-config.yaml`) enforces this automatically via `opencode-lint`
 - Agent instruction: run `ruff check .` before staging files and block if any errors remain
-- Python-specific hooks in `hooks/` enforce supply-chain, test integrity, file length, and mock-abuse policies
+- All AGENTS.md rules (OC001-OC014, mock policy) are enforced by `opencode-lint`
 
 ---
 
@@ -273,6 +273,18 @@ When a test fails:
 
 There is no option 4: "suppress the failure."
 
+#### E2E/Integration Tests (OC016)
+
+User-visible behavior changes require e2e or integration tests.
+Unit tests alone are insufficient for features that affect external interfaces,
+APIs, or user workflows.
+
+- Every user-facing change must have at least one e2e/integration test
+- E2E tests verify real system behavior, not mocked internals
+- Use TestClient (FastAPI/Flask), Playwright, or HTTP requests for integration
+- Prefer integration tests over heavy mocking at internal boundaries
+- If mocking is required, add `mock-allow-internal: <reason>` marker
+
 #### Mock Usage
 
 | Need | Preferred Double |
@@ -342,7 +354,7 @@ See the Plan agent (`@plan` or Tab) for full GDD workflow.
 | Delayed ingestion | `exclude-newer` with 7-day buffer in pyproject.toml | OC010 |
 | CI lockfile enforcement | `uv sync --locked` in CI pipeline | OC011 |
 | Targeted upgrades | `uv lock --upgrade-package <name>` only | OC012 |
-| Vulnerability scanning | `pip-audit` in CI on every push/PR | CI pipeline |
+| Vulnerability scanning | `pip-audit` on every commit (supply chain) | Pre-commit |
 | Security linting | Ruff `S` rules (Bandit: secrets, crypto, timeouts) | Pre-commit |
 
 ```bash
@@ -383,6 +395,8 @@ Recent incidents: axios (Mar 2026), telnyx (Mar 2026), Ultralytics (Dec 2024). D
 - [ ] Dependencies added via package manager
 - [ ] Lockfile committed
 - [ ] ZERO test suppression mechanisms
+- [ ] E2E/integration tests for user-visible changes (OC016)
 - [ ] `exclude-newer = "1 week"` configured in pyproject.toml (OC010)
 - [ ] CI uses `uv sync --locked` / `poetry install --locked` (OC011)
 - [ ] Dependency upgrades use `--upgrade-package` only (OC012)
+- [ ] `pip-audit` passes (no known dependency vulnerabilities)

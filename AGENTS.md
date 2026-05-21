@@ -45,3 +45,18 @@ Always load the `coding-best-practices` skill when performing any coding activit
 | Code staged | Run `ruff check .` first; block commit if errors |
 | Dependency upgrade | Use `--upgrade-package`, not blind `--upgrade` |
 | CI setup | Use `--locked` install to enforce lockfile integrity |
+| Security | Run `pip-audit` on every commit to detect dependency vulnerabilities (supply chain) |
+
+## Testing
+
+### E2E/Integration Tests (OC016)
+
+User-visible behavior changes require e2e or integration tests.
+Unit tests alone are insufficient for features that affect external interfaces,
+APIs, or user workflows.
+
+- Every user-facing change must have at least one e2e/integration test
+- E2E tests verify real system behavior, not mocked internals
+- Use TestClient (FastAPI/Flask), Playwright, or HTTP requests for integration
+- Prefer integration tests over heavy mocking at internal boundaries
+- If mocking is required, add `mock-allow-internal: <reason>` marker
