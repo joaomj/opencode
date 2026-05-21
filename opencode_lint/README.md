@@ -1,6 +1,6 @@
-# OpenCode Lint - Custom Linter for AGENTS.md Rules
+# OpenCode Lint — Custom Linter for AGENTS.md Rules
 
-A custom linter that enforces core AGENTS.md guidelines from the Factory.ai "Linters as Law Enforcement" concept. Additional policies are enforced by pre-commit hooks and sub-agents.
+A standalone Python linter enforcing core AGENTS.md guidelines via the pre-commit hook chain. Runs as both a CLI (`opencode-lint`) and a single pre-commit hook.
 
 ## Installation
 
@@ -8,40 +8,48 @@ A custom linter that enforces core AGENTS.md guidelines from the Factory.ai "Lin
 pip install -e opencode_lint
 ```
 
-Or use the pre-commit hook setup:
+Or set up pre-commit hooks:
 ```bash
-curl -sSL https://raw.githubusercontent.com/joaomj/skills/main/setup-hooks.sh | bash
+pip install pre-commit && pre-commit install
 ```
 
 ## Usage
 
 ### As CLI
 ```bash
-# Check all files
+# Check all files in current directory
 opencode-lint
 
-# Check specific file
-opencode-lint src/main.py
+# Check specific files
+opencode-lint src/main.py tests/
 
-# Fix auto-fixable issues
-opencode-lint --fix
-
-# Pre-commit mode (exit code 1 on violations)
+# Pre-commit mode (exit code 1 on any violation)
 opencode-lint --pre-commit
 ```
 
 ### As Pre-commit Hook
-The linter runs automatically on commit if hooks are installed.
+The linter runs automatically on `.py`, `.yaml`, `.yml`, `.sh`, and `.md` files when committing.
 
 ## Rules
 
-| Rule ID | Description | Severity | Auto-fix |
-|---------|-------------|----------|----------|
-| OC001 | No raw dicts for API schemas | Error | No |
-| OC002 | Never read/print `.env` values | Error | No |
-| OC003 | No privileged containers | Error | No |
-| OC004 | Absolute imports preferred | Warning | No |
-| OC005 | Strict type hints required | Warning | No |
+| Rule ID | Description | Severity | Enforced By |
+|---------|-------------|----------|-------------|
+| OC001 | No raw dicts for API schemas | Error | `opencode_lint` |
+| OC002 | Never read/print `.env` values | Error | `opencode_lint` |
+| OC003 | No privileged containers | Error | `opencode_lint` |
+| OC004 | Absolute imports preferred | Warning | `opencode_lint` |
+| OC005 | Strict type hints required | Warning | `opencode_lint` |
+| OC009 | Lockfile must exist and be committed | Error | `opencode_lint` |
+| OC010 | `exclude-newer` with 7-day buffer | Error | `opencode_lint` |
+| OC011 | No blind `uv lock --upgrade` | Error | `opencode_lint` |
+| OC012 | No unsafe `curl \| bash` downloads | Error | `opencode_lint` |
+| OC014 | No hardcoded configurable values | Warning | `opencode_lint` |
+| OC-MOCK | Mock external boundaries only | Error | `opencode_lint` |
+
+Additional security enforcement (not in linter):
+- **Gitleaks** — secret detection (pre-commit)
+- **pip-audit** — dependency vulnerability scanning (pre-commit, via `uvx`)
+- **Ruff `S` rules** — Bandit security lints (pre-commit)
 
 ## Configuration
 
@@ -50,7 +58,7 @@ Create `.opencode-lint.yaml` to customize:
 ```yaml
 rules:
   OC001:
-    severity: error
+    severity: warning
     enabled: true
   OC004:
     severity: warning
@@ -62,4 +70,17 @@ ignore:
   - "*.pyc"
   - "__pycache__/*"
   - ".venv/*"
+```
+
+## Development
+
+```bash
+# Install dev dependencies
+uv sync --dev
+
+# Run tests
+uv run pytest
+
+# Lint
+uv run ruff check .
 ```
