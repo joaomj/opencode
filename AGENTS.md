@@ -32,7 +32,7 @@ Always load the `coding-best-practices` skill when performing any coding activit
 | CI/CD | Load `github-cicd-lite` or `docker-best-practices` |
 | Pull request | Load `create-pull-request` |
 | Architecture diagram | Load `architecture-diagram` or `c4-diagram` |
-| Browser debugging | Use `chrome-devtools` MCP tools (`list_console_messages`, `list_network_requests`, etc.) |
+| Browser debugging | Load `browser-readonly` skill and use `browser_cdp.py` for screenshots, DOM, JS eval, console, and network via local Brave/Chromium CDP |
 | Planning | Use `/plan` |
 
 ## Workflow

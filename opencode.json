@@ -38,20 +38,6 @@
       "model": "opencode-go/deepseek-v4-flash"
     }
   },
-  "mcp": {
-    "chrome-devtools": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "chrome-devtools-mcp@latest",
-        "--executable-path=/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
-        "--no-usage-statistics",
-        "--redact-network-headers",
-        "--isolated"
-      ]
-    }
-  },
   "provider": {
     "openai": {
       "models": {
