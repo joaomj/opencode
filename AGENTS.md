@@ -54,7 +54,6 @@ Each rule lives in `opencode_lint/rules/`. See the docstring in each file for de
 | Write or record an issue | Load `issue-writing` skill, create `docs/issues/<slug>.md` |
 | E2E/integration testing | Load `e2e-testing` skill |
 | CI/CD | Load `github-cicd-lite` or `docker-best-practices` |
-| Pull request | Load `create-pull-request` |
 | Architecture diagram | Load `architecture-diagram` or `c4-diagram` |
 | Browser debugging | Load `browser-readonly` skill and use `browser_cdp.py` for screenshots, DOM, JS eval, console, and network via local Brave/Chromium CDP |
 | Docker/containerization | Load `docker-best-practices` skill |
@@ -65,8 +64,9 @@ Each rule lives in `opencode_lint/rules/`. See the docstring in each file for de
 | Condition | Action |
 |-----------|--------|
 | Code changes affect public API | Suggest documentation updates |
-| Phase gate passed | Ask to commit |
-| User requests commit | Commit changes (no push unless requested) |
+| Phase gate passed | Ask to commit directly to `main` |
+| User requests commit | Commit changes and push to `main` |
+| User requests release | Create a semver tag (`git tag -a v<major>.<minor>.<patch>`) and push tags (`git push origin --tags`) |
 | Review finds P0 or P1 | Block merge (FAIL-CLOSED). Fix and re-review. |
 
 ## Testing
