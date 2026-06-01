@@ -1,15 +1,7 @@
 ---
-description: Update and prune project documentation for accuracy and relevance
-mode: subagent
-model: opencode-go/minimax-m2.7
-temperature: 0.2
-permission:
-  edit: ask
-  write: ask
-  bash:
-    "git log*": allow
-    "git diff*": allow
-    "*": deny
+name: doc-maintenance
+description: Audit and update project documentation for accuracy and relevance. Use when the user asks to update docs, clean up documentation, or after code changes that affect public APIs.
+license: MIT
 ---
 
 # Documentation Maintenance
@@ -27,9 +19,7 @@ Update and prune project documentation to maintain accuracy and relevance.
 
 ### Step 1: Find Documentation Files
 
-```bash
-find . -name "*.md" -not -path "./.git/*" | sort
-```
+Use `glob` to find markdown files, excluding `.git/` and generated directories.
 
 ### Step 2: Audit Each Document
 
@@ -51,26 +41,18 @@ For each document:
 | Missing skills | Table entries for skills that don't exist |
 | Inconsistent naming | Different terms for same concept |
 
-### Step 3: Propose Changes
+### Step 4: Propose Changes
 
-For each issue found:
+For each issue found, present:
 
-```markdown
-**File**: path/to/doc.md
-**Line**: N
+- **File**: path/to/doc.md
+- **Line**: N
+- **Issue**: description of problem
+- **Current**: original content
+- **Proposed**: updated content
+- **Reasoning**: why this change
 
-**Issue**: [Description of problem]
-
-**Current:**
-[original content]
-
-**Proposed:**
-[updated content]
-
-**Reasoning**: [Why this change]
-```
-
-### Step 4: Get User Approval
+### Step 5: Get User Approval
 
 Ask: "Apply these documentation updates? (yes/no/selective)"
 
@@ -85,12 +67,3 @@ Ask: "Apply these documentation updates? (yes/no/selective)"
 | Preserve intent | Do not change meaning of documentation |
 | Ask before edit | Request permission before each change |
 | Check git history | Verify what changed recently before removing |
-
-## Completion Checklist
-
-- [ ] Documentation files listed
-- [ ] Each file analyzed for issues
-- [ ] Issues categorized
-- [ ] Changes proposed
-- [ ] User approval obtained
-- [ ] Changes applied (if approved)
