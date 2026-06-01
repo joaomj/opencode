@@ -1,31 +1,46 @@
-# Opencode Setup
+# OpenCode Config
 
-Skills, commands, agents, and git hooks for [OpenCode](https://opencode.ai) — the AI coding assistant that lives in your terminal.
+Personal configuration for [OpenCode](https://opencode.ai) — agents, skills, commands, and a custom linter.
 
-## Quick Start
+> **Disclaimer:** Not affiliated with OpenCode. Personal configuration using OpenCode as a platform.
 
-```bash
-curl -sSL https://raw.githubusercontent.com/joaomj/skills/main/install.sh | bash
-```
+## Setup
 
-Customize your setup via `AGENTS.md` (rules + routing) and `opencode.json` (models + permissions).
+1. **Clone the repository:**
 
-## What's Inside
+   ```bash
+   git clone git@github.com:joaomj/skills.git ~/.config/opencode
+   ```
 
-- Skills for domain-specific workflows (architecture, CI/CD, issue tracking, docs, ML, Python, PRs, scraping, Docker, browser debugging)
-- Slash commands for committing, standup prep, and updating
-- Agent personas for Python/ML coding, frontend testing, research, code review, documentation, and simplification
-- Git hooks for enforcing code quality
-- Config templates with sensible defaults
+2. **Install the custom linter (optional, used by AGENTS.md rules):**
+
+   ```bash
+   pip install -e ~/.config/opencode/opencode_lint
+   ```
+
+3. **Configure OpenCode:**
+
+   Copy the example config and edit as needed (change models, providers etc):
+
+   ```bash
+   cp ~/.config/opencode/opencode.json ~/.config/opencode.json
+   ```
+
+   The config sets up provider models, permission rules, and agent settings.
 
 ## Updating
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/joaomj/skills/main/install.sh | bash -s -- --update
+cd ~/.config/opencode && git pull
 ```
 
-Or run `/update-opencode` from within OpenCode.
+## What's Inside
+
+- **18 skills** — architecture diagrams, browser inspection, coding standards, docs, Docker, e2e testing, issue writing, Jira, ML, Notion, research, simplification, and more
+- **3 agents** — `code-reviewer`, `ml-engineer`, `swe-engineer`
+- **3 commands** — `commit`, `standup-prep`, `update-opencode`
+- **Custom linter** (`opencode-lint`) — enforces AGENTS.md rules (OC001–OC014 + OC-MOCK)
 
 ## License
 
-MIT
+[MIT](LICENSE)

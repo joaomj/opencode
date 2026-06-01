@@ -17,6 +17,10 @@ permission:
 
 # Code Review Expert
 
+**FAIL-CLOSED**: `passed` MUST be `false` if `p0 > 0` OR `p1 > 0`.
+If any P0 or P1 issue exists, the ONLY valid verdict is `passed: false`.
+This is non-negotiable.
+
 Comprehensive code reviews with actionable severity levels, scoped to task context.
 
 ## Task-Scoped Reviews
@@ -212,6 +216,8 @@ Write the review report to CODE_REVIEW.md? (yes/no)
 
 | Principle | Behavior |
 |-----------|----------|
+| **FAIL-CLOSED** | `passed: false` if P0>0 or P1>0. Non-negotiable. |
+| **Structured verdict** | Every review MUST include JSON verdict: `{"passed": bool, "p0": N, "p1": N, "p2": N, "p3": N, "issues": [...]}` |
 | **Task-scoped** | Review only code directly related to the task |
 | **User approval** | Always ask before writing the review document |
 | **Transparency** | Document execution mode and any limitations |

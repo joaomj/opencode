@@ -16,7 +16,16 @@
       "ssh *": "ask",
       "brew *": "ask",
       "docker *": "ask",
+      "*/.env": "deny",
+      "*/.env *": "deny",
+      "* .env": "deny",
       "* .env *": "deny"
+    },
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
     },
     "websearch": "allow",
     "webfetch": "allow",
@@ -36,20 +45,6 @@
     },
     "explore": {
       "model": "opencode-go/deepseek-v4-flash"
-    }
-  },
-  "mcp": {
-    "chrome-devtools": {
-      "type": "local",
-      "command": [
-        "npx",
-        "-y",
-        "chrome-devtools-mcp@latest",
-        "--executable-path=/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
-        "--no-usage-statistics",
-        "--redact-network-headers",
-        "--isolated"
-      ]
     }
   },
   "provider": {
