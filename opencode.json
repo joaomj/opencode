@@ -16,7 +16,16 @@
       "ssh *": "ask",
       "brew *": "ask",
       "docker *": "ask",
+      "*/.env": "deny",
+      "*/.env *": "deny",
+      "* .env": "deny",
       "* .env *": "deny"
+    },
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
     },
     "websearch": "allow",
     "webfetch": "allow",
