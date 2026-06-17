@@ -57,6 +57,7 @@ Each rule lives in `opencode_lint/rules/`. See the docstring in each file for de
 | Architecture diagram | Load `architecture-diagram` or `c4-diagram` |
 | Browser debugging | Load `browser-readonly` skill and use `browser_cdp.py` for screenshots, DOM, JS eval, console, and network via local Brave/Chromium CDP |
 | Docker/containerization | Load `docker-best-practices` skill |
+| dbt CLI | Load `dbt-cli` skill |
 | Planning | Use `/plan` |
 
 ## Workflow
