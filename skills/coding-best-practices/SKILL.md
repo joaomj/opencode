@@ -1,6 +1,6 @@
 ---
 name: coding-best-practices
-description: Universal coding standards covering quality, idempotency, error treatment, async safety, hardcoding avoidance, logging; with Python-specific enforcement rules
+description: Universal coding standards covering quality, failure-resilient execution, idempotency, error treatment, async safety, hardcoding avoidance, logging; with Python-specific enforcement rules
 license: MIT
 ---
 
@@ -48,6 +48,22 @@ license: MIT
 - Document thread-safety assumptions on every shared data structure
 - Avoid `sync_to_async` / `async_to_sync` crossovers where possible
 - Use atomic operations (or database transactions) for critical sections
+
+### Failure-Resilient Execution
+
+Apply this strictly when code performs multi-step work, external side effects, batch processing, filesystem writes, network calls, database mutations, migrations, scraping, automation, or long-running execution.
+
+- Prefer resumable execution with checkpoints, durable progress markers, or already-processed detection
+- Make each mutation idempotent and safe to retry after partial failure
+- Avoid unbounded long loops; use batches, pagination, explicit limits, timeouts, and periodic checkpointing
+- Avoid silent failures; errors must be logged, surfaced, or explicitly classified as recoverable
+- Persist logs to files for jobs that may outlive the shell, and also print useful progress to stdout/stderr
+- Use atomic writes for generated outputs, state files, and checkpoint files
+- Use lock files, database advisory locks, idempotency keys, or dedupe keys when concurrent runs would be unsafe
+- Prefer `--dry-run` for destructive operations or external side effects
+- Prefer `--resume`, checkpoint-path, or continuation options for long-running workflows
+- Emit a final summary with attempted, succeeded, skipped, failed, and retriable counts where applicable
+- Design long jobs so they can run safely in tmux, CI, remote sessions, or other environments where the foreground UI may disappear
 
 ## Hardcoding Avoidance
 
@@ -385,6 +401,11 @@ Recent incidents: axios (Mar 2026), telnyx (Mar 2026), Ultralytics (Dec 2024). D
 
 - [ ] All functions have type hints
 - [ ] Error handling is specific (no bare except)
+- [ ] Multi-step or long-running work has checkpointing/resume behavior
+- [ ] Mutations and external side effects are idempotent and retry-safe
+- [ ] Batch jobs avoid unbounded loops and use batching, limits, timeouts, or pagination
+- [ ] Operational scripts persist logs to files and print useful shell progress
+- [ ] Unsafe concurrent runs are guarded by locks, dedupe keys, or equivalent controls
 - [ ] No secrets hardcoded
 - [ ] No magic numbers, inline URLs, or hardcoded config values (OC014)
 - [ ] Tests written for new functionality

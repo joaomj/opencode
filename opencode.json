@@ -2,8 +2,43 @@
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": true,
   "permission": {
+    "*": "ask",
     "bash": {
-      "*": "allow",
+      "*": "ask",
+      "pwd": "allow",
+      "date": "allow",
+      "whoami": "allow",
+      "id": "allow",
+      "uname *": "allow",
+      "arch": "allow",
+      "which *": "allow",
+      "command -v *": "allow",
+      "ls": "allow",
+      "ls *": "allow",
+      "rg *": "allow",
+      "grep *": "allow",
+      "wc *": "allow",
+      "git status": "allow",
+      "git status *": "allow",
+      "git diff": "allow",
+      "git diff *": "allow",
+      "git log": "allow",
+      "git log *": "allow",
+      "git show": "allow",
+      "git show *": "allow",
+      "git branch": "allow",
+      "git branch --show-current": "allow",
+      "git branch --list": "allow",
+      "git branch -a": "allow",
+      "git branch -r": "allow",
+      "git branch -vv": "allow",
+      "git rev-parse *": "allow",
+      "git merge-base *": "allow",
+      "git remote": "allow",
+      "git remote -v": "allow",
+      "git ls-files": "allow",
+      "git ls-files *": "allow",
+      "git grep *": "allow",
       "git add *": "ask",
       "git commit *": "ask",
       "git push *": "ask",
@@ -16,10 +51,7 @@
       "ssh *": "ask",
       "brew *": "ask",
       "docker *": "ask",
-      "*/.env": "deny",
-      "*/.env *": "deny",
-      "* .env": "deny",
-      "* .env *": "deny"
+      "*.env*": "deny"
     },
     "read": {
       "*": "allow",
@@ -27,24 +59,28 @@
       "*.env.*": "deny",
       "*.env.example": "allow"
     },
+    "glob": "allow",
+    "grep": "allow",
+    "list": "allow",
+    "todowrite": "allow",
+    "question": "allow",
     "websearch": "allow",
     "webfetch": "allow",
     "skill": {
       "*": "allow"
     }
   },
-  "small_model": "opencode-go/minimax-m2.5",
+  "small_model": "openai/gpt-5.4-nano",
   "compaction": {
     "auto": true,
     "prune": true
-    //"reserved": 100000
   },
   "agent": {
     "compaction": {
-      "model": "opencode-go/deepseek-v4-flash"
+      "model": "openai/gpt-5.4-nano"
     },
     "explore": {
-      "model": "opencode-go/deepseek-v4-flash"
+      "model": "openai/gpt-5.4-mini"
     }
   },
   "provider": {
@@ -62,30 +98,11 @@
     },
     "opencode-go": {
       "models": {
-        "mimo-v2.5-pro": {
-          "name": "MiMo V2.5 Pro",
-          "limit": {
-            "context": 200000,
-            "input": 200000,
-            "output": 64000
-          },
-          "options": {
-            "reasoningEffort": "high"
-          }
-        },
-        "kimi-k2.6": {
-          "name": "Kimi K2.6",
-          "limit": {
-            "context": 200000,
-            "input": 200000,
-            "output": 64000
-          }
-        },
         "deepseek-v4-flash": {
           "name": "DeepSeek V4 Flash",
           "limit": {
-            "context": 200000,
-            "input": 200000,
+            "context": 150000,
+            "input": 150000,
             "output": 64000
           },
           "options": {
@@ -95,8 +112,8 @@
         "deepseek-v4-pro": {
           "name": "DeepSeek V4 Pro",
           "limit": {
-            "context": 200000,
-            "input": 200000,
+            "context": 150000,
+            "input": 150000,
             "output": 64000
           },
           "options": {
