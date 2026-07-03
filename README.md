@@ -1,6 +1,6 @@
 # OpenCode Config
 
-Personal configuration for [OpenCode](https://opencode.ai) — agents, skills, commands, and a custom linter.
+Personal configuration for [OpenCode](https://opencode.ai).
 
 > **Disclaimer:** Not affiliated with OpenCode. Personal configuration using OpenCode as a platform.
 
@@ -33,13 +33,6 @@ Personal configuration for [OpenCode](https://opencode.ai) — agents, skills, c
 ```bash
 cd ~/.config/opencode && git pull
 ```
-
-## What's Inside
-
-- **18 skills** — architecture diagrams, browser inspection, coding standards, docs, Docker, e2e testing, issue writing, Jira, ML, Notion, research, simplification, and more
-- **3 agents** — `code-reviewer`, `ml-engineer`, `swe-engineer`
-- **3 commands** — `commit`, `standup-prep`, `update-opencode`
-- **Custom linter** (`opencode-lint`) — enforces AGENTS.md rules (OC001–OC014 + OC-MOCK)
 
 ## License
 
