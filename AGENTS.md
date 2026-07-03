@@ -43,7 +43,7 @@
 | Browser debugging | Load `browser-readonly` skill and use `browser_cdp.py` for screenshots, DOM, JS eval, console, and network via local Brave/Chromium CDP |
 | Planning | Use `/plan` |
 | Create a pull request | Load `create-pull-request` |
-| Fetch X/Twitter posts | Load `fetch-x-posts` skill, run the CLI script |
+| Fetch X/Twitter posts or sync bookmarks | Load `fetch-x-posts` skill, run the CLI script |
 
 ## Routing Determinism
 
