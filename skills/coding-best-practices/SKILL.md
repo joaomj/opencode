@@ -26,8 +26,39 @@ Write a spec for user approval covering:
 - Acceptance criteria (Given/When/Then)
 - Files and modules likely involved
 - Risks and edge cases
+- **Plan**: tasks decomposed into microsteps (see below)
 
 **Gate**: DO NOT edit any code until user approves the spec.
+
+#### Minimal-Step Planning
+
+Decompose each task into microsteps. A **microstep** must satisfy:
+
+> The smallest change that advances the plan, is independently valid, defers all future work, and has a one-line verification.
+
+Each microstep in the Plan section must state:
+
+- **Step ID**: e.g. `T1-S1`
+- **Minimal change**: exactly what to implement, no more
+- **Defers**: what remains for later microsteps
+- **Verifies**: one concrete check (lint, import, unit test) that passes after this step
+
+Example:
+
+```markdown
+## Plan
+
+### T1: Add user export endpoint
+
+**Acceptance:**
+- POST /users/{id}/export returns text/csv
+
+**Microsteps:**
+1. **T1-S1**: Add `ExportRequest` schema in `schemas/export.py`. Defers: endpoint, CSV logic, tests. Verifies: `import succeeds; mypy strict passes`.
+2. **T1-S2**: Add pure `build_export(user) -> bytes` service fn using csv.writer. Defers: endpoint wiring, persistence, auth. Verifies: `unit test on a fixed User fixture passes`.
+```
+
+The expensive model writes the spec with microsteps once. The cheap model implements each microstep one at a time without deciding scope.
 
 ### Phase 3: Test Plan
 
