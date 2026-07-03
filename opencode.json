@@ -33,7 +33,7 @@
       "*": "allow"
     }
   },
-  "small_model": "opencode-go/minimax-m2.5",
+  "small_model": "opencode/deepseek-v4-flash-free",
   "compaction": {
     "auto": true,
     "prune": true
@@ -41,10 +41,10 @@
   },
   "agent": {
     "compaction": {
-      "model": "opencode-go/deepseek-v4-flash"
+      "model": "opencode/deepseek-v4-flash-free"
     },
     "explore": {
-      "model": "opencode-go/deepseek-v4-flash"
+      "model": "opencode/deepseek-v4-flash-free"
     }
   },
   "provider": {
@@ -62,45 +62,42 @@
     },
     "opencode-go": {
       "models": {
-        "mimo-v2.5-pro": {
-          "name": "MiMo V2.5 Pro",
-          "limit": {
-            "context": 200000,
-            "input": 200000,
-            "output": 64000
-          },
-          "options": {
-            "reasoningEffort": "high"
-          }
-        },
-        "kimi-k2.6": {
-          "name": "Kimi K2.6",
-          "limit": {
-            "context": 200000,
-            "input": 200000,
-            "output": 64000
-          }
-        },
         "deepseek-v4-flash": {
           "name": "DeepSeek V4 Flash",
           "limit": {
-            "context": 200000,
-            "input": 200000,
+            "context": 150000,
+            "input": 150000,
             "output": 64000
           },
           "options": {
-            "reasoningEffort": "high"
+            "reasoningEffort": "max"
           }
         },
         "deepseek-v4-pro": {
           "name": "DeepSeek V4 Pro",
           "limit": {
-            "context": 200000,
-            "input": 200000,
+            "context": 150000,
+            "input": 150000,
             "output": 64000
           },
           "options": {
             "reasoningEffort": "max"
+          }
+        },
+        "glm-5.2": {
+          "name": "GLM 5.2",
+          "limit": {
+            "context": 200000,
+            "input": 200000,
+            "output": 64000
+          }
+        },
+        "kimi-k2.7-code": {
+          "name": "Kimi K2.7 Code",
+          "limit": {
+            "context": 150000,
+            "input": 150000,
+            "output": 64000
           }
         }
       }

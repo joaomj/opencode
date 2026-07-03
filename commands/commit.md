@@ -1,6 +1,6 @@
 ---
 description: Stage and commit recent changes with auto-generated conventional commit messages
-model: opencode-go/deepseek-v4-flash
+model: opencode/deepseek-v4-flash-free
 ---
 
 Commit recent changes following these rules:
