@@ -1,12 +1,12 @@
 ---
 name: ml-best-practices
-description: Complete ML development guide covering CRISP-DM, data quality, evaluation, and MLflow
+description: Complete ML development guide using SDD methodology. Covers CRISP-DM, data quality, evaluation, MLflow, hypothesis testing, and experiment reporting. Use when the user asks for ML work: data analysis, experiments, model training, or hypothesis testing.
 license: MIT
 ---
 
 # Machine Learning Best Practices
 
-Comprehensive guide for ML development with focus on reproducibility, data quality, and proper evaluation.
+Comprehensive guide for ML development with focus on reproducibility, data quality, and proper evaluation. SDD is the default methodology: frame the problem and get a spec approved before modeling. TDD does not apply to ML work; evaluation rigor replaces it.
 
 ## Non-Negotiable Rules (STOP if violated)
 
@@ -426,6 +426,177 @@ with mlflow.start_run():
         "sklearn_version": sklearn.__version__,
     })
 ```
+
+## Hypothesis Testing
+
+Apply statistical rigor before modeling:
+
+- Explicit statistical tests with p-values and effect sizes
+- Validate assumptions (normality, homogeneity, independence)
+- Compare against baseline with paired tests (bootstrap, permutation, paired t-test)
+- Correction for multiple comparisons (Bonferroni, FDR, Benjamini-Hochberg)
+- Power analysis for sample size adequacy
+- Document methodology for the experiment report
+
+**Gate**: If no signal detected or assumptions are violated, escalate to user with findings.
+
+## Feasibility Gates
+
+Each SDD phase produces a verdict:
+
+| Phase | Verdict |
+|-------|---------|
+| Data understanding | `feasible` / `partial` / `infeasible` |
+| Hypothesis testing | `signal detected` / `no signal` / `assumptions violated` |
+| Baseline | Baseline metrics recorded as reference |
+| Modeling | Best candidate selected vs baseline |
+
+If `infeasible` or significant data quality concerns, escalate to user. If `partial`, present caveats and let user decide.
+
+## Experiment Report
+
+Write an experiment report in academic format:
+
+- **Executive Summary**: key findings, 1 paragraph
+- **Introduction**: business question and context
+- **Methodology**: data description, hypothesis tests, model architectures, evaluation protocol
+- **Results**: metrics, statistical comparisons, tables and plots
+- **Discussion**: interpretation, tradeoffs, limitations, caveats
+- **Conclusions**: takeaway and next steps
+
+## Patterns
+
+These patterns extend the reproducibility baseline above and cover common deep learning and data-science scenarios.
+
+### Deterministic Training (PyTorch)
+
+```python
+import os, random, numpy as np, torch
+
+def lock_reproducibility(seed: int = 42) -> None:
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    torch.use_deterministic_algorithms(True, warn_only=True)
+```
+
+### Memory-Efficient DataFrames
+
+For datasets larger than RAM, use lazy API + streaming:
+
+```python
+import polars as pl
+
+result = (
+    pl.scan_csv("large.csv")
+    .filter(pl.col("label") == 1)
+    .with_columns(pl.col("feature") * 2)
+    .group_by("category")
+    .agg(pl.col("feature").sum())
+    .collect(engine="streaming")
+)
+```
+
+### Streaming Data Loading
+
+Stream batches from disk when dataset exceeds memory:
+
+```python
+from torch.utils.data import IterableDataset, DataLoader
+
+class StreamingParquetDataset(IterableDataset):
+    def __init__(self, path: str, batch_size: int = 1024) -> None:
+        self.path = path
+        self.batch_size = batch_size
+
+    def __iter__(self):
+        for batch in pl.scan_parquet(self.path).iter_slices(self.batch_size):
+            yield {
+                "input_ids": batch["text"].to_list(),
+                "labels": batch["label"].to_numpy(),
+            }
+
+loader = DataLoader(
+    StreamingParquetDataset("data/"),
+    batch_size=None,
+    num_workers=4,
+    persistent_workers=True,
+    pin_memory=True,
+)
+```
+
+### Gradient Accumulation
+
+When GPU can't fit target batch size, accumulate gradients:
+
+```python
+accumulation_steps = 4  # effective batch = batch_size * 4
+
+for i, batch in enumerate(loader):
+    loss = model(batch).loss / accumulation_steps
+    loss.backward()
+
+    if (i + 1) % accumulation_steps == 0:
+        optimizer.step()
+        optimizer.zero_grad()
+```
+
+### Atomic Checkpointing
+
+Atomic writes prevent corrupt checkpoints on crash:
+
+```python
+import shutil
+from pathlib import Path
+import torch
+
+def save_checkpoint(step, model, optimizer, path: Path) -> None:
+    checkpoint = {
+        "step": step,
+        "model": model.state_dict(),
+        "optimizer": optimizer.state_dict(),
+        "rng": get_rng_state(),
+    }
+    temp = path / f".ckpt-{step}.pt"
+    final = path / f"ckpt-{step}.pt"
+    torch.save(checkpoint, temp)
+    shutil.move(str(temp), str(final))  # atomic on POSIX
+```
+
+### Structured Logging
+
+One structured line per training step:
+
+```python
+import structlog, time
+logger = structlog.get_logger()
+
+logger.info(
+    "training_step",
+    step=step,
+    epoch=epoch,
+    loss=round(loss, 6),
+    lr=lr,
+    gpu_mb=round(torch.cuda.memory_allocated() / 1e6, 2),
+    timestamp=time.time(),
+)
+```
+
+## Reference Repositories
+
+| Domain | Repository | Study |
+|--------|-----------|-------|
+| Training loops | `Lightning-AI/pytorch-lightning` | `Trainer`, callbacks, `ModelCheckpoint` |
+| Seed/determinism | `huggingface/transformers` | `trainer_utils.py:set_seed()` |
+| Data loading | `pytorch/pytorch` | `IterableDataset`, `DataLoader` |
+| DataFrames | `pola-rs/polars` | Lazy API, streaming |
+| Logging | `hynek/structlog` | JSON output, context binding |
+| Distributed training | `microsoft/DeepSpeed` | ZeRO sharding, activation checkpointing |
 
 ## Completion Checklist
 

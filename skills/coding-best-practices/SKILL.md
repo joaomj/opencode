@@ -1,10 +1,98 @@
 ---
 name: coding-best-practices
-description: Universal coding standards covering quality, idempotency, error treatment, async safety, hardcoding avoidance, logging; with Python-specific enforcement rules
+description: SDD-first software development methodology with universal coding standards. Use for any coding activity - features, bug fixes, refactors, or AI work. SDD is the default (spec before code); TDD applies only for bug fixes. Covers quality, idempotency, error treatment, async safety, hardcoding avoidance, logging, and Python-specific enforcement rules.
 license: MIT
 ---
 
 # Coding Best Practices
+
+## SDD Workflow
+
+Spec-Driven Development (SDD) is the default methodology for all non-bug coding work. A user-approved spec always precedes code editing. TDD is reserved for bug fixes only.
+
+### Phase 1: Explore
+
+Inspect the project:
+- Read project structure, existing patterns, conventions
+- Check for relevant tests, existing documentation
+- Identify risky areas (security, data mutations, external APIs)
+
+If intent or scope is unclear, ask focused questions.
+
+### Phase 2: Spec (SDD Gate)
+
+Write a spec for user approval covering:
+- What to build or fix
+- Acceptance criteria (Given/When/Then)
+- Files and modules likely involved
+- Risks and edge cases
+
+**Gate**: DO NOT edit any code until user approves the spec.
+
+### Phase 3: Test Plan
+
+Propose what to test:
+- Integration tests for user-visible behavior
+- Unit tests for edge cases and error paths
+- Mock only external boundaries (3rd-party APIs, services you can't spin up)
+
+### Phase 4: Implement
+
+Implement against the approved spec.
+- For features and refactors: implement against the spec; tests verify the acceptance criteria
+- For bug fixes ONLY: write a failing regression test before implementation (TDD)
+
+### Phase 5: Verify
+
+Run the full toolchain:
+
+```bash
+pytest -q
+ruff check --fix && ruff format
+mypy --strict
+trivy fs --scanners vuln,secret,misconfig .
+```
+
+All must pass with zero failures and zero errors.
+
+### Phase 6: Review
+
+Delegate review to the `code-reviewer` skill. The reviewer returns a structured verdict. If P0 or P1 issues are found, fix and re-review (max 3 cycles). Escalate to user if still failing after 3 cycles.
+
+### Phase 7: Documentation
+
+If public API, user-facing behavior, CLI interface, or config changed, load `doc-maintenance` skill, propose updates, and get user approval before applying.
+
+### Phase 8: Report
+
+Write a concise report in academic format:
+- **Executive Summary**: what was done, 1 paragraph
+- **Approach**: brief methodology
+- **Results**: what changed, test evidence (passing/failing counts)
+- **Decisions**: key tradeoffs and choices made
+- **Next Steps**: remaining work, follow-up items
+
+### Bug Fix Workflow (TDD)
+
+When fixing a bug:
+1. Write a failing regression test that reproduces the bug
+2. Implement minimal code to make the test pass
+3. Run the full verify chain
+4. Refactor while keeping tests green
+
+This is the only context where TDD applies.
+
+### Delegation
+
+| When | Action |
+|------|--------|
+| Code review | Load `code-reviewer` skill |
+| Unfamiliar libraries/APIs | Load `research` skill |
+| Simplify code | Load `simplify` skill (only on explicit user request) |
+| Browser frontend verification | Load `browser-readonly` skill |
+| Docker or containerization | Load `docker-best-practices` skill |
+| Documentation updates | Load `doc-maintenance` skill |
+| Write an issue | Load `issue-writing` skill |
 
 ## Quality Standards
 
@@ -108,7 +196,6 @@ Core rules defined in `opencode_lint/rules/` and enforced via `.pre-commit-confi
 | No raw dicts for API schemas (OC001) | Block if detected |
 | Use detected package manager for deps | Block if direct pyproject.toml edit |
 | Lockfile must exist and be committed (OC009) | Block if no lockfile |
-| TDD guardrail: define success criteria before implementation (OC006) | Block until failing test exists |
 | 80% coverage minimum (OC007) | Block if `pytest --cov` < 80% |
 | ZERO test skipping (OC008) | Block if `# noqa`, `skip`, or `xfail` found in tests |
 | No hardcoded configurable values (OC014) | Block if magic numbers, inline URLs, hardcoded ports/timeouts/thresholds |
@@ -302,30 +389,6 @@ APIs, or user workflows.
 - Mocking every collaborator by default
 - Asserting implementation internals instead of observable outcomes
 
-### Test-Driven Development (TDD) as Guardrail
-
-TDD is not the primary methodology — it's a guardrail against agent non-determinism. The primary approach is Goal-Driven Development (GDD), which uses tests to define success criteria and verify goals are met.
-
-Flow:
-1. **Write a failing test** defining what "done" looks like
-2. **Implement minimum code** to pass the test
-3. **Refactor** while keeping tests green
-4. **Repeat** until goal met
-
-For bug fixes, write a regression test that reproduces the bug BEFORE fixing it.
-
-For multi-step tasks, state a brief plan with verification points:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-```
-
-Strong success criteria let the agent loop independently. Weak criteria ("make it work") require clarification.
-
-Exempt from TDD: config files, boilerplate, type definitions, migrations, documentation. Add comment: `# test-exempt: [reason]`
-
-See the Plan agent (`@plan` or Tab) for full GDD workflow.
-
 ### Security
 
 - Never hardcode secrets in code
@@ -389,7 +452,7 @@ Recent incidents: axios (Mar 2026), telnyx (Mar 2026), Ultralytics (Dec 2024). D
 - [ ] No magic numbers, inline URLs, or hardcoded config values (OC014)
 - [ ] Tests written for new functionality
 - [ ] Tests assert behavior (not implementation)
-- [ ] TDD guardrail: failing test exists before implementation
+- [ ] Spec approved before implementation (SDD gate)
 - [ ] Coverage >= 80% for new code
 - [ ] `ruff check .` passes
 - [ ] Dependencies added via package manager
