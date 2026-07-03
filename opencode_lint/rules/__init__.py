@@ -13,6 +13,9 @@ from opencode_lint.rules.no_privileged_containers import NoPrivilegedContainers
 from opencode_lint.rules.no_raw_dict_api import NoRawDictAPISchema
 from opencode_lint.rules.no_test_mock_abuse import NoTestMockAbuse
 from opencode_lint.rules.no_unsafe_downloads import NoUnsafeDownloads
+from opencode_lint.rules.registry_sync import RegistrySync
+from opencode_lint.rules.routing_consistency import RoutingConsistency
+from opencode_lint.rules.skill_descriptions import SkillDescriptions
 from opencode_lint.rules.strict_type_hints import StrictTypeHints
 
 __all__ = [
@@ -27,4 +30,7 @@ __all__ = [
     "NoUnsafeDownloads",
     "NoTestMockAbuse",
     "NoHardcodedConfig",
+    "RegistrySync",
+    "RoutingConsistency",
+    "SkillDescriptions",
 ]

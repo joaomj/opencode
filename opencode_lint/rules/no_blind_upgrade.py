@@ -56,6 +56,8 @@ class NoBlindUpgrade(Rule):
     def _is_checkable_file(self, file_path: Path) -> bool:
         name = file_path.name.lower()
         suffix = file_path.suffix.lower()
+        if "opencode_lint/rules" in file_path.as_posix():
+            return False
         if suffix in (".sh", ".yml", ".yaml", ".md", ".rst", ".txt", ".py"):
             return True
         if name in ("makefile", "dockerfile"):

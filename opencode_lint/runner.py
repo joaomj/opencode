@@ -1,7 +1,7 @@
 """LinterRunner - Main linter orchestration."""
 
 from pathlib import Path
-from typing import List, Optional, Type
+from typing import Iterator, List, Optional, Type
 
 from opencode_lint.rule import Rule
 from opencode_lint.rules.absolute_imports import AbsoluteImportsPreferred
@@ -17,8 +17,29 @@ from opencode_lint.rules.no_privileged_containers import NoPrivilegedContainers
 from opencode_lint.rules.no_raw_dict_api import NoRawDictAPISchema
 from opencode_lint.rules.no_test_mock_abuse import NoTestMockAbuse
 from opencode_lint.rules.no_unsafe_downloads import NoUnsafeDownloads
+from opencode_lint.rules.registry_sync import RegistrySync
+from opencode_lint.rules.routing_consistency import RoutingConsistency
+from opencode_lint.rules.skill_descriptions import SkillDescriptions
 from opencode_lint.rules.strict_type_hints import StrictTypeHints
 from opencode_lint.violation import Violation
+
+
+DEFAULT_EXCLUDED_DIRS = frozenset(
+    {
+        ".cache",
+        ".git",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".tox",
+        ".venv",
+        "__pycache__",
+        "build",
+        "dist",
+        "node_modules",
+        "venv",
+    }
+)
 
 RULE_REGISTRY: List[Type[Rule]] = [
     NoRawDictAPISchema,
@@ -32,6 +53,9 @@ RULE_REGISTRY: List[Type[Rule]] = [
     NoUnsafeDownloads,
     NoTestMockAbuse,
     NoHardcodedConfig,
+    RoutingConsistency,
+    RegistrySync,
+    SkillDescriptions,
 ]
 
 
@@ -93,12 +117,30 @@ class LinterRunner:
 
         all_violations = []
 
-        for ext in extensions:
-            for file_path in directory.rglob(f"*{ext}"):
-                if file_path.is_file():
-                    all_violations.extend(self.check_file(file_path))
+        for file_path in self._iter_lintable_files(directory, extensions):
+            all_violations.extend(self.check_file(file_path))
 
         return all_violations
+
+    def _iter_lintable_files(self, directory: Path, extensions: List[str]) -> Iterator[Path]:
+        """Yield lintable files while pruning dependency/cache directories."""
+        stack = [directory]
+
+        while stack:
+            current = stack.pop()
+            try:
+                entries = list(current.iterdir())
+            except OSError:
+                continue
+
+            for entry in entries:
+                if entry.is_dir():
+                    if entry.name in DEFAULT_EXCLUDED_DIRS:
+                        continue
+                    stack.append(entry)
+                    continue
+                if entry.is_file() and entry.suffix in extensions:
+                    yield entry
 
     def run(
         self,
@@ -124,8 +166,11 @@ class LinterRunner:
 
         project_root = self._find_project_root(targets)
         if project_root:
-            all_violations.extend(check_root_for_lockfile(project_root))
-            all_violations.extend(check_global_uv_config())
+            if (project_root / "pyproject.toml").exists():
+                all_violations.extend(check_root_for_lockfile(project_root))
+                all_violations.extend(check_global_uv_config())
+            for rule in self.rules:
+                all_violations.extend(rule.check_project(project_root))
 
         error_count = sum(1 for v in all_violations if v.severity == "error")
         exit_code = 1 if error_count > 0 else 0

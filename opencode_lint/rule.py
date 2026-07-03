@@ -24,7 +24,7 @@ class Rule(ABC):
 
     @abstractmethod
     def check_file(self, file_path: Path, content: str) -> List[Violation]:
-        """Check a file for violations of this rule.
+        """Check a single file for violations of this rule.
 
         Args:
             file_path: Path to the file being checked
@@ -34,6 +34,20 @@ class Rule(ABC):
             List of violations found
         """
         pass
+
+    def check_project(self, project_root: Path) -> List[Violation]:
+        """Check project-level structure (not individual files).
+
+        Override this for rules that need to validate repo-wide
+        consistency (routing tables, registry sync, etc.).
+
+        Args:
+            project_root: The project root directory
+
+        Returns:
+            List of violations found
+        """
+        return []
 
     def should_check_file(self, file_path: Path) -> bool:
         """Determine if this rule applies to the given file.
@@ -61,14 +75,19 @@ class Rule(ABC):
         column: int,
         message: str,
         fix: Optional[str] = None,
+        severity: Optional[str] = None,
     ) -> Violation:
-        """Helper to create a violation for this rule."""
+        """Helper to create a violation for this rule.
+
+        Args:
+            severity: Override the rule's default severity if provided.
+        """
         return Violation(
             rule_id=self.rule_id,
             file_path=file_path,
             line_number=line_number,
             column=column,
             message=message,
-            severity=self.severity,
+            severity=severity or self.severity,
             fix=fix,
         )
