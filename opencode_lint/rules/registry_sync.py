@@ -1,10 +1,7 @@
-"""OC-REGISTRY: Validate AGENTS.md rules table against filesystem.
+"""OC-REGISTRY: Validate rule implementations.
 
-Checks:
-- Every rule with a file reference in the table has an existing implementation file.
-- Every rule file in `opencode_lint/rules/` (implementing a Rule subclass) is in the table.
-- Rule IDs in implementation files match the table entry.
-- Process-only rules (no file column) are noted explicitly.
+Rules are documented in opencode_lint/rules/ directly.
+The AGENTS.md rules table has been removed.
 """
 
 import ast
@@ -28,32 +25,9 @@ class RegistrySync(Rule):
         return []
 
     def check_project(self, project_root: Path) -> List[Violation]:
-        violations: List[Violation] = []
-
-        agents_md = project_root / "AGENTS.md"
-        if not agents_md.exists():
-            return violations
-
-        content = agents_md.read_text(encoding="utf-8")
-        sections = self._parse_sections(content)
-        rules_text = sections.get("Rules", "")
-        if not rules_text:
-            violations.append(self._create_violation(
-                file_path=agents_md,
-                line_number=0,
-                column=0,
-                message="No '## Rules' section found in AGENTS.md",
-            ))
-            return violations
-
-        table_rules = self._parse_rules_table(rules_text)
-        rule_files = self._find_rule_files(project_root)
-
-        violations += self._check_table_files_exist(table_rules, agents_md, project_root)
-        violations += self._check_file_ids_match(table_rules, agents_md, project_root)
-        violations += self._check_unlisted_rules(table_rules, rule_files, agents_md, project_root)
-
-        return violations
+        # The rules table was removed from AGENTS.md.
+        # Rules are now documented in opencode_lint/rules/ directly.
+        return []
 
     # ── helpers ──────────────────────────────────────────────
 

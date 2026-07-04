@@ -1,4 +1,4 @@
-# OpenCode Lint — Custom Linter for AGENTS.md Rules
+# OpenCode Lint - Custom Linter for AGENTS.md Rules
 
 A standalone Python linter enforcing core AGENTS.md guidelines via the pre-commit hook chain. Runs as both a CLI (`opencode-lint`) and a single pre-commit hook.
 
@@ -28,7 +28,7 @@ opencode-lint --pre-commit
 ```
 
 ### As Pre-commit Hook
-The linter runs automatically on `.py`, `.yaml`, `.yml`, `.sh`, and `.md` files when committing.
+The linter runs automatically on `.py`, `.yml`, and `.yaml` files when committing.
 
 ## Rules
 
