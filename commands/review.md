@@ -1,7 +1,5 @@
 ---
 description: Code review over current diff with P0-P3 findings, FAIL-CLOSED on P0/P1
-model: openai/gpt-5.5
-variant: high
 ---
 
 # Code Review Command
@@ -98,19 +96,24 @@ Apply this category strictly to scripts, CLIs, migrations, scrapers, batch jobs,
 
 ### Step 1: Identify Review Scope
 
-Ask the user for the scope (if not already provided):
-- "What should I review? (default: unstaged diff):"
-  - `main` — diff against main branch
-  - `HEAD` — last commit
-  - `<commit>` — specific commit range
-  - unstaged — working tree changes
-  - Or provide a custom git ref range
+Two modes, checked in order:
 
-If no scope is given, default to reviewing unstaged changes (`git diff`).
+**1. Current branch has a pull request**
+!`gh pr view --json baseRefName,headRefName,url 2>/dev/null || echo "no-pr"`
 
-### Step 2: Get the Diff
+If a PR is found, the scope is `origin/<baseRefName>`. Diff against it:
+!`git fetch origin <baseRefName>`
+!`git diff origin/<baseRefName>...HEAD`
 
-!`git diff <scope>`
+**2. No pull request found**
+Ask the user: "What is the target branch? (default: main)"
+- Set `<base>` to their answer or `main`
+- !`git fetch origin <base>`
+- !`git diff origin/<base>...HEAD`
+
+Only changes introduced by the current branch are reviewed. Never diff unstaged or working-tree changes.
+
+### Step 2: Validate the Diff
 
 If the diff is empty, report "No changes to review" and exit.
 
@@ -123,7 +126,9 @@ If the diff is empty, report "No changes to review" and exit.
 
 ### Step 4: Present Findings
 
-Show a summary to the user:
+Show findings inline, grouped by file with severity, line, description, and suggested fix.
+
+Start with a summary:
 ```
 Review summary:
   P0: N critical issues
@@ -132,17 +137,32 @@ Review summary:
   P3: N low priority issues
 ```
 
-Ask: "Write the review report? (yes/no)"
+Then present each finding:
+```
+file/path.py:15 (P1)
+  Issue: Missing input validation on user-supplied data
+  Fix: Add Pydantic model with field constraints
 
-### Step 5: Output Report
+file/path.py:42 (P2)
+  Issue: Swallowed exception in except block
+  Fix: Log error and re-raise or handle gracefully
+```
 
-If user says **yes**, produce a structured report:
+If `p0 > 0` or `p1 > 0`, state: **"Review FAILED — P0/P1 issues must be fixed before merge."**
 
-- Present findings grouped by file, each with severity, line, description, and suggested fix
-- Include a machine-readable JSON verdict at the end:
-  ```json
-  {"passed": bool, "p0": N, "p1": N, "p2": N, "p3": N, "issues": [{"file": "path", "line": N, "severity": "P0", "description": "...", "fix": "..."}]}
-  ```
-- If `passed` is `false`, explicitly state: **"Review FAILED — P0/P1 issues must be fixed before merge."**
+### Step 5: Offer to Post to GitHub
 
-If user says **no**, present findings inline without creating a file.
+After presenting findings, check if the current branch is associated with a pull request:
+
+```
+!`gh pr view --json number,url 2>/dev/null || echo "no-pr"`
+```
+
+If a PR exists, ask: **"Post this review as a comment on the pull request?"**
+
+If user says **yes**:
+1. Save the review body to a temp file or pipe it directly
+2. Execute: !`gh pr comment <PR_NUMBER> --body "<formatted review markdown>"`
+3. Confirm: "Review posted to PR: <PR_URL>"
+
+If no PR exists or user declines, the findings remain inline in the chat.

@@ -53,10 +53,9 @@ Commit recent changes following these rules:
 7. Show summary and commit:
    - Display: "Committing with message: [message]"
    - Show list of files being committed
-   - Execute: !`git commit -m "[message]"`
+   - Execute: !`git commit -S -m "[message]"`
 
 8. If commit succeeds:
    - Show: "Committed [hash] - [message]"
    - Check if there are more unstaged files remaining
-   - If yes: Ask "Found [N] more modified files. Create another atomic commit?"
    - Repeat for remaining logical groups if user confirms
