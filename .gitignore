@@ -218,6 +218,7 @@ pnpm-lock.yaml
 *.backup.*
 
 # Sensitive data
+local.json
 antigravity-accounts.json
 *.credentials.json
 
