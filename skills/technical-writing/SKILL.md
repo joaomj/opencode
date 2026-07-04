@@ -125,6 +125,6 @@ For each endpoint or public API, include:
 ## Cross-Skill Use
 
 - Load `doc-maintenance` for auditing existing documentation for staleness.
-- Load `architecture-design` for architecture tradeoffs or system design decisions.
+- Load `architecture-diagram` for architecture tradeoffs or system design decisions.
 - Load `architecture-diagram` only when the user asks for a diagram (supports general architecture, C4 model, and ASCII output).
-- Load `research` or `context7-docs` before documenting unfamiliar external APIs.
+- Load `context7` before documenting unfamiliar external APIs.

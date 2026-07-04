@@ -8,7 +8,7 @@ license: MIT
 
 ## SDD Workflow
 
-Spec-Driven Development (SDD) is the default methodology for all non-bug coding work. A user-approved spec always precedes code editing. TDD is reserved for bug fixes only.
+Spec-Driven Development (SDD) is the default methodology for substantial features and architecture work. A user-approved spec precedes code editing. TDD is reserved for bug fixes only.
 
 ### Phase 1: Explore
 
@@ -88,7 +88,7 @@ All must pass with zero failures and zero errors.
 
 ### Phase 6: Review
 
-Delegate review to the `code-reviewer` skill. The reviewer returns a structured verdict. If P0 or P1 issues are found, fix and re-review (max 3 cycles). Escalate to user if still failing after 3 cycles.
+Use `/review` command. If P0 or P1 issues are found, fix and re-review (max 3 cycles). Escalate to user if still failing after 3 cycles.
 
 ### Phase 7: Documentation
 
@@ -117,8 +117,8 @@ This is the only context where TDD applies.
 
 | When | Action |
 |------|--------|
-| Code review | Load `code-reviewer` skill |
-| Unfamiliar libraries/APIs | Load `research` skill |
+| Code review | Use `/review` command |
+| Unfamiliar libraries/APIs | Load `context7` skill |
 | Simplify code | Load `simplify` skill (only on explicit user request) |
 | Browser frontend verification | Load `browser-readonly` skill |
 | Docker or containerization | Load `docker-best-practices` skill |

@@ -42,7 +42,7 @@ All commands output JSON to stdout.
 ### Activate venv before running
 
 ```bash
-source ~/.config/opencode/skelines/browser-readonly/.venv/bin/activate
+source ~/.config/opencode/skills/browser-readonly/.venv/bin/activate
 python ~/.config/opencode/skills/browser-readonly/browser_cdp.py <command> [args]
 ```
 

@@ -84,7 +84,3 @@ curl -s "https://context7.com/api/v2/context?libraryId=/fastapi/fastapi&query=de
 - URL-encode query parameters containing spaces (use `+` or `%20`)
 - No API key is required for basic usage (rate-limited)
 
----
-
-Base directory for this skill: file:///Users/admin/.config/opencode/skills/context7-docs
-Relative paths in this skill are relative to this base directory.
