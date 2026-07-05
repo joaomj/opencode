@@ -19,20 +19,20 @@ Commit recent changes following these rules:
    - Group files that belong to the same logical change
    - If unrelated changes exist, create separate commits for each group
 
-3. Stage files for ONE atomic commit at a time:
-   - Stage only the files belonging to the current logical group
-   - Use: !`git add [specific-files]` for each group
-   - NEVER stage all files with `git add -A` or `git add .`
+3. Scan all changes for planning/draft files once:
+   !`git diff --name-only` and !`git ls-files --others --exclude-standard`
 
-4. Check for planning/draft files in staged changes and unstage them:
-   !`git diff --staged --name-only`
-
-   Scan for files containing these patterns (case-insensitive):
+   Check for files containing these patterns (case-insensitive):
    PLAN, TODO, DRAFT, WIP, TEMP, BACKUP, OLD
 
    For each matching file:
-   - Unstage it: !`git reset HEAD [filename]`
+   - Exclude it: !`git reset HEAD [filename]` if staged, otherwise note it
    - Report: "Excluded [filename] - appears to be planning/draft file"
+
+4. Stage files for ONE atomic commit at a time:
+   - Stage only the files belonging to the current logical group
+   - Use: !`git add [specific-files]` for each group
+   - NEVER stage all files with `git add -A` or `git add .`
 
 5. Analyze remaining staged changes to determine commit type:
    - `feat:` - new features, added functionality
