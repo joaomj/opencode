@@ -62,6 +62,10 @@ The expensive model writes the spec with microsteps once. The cheap model implem
 
 ### Phase 3: Test Plan
 
+Load `testing-best-practices` for any non-trivial test design, test writing,
+bug regression test, mock-heavy test cleanup, integration/e2e strategy, or
+test-quality review.
+
 Propose what to test:
 - Integration tests for user-visible behavior
 - Unit tests for edge cases and error paths
@@ -118,6 +122,7 @@ This is the only context where TDD applies.
 | When | Action |
 |------|--------|
 | Code review | Use `/review` command |
+| Test strategy, regression tests, or test quality | Load `testing-best-practices` skill |
 | Unfamiliar libraries/APIs | Load `context7` skill |
 | Simplify code | Load `simplify` skill (only on explicit user request) |
 | Browser frontend verification | Load `browser-readonly` skill |
@@ -361,38 +366,18 @@ max-statements = 50
 
 Before committing: `ruff check .`
 
-### Testing with Pytest
+### Testing
 
-#### Structure
+Load `testing-best-practices` before writing or changing tests beyond a trivial
+single assertion. That skill is the source of truth for regression tests,
+logic coverage, integration/e2e strategy, property tests, pytest patterns,
+mock policy, and test-quality review.
 
-```python
-import pytest
-from myapp.processor import DataProcessor
-
-@pytest.fixture
-def processor():
-    return DataProcessor(config=Config())
-
-def test_process_success(processor):
-    result = processor.process([{"id": 1, "value": 100}])
-    assert len(result) == 1
-
-def test_process_empty(processor):
-    result = processor.process([])
-    assert result == []
-
-@pytest.mark.parametrize("input,expected", [
-    (100, 200), (50, 100), (0, 0),
-])
-def test_process_calculation(processor, input, expected):
-    result = processor.process([{"id": 1, "value": input}])
-    assert result[0].processed_value == expected
-```
-
-#### Core Policy
+Core policy retained here:
+- Every bug fix requires a failing regression test before implementation
 - Test behavior, not implementation details
 - Do not test private methods directly
-- Prefer integration tests for I/O boundaries
+- Prefer integration tests for I/O boundaries and user-visible behavior
 - A good test must fail when behavior regresses
 
 #### Test Integrity (OC008)
@@ -409,6 +394,8 @@ There is no option 4: "suppress the failure."
 
 #### E2E/Integration Tests (OC016)
 
+See `testing-best-practices` for detailed integration and e2e guidance.
+
 User-visible behavior changes require e2e or integration tests.
 Unit tests alone are insufficient for features that affect external interfaces,
 APIs, or user workflows.
@@ -420,6 +407,9 @@ APIs, or user workflows.
 - If mocking is required, add `mock-allow-internal: <reason>` marker
 
 #### Mock Usage
+
+See `testing-best-practices` for the full mock policy and preferred test
+doubles.
 
 | Need | Preferred Double |
 |------|------------------|

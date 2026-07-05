@@ -46,6 +46,25 @@ The linter runs automatically on `.py`, `.yml`, and `.yaml` files when committin
 | OC014 | No hardcoded configurable values | Warning | `opencode_lint` |
 | OC-MOCK | Mock external boundaries only | Error | `opencode_lint` |
 
+### Testing Policy Enforcement
+
+`OC-MOCK` enforces the mock policy from `skills/testing-best-practices/SKILL.md`:
+mock external boundaries only, avoid internal collaborator mocks, and prefer
+fakes, temporary resources, or integration tests for internal behavior.
+
+Allowed by default:
+- HTTP/cloud/payment/email/SMS clients
+- Time, UUID, randomness, and similar determinism boundaries
+- External services that cannot run locally in normal CI
+
+Not allowed by default:
+- Patching the function or class under test
+- Mocking internal domain/services/repositories when a fake or integration test is practical
+- Asserting internal call graphs instead of observable outcomes
+
+If internal mocking is unavoidable, add `mock-allow-internal: <reason>` near the
+mock and pair it with integration coverage.
+
 Additional security enforcement (not in linter):
 - **Gitleaks** — secret detection (pre-commit)
 - **pip-audit** — dependency vulnerability scanning (pre-commit, via `uvx`)
