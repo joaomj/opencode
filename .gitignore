@@ -224,6 +224,11 @@ antigravity-accounts.json
 
 # Package manager (not needed for install script)
 package.json
+!tools/teams-reader/package.json
+!tools/teams-reader/package-lock.json
+tools/teams-reader/node_modules/
+tools/teams-reader/profile/
+mcp/
 
 # Other
 hermes-agent/

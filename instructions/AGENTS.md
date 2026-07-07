@@ -16,7 +16,7 @@
 
 - **Config**: `opencode.json`, `local.json`
 - **Skills**: `skills/*/SKILL.md` — load when the description matches the task
-- **Teams Web reading**: use `skills/teams-playwright/SKILL.md` with Playwright MCP for read-only Teams message access
+- **Teams Web reading**: use `skills/teams-playwright/SKILL.md` with the local Playwright CLI wrapper for read-only Teams message access; do not use Playwright MCP or personal browser profiles
 - **Commands**: `commands/*.md`
 - **Linter**: `opencode_lint/`
 - **Linter rules**: `opencode_lint/rules/`
