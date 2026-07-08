@@ -96,9 +96,10 @@ function parseTeamsMessageUrl(rawUrl) {
   }
 
   const parts = parsed.pathname.split("/").filter(Boolean);
-  if (parts[0] !== "l" || parts[1] !== "message" || parts.length < 4) {
-    throw new Error("URL must match https://teams.microsoft.com/l/message/<thread-id>/<message-id>");
+  if (parts[0] !== "l" || parts.length < 3) {
+    throw new Error("URL must match https://teams.microsoft.com/l/message/<thread-id>/<message-id> or https://teams.microsoft.com/l/chat/<thread-id>/conversations");
   }
+  const isChat = parts[1] === "chat";
 
   let context = {};
   const contextParam = parsed.searchParams.get("context");
@@ -112,9 +113,11 @@ function parseTeamsMessageUrl(rawUrl) {
 
   return {
     contextType: context.contextType || null,
-    messageId: decodeURIComponent(parts[3]),
-    threadId: decodeURIComponent(parts[2]),
+    isChat,
+    messageId: isChat ? null : decodeURIComponent(parts[3]),
+    threadId: decodeURIComponent(isChat ? parts[2] : parts[2]),
     url: parsed.toString(),
+    chatUrl: isChat ? parsed.toString() : null,
   };
 }
 
@@ -188,10 +191,10 @@ async function checkStatus(page, profileDir, timeoutMs) {
   };
 }
 
-async function openMessageUrl(page, messageUrl, headed, timeoutMs) {
+async function openMessageUrl(page, messageUrl, headed, timeoutMs, isChat) {
   await page.goto(messageUrl, { waitUntil: "domcontentloaded", timeout: timeoutMs });
   await settlePage(page);
-  await page.waitForTimeout(5000);
+  await page.waitForTimeout(isChat ? 8000 : 5000);
 
   const useWebAppButton = page.getByRole("button", { name: /use the web app instead/i });
   if (await useWebAppButton.isVisible({ timeout: 3000 }).catch(() => false)) {
@@ -324,13 +327,14 @@ async function main() {
       return;
     }
     await ensureAuthenticated(page, args.headed, args.timeoutMs);
-    await openMessageUrl(page, target.url, args.headed, args.timeoutMs);
+    await openMessageUrl(page, target.url, args.headed, args.timeoutMs, target.isChat);
     const extractedMessages = await extractMessages(page, args.around);
     const selectedMessages = args.messageOnly ? extractedMessages.slice(-1) : extractedMessages;
     const messages = args.raw
       ? selectedMessages
       : selectedMessages.map(({ rawText: _rawText, ...message }) => message);
-    console.log(JSON.stringify({ ...target, messages }, null, 2));
+    const { isChat, chatUrl: _chatUrl, ...cleanTarget } = target;
+    console.log(JSON.stringify({ ...cleanTarget, messages }, null, 2));
   } finally {
     await browser.close();
   }
