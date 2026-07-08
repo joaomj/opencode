@@ -16,7 +16,7 @@ This skill is read-only. Do not send messages, react, edit, delete, upload files
 - Use only `tools/teams-reader/read-teams-message.js` through the explicit Node 22 command shown below.
 - Do not use Playwright MCP for Teams reading.
 - Do not use a personal Brave, Chrome, Chromium, or Edge browser profile.
-- The CLI defaults to `tools/teams-reader/profile`, which is isolated from the user's browser profile.
+- The CLI defaults to `/Users/joao/.config/opencode/tools/teams-reader/profile`, which is isolated from the user's browser profile.
 - The CLI refuses common personal browser profile paths.
 - Never expose authentication tokens, cookies, localStorage, IndexedDB, or request headers.
 - Never use Teams private APIs or internal auth tokens.
@@ -27,37 +27,37 @@ This skill is read-only. Do not send messages, react, edit, delete, upload files
 Show help:
 
 ```bash
-/opt/homebrew/opt/node@22/bin/node tools/teams-reader/read-teams-message.js --help
+/opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --help
 ```
 
 Read a Teams message URL:
 
 ```bash
-/opt/homebrew/opt/node@22/bin/node tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." --around 3
+/opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." --around 3
 ```
 
 Read only the permalink target message:
 
 ```bash
-/opt/homebrew/opt/node@22/bin/node tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." --message-only
+/opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." --message-only
 ```
 
 Include raw DOM text only for debugging extraction:
 
 ```bash
-/opt/homebrew/opt/node@22/bin/node tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." --message-only --raw
+/opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." --message-only --raw
 ```
 
 Check whether the isolated profile is logged in:
 
 ```bash
-/opt/homebrew/opt/node@22/bin/node tools/teams-reader/read-teams-message.js --status
+/opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --status
 ```
 
 First login in the isolated profile:
 
 ```bash
-/opt/homebrew/opt/node@22/bin/node tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." --around 3 --headed
+/opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." --around 3 --headed
 ```
 
 ## Expected Output

@@ -13,8 +13,8 @@ const DEFAULT_PROFILE_DIR = path.join(SCRIPT_DIR, "profile");
 
 function usage() {
   return `Usage:
-  /opt/homebrew/opt/node@22/bin/node tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." [--around 3] [--headed]
-  /opt/homebrew/opt/node@22/bin/node tools/teams-reader/read-teams-message.js --status
+  /opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." [--around 3] [--headed]
+  /opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --status
 
 Options:
   --url <url>              Teams message URL. Required.
@@ -22,7 +22,7 @@ Options:
   --message-only           Return only the last visible message after opening the permalink.
   --raw                    Include raw extracted DOM text for debugging.
   --status                 Check whether the isolated Teams profile is authenticated.
-  --profile-dir <path>     Isolated browser profile directory. Default: tools/teams-reader/profile.
+  --profile-dir <path>     Isolated browser profile directory. Default: ${DEFAULT_PROFILE_DIR}.
   --browser <path>         Browser executable. Default: Brave app.
   --headed                 Show browser window. Default is headless.
   --timeout-ms <number>    Load timeout. Default: ${DEFAULT_TIMEOUT_MS}.
