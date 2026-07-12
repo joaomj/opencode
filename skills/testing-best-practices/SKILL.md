@@ -1,79 +1,178 @@
 ---
 name: testing-best-practices
-description: Use for test strategy, regression tests, pytest patterns, reducing mocks, logic coverage, property tests, integration tests, e2e tests, and reviewing test quality.
+description: Use for test strategy, regression tests, e2e tests, blackbox testing, and reviewing test quality. The agent writes tests that run against a live system (dev server, staging, production), using the same tools a user has: browser, terminal, HTTP client. No mocking internals.
 license: MIT
 ---
 
 # Testing Best Practices
 
-Use this skill whenever writing, changing, reviewing, or planning tests. The goal is high-signal tests that catch real regressions, not test volume.
+Use this skill whenever writing, changing, reviewing, or planning tests. The goal is high-signal tests that catch real regressions when system behavior diverges from user expectations.
 
 ## Core Doctrine
 
-- Test observable behavior, not implementation details.
-- Every fixed bug must become a regression test.
-- A good test fails when the logic is wrong.
-- Prefer logic and branch coverage over line-count coverage.
-- Mock only external boundaries. Do not mock internal collaborators by default.
-- Prefer fakes, in-memory adapters, temporary files, local test clients, and real pure functions over mocks.
-- Smoke tests are allowed only as startup/import/health checks. They do not prove correctness.
-- Tests must be deterministic, isolated, and safe to run repeatedly.
-- No skipped, xfailed, or suppressed tests unless the user explicitly approves a tracked exception.
+The agent tests the system the same way a real user does.
 
-## SQLite-Inspired Standard
+- **E2E-first**. The default test type is an end-to-end test that runs against a live instance (dev server, staging, production). The agent starts the app or connects to a running instance and exercises it from the outside.
+- **Blackbox only**. Tests know nothing about internal implementation. No inspecting private methods, no asserting internal state, no patching internals. The system is a black box.
+- **Same tools as the user**. The agent tests with a browser, a terminal, an HTTP client, a CLI, a WebSocket client -- whatever tools a real user or operator uses to interact with the system.
+- **Assert user-visible outcomes**. Assert on API response bodies and status codes, rendered HTML/UI state, CLI stdout/stderr, files written, database state observable by the user, logs, and events -- not internal call graphs or internal state.
+- **No mocking internals**. The test exercises real code paths with real dependencies. A test database, a test broker, a test filesystem are acceptable. Patching or mocking internal functions, classes, or modules is not.
+- **A bug is not fixed until an e2e test reproduces it**. Reproduce the bug at the user-facing level. If you cannot reproduce it there, you have not found it.
+- **Error paths matter as much as happy paths**. Test what the user sees on failure: status codes, error bodies, UI messages. Do not test internal exception handlers in isolation.
+- **Every fixed bug must become an e2e regression test**.
+- **Release readiness** benefits from checklists: what e2e tests passed, what was skipped, what was manually verified, what remains risky.
 
-SQLite's testing policy is too large for ordinary projects, but its core habits transfer:
+## The Agent's Test Toolkit
 
-- A bug is not fixed until a test reproduces it.
-- Boundary values must be tested explicitly.
-- Error paths matter as much as happy paths.
-- Anomaly tests should verify behavior under failure: I/O errors, network errors, timeouts, invalid inputs, partial writes, interrupted work, and retry paths.
-- Coverage should ask whether each decision and branch matters, not merely whether each line ran.
-- Fuzz and property tests are valuable for parsers, validators, serializers, state machines, permissions, and data transformations.
-- Release readiness benefits from checklists: what passed, what was skipped, what was manually verified, and what remains risky.
+The agent must be given the same interfaces a real user has:
 
-## Lessons From Mature Repos
+| Interface | Tool | Example |
+|-----------|------|---------|
+| Web UI | Browser automation (Playwright, Selenium) | Navigate, click, fill forms, assert visible text, screenshot |
+| REST/GraphQL API | HTTP client (httpx, requests, curl) | Send requests, assert status codes, assert response body shape |
+| CLI | Subprocess / terminal | Run commands, assert exit codes, assert stdout/stderr |
+| WebSocket/SSE | WebSocket client | Connect, send messages, assert received events |
+| Mobile | Appium, XCTest, Espresso | Tap, swipe, assert UI elements |
+| Email | IMAP/POP3 client, Mailpit API | Assert email received, assert content |
 
-| Repo | Useful Pattern |
-|------|----------------|
-| `NousResearch/hermes-agent` | Regression-heavy suite, incident-number tests, hermetic test env, per-file pytest subprocess isolation, default exclusion of integration tests, separate stress/property suites. |
-| `pydantic/pydantic` | Branch coverage, warnings as errors, broad edge-case validation, benchmarks separated from normal tests. |
-| `pytest-dev/pytest` | Acceptance tests, example-project tests, plugin behavior tests, strict warnings, many behavior-focused regressions. |
-| `encode/httpx` | Network tests marked separately, strict warnings, transport/client contract-style tests. |
-| `pallets/flask` | Tox matrix across Python and dependency versions, branch coverage, minimum/latest dependency testing. |
-| `HypothesisWorks/hypothesis` | Property-based tests, stateful tests, regression tests, invariant checks, shrinking-quality tests. |
+The agent does NOT use: `unittest.mock`, `pytest.monkeypatch` for internal code, `MagicMock`, `patch.object`, `jest.mock` for local modules, or any other tool that replaces internal code paths.
+
+## Testing Against Running Instances
+
+Tests target a running instance. There are three deployment levels:
+
+1. **Dev server** (default): Start the app locally with a fresh test database and dependencies. Run tests against `localhost`. This is the primary target for feature work.
+2. **Staging/CI**: Deploy to an ephemeral environment and run tests there. Useful for PR validation.
+3. **Production** (smoke/canary): Run a subset of critical-path tests against production. These are read-only and non-destructive.
+
+### Dev Server Pattern
+
+```python
+import subprocess
+import time
+import httpx
+import pytest
+
+
+@pytest.fixture(scope="session")
+def dev_server():
+    proc = subprocess.Popen(
+        ["python", "-m", "myapp", "--db", "sqlite:///tmp/test.db"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    time.sleep(2)
+    yield "http://localhost:8000"
+    proc.terminate()
+    proc.wait()
+
+
+def test_user_signup_and_login(dev_server: str) -> None:
+    client = httpx.Client(base_url=dev_server)
+
+    r = client.post("/auth/signup", json={"email": "a@b.com", "password": "secret"})
+    assert r.status_code == 201
+    assert "token" in r.json()
+
+    r = client.post("/auth/login", json={"email": "a@b.com", "password": "secret"})
+    assert r.status_code == 200
+    assert r.json()["token"] is not None
+```
+
+### Browser Pattern
+
+```python
+from playwright.sync_api import sync_playwright
+
+
+def test_signup_form_submits_and_redirects(dev_server: str) -> None:
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto(f"{dev_server}/signup")
+
+        page.fill('input[name="email"]', "a@b.com")
+        page.fill('input[name="password"]', "secret")
+        page.click('button[type="submit"]')
+
+        page.wait_for_url(f"{dev_server}/dashboard")
+        assert page.text_content("h1") == "Dashboard"
+        browser.close()
+```
+
+### CLI Pattern
+
+```python
+import subprocess
+
+
+def test_cli_export_produces_csv() -> None:
+    result = subprocess.run(
+        ["python", "-m", "myapp", "export", "--format", "csv", "--user", "1"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "id,name,email" in result.stdout
+```
 
 ## Test Taxonomy
 
-| Type | Use For | Rules |
-|------|---------|-------|
-| Regression | Any fixed bug | Must fail before the fix and pass after. Name the behavior or issue. |
-| Logic/unit | Pure business/domain logic | Use real code and focused fixtures. Table-test branches and boundaries. |
-| Integration | Multiple internal components or I/O boundary | Prefer real app/test client, temporary DB/files, in-memory broker, local fake server. |
-| E2E | User-visible workflow | Exercise the public interface. Keep few but meaningful. |
-| Contract | External service/client compatibility | Verify request/response shape at the boundary. Do not call live services in normal CI. |
-| Property | Invariant-heavy logic | Generate many inputs. Assert invariants, round trips, monotonicity, idempotency, or equivalence. |
-| Fuzz | Parsers, decoders, untrusted input | Assert no crash, sane errors, and preserved invariants. Save discovered failures as regressions. |
-| Stress | Concurrency, queues, retries, state machines | Separate from default suite. Check invariants under adversarial timing/load. |
-| Benchmark | Performance-sensitive code | Separate from correctness tests. Fail only on deliberate performance gates. |
-| Smoke | Import/startup/health | Keep minimal. Never treat as behavior coverage. |
+### E2E Tests (primary, default)
+
+Every test that exercises the system from the outside, against a running instance. E2E tests cover:
+
+- User workflows (signup -> login -> create -> view -> edit -> delete)
+- API contracts (request/response shape, status codes, error bodies)
+- CLI behavior (exit codes, stdout, stderr, file output)
+- Browser interactions (navigation, form submission, UI state)
+- Cross-service interactions observable at the boundary
+- Authorization (what each role can and cannot do)
+- Error responses (what the user sees when things fail)
+
+### Property Tests (for pure logic only)
+
+The only non-e2e tests allowed. Apply exclusively to pure functions: same input always produces same output, no side effects, no I/O.
+
+Good targets: parsers, validators, serializers, normalizers, math utilities, cryptographic functions, state machines.
+
+```python
+from hypothesis import given
+from hypothesis import strategies as st
+
+
+@given(st.lists(st.integers()))
+def test_sort_is_idempotent(values: list[int]) -> None:
+    once = sorted(values)
+    twice = sorted(once)
+    assert twice == once
+```
+
+If a property test finds a failure, save the minimized case as a permanent regression test.
+
+### What No Longer Exists
+
+- **Unit tests that mock internals**: Replaced by e2e tests against the running instance.
+- **Integration tests that only wire internal components**: Replaced by e2e tests that cross the full stack.
+- **Contract tests with mock servers**: Replaced by e2e tests against real endpoints.
+- **Tests that assert internal call order or private state**: These test implementation, not behavior. Deleted on sight.
 
 ## Regression Test Workflow
 
-For bug fixes, use strict regression-first development:
+For bug fixes:
 
-1. Reproduce the bug with the smallest failing test.
-2. Run the test and confirm it fails for the expected reason.
+1. Reproduce the bug at the user-facing level (e2e test that fails against the running instance).
+2. Run the test and confirm it fails with the observed user-visible symptom.
 3. Implement the minimal fix.
-4. Run the regression test and confirm it passes.
-5. Run related tests, then the project's standard suite.
-6. Keep the regression test permanently unless the behavior is intentionally removed.
+4. Run the e2e regression test and confirm it passes.
+5. Run the full e2e suite.
+6. Keep the regression test permanently.
 
 Good regression names:
 
-- `test_regression_16767_preserves_provider_scope`
-- `test_empty_payload_returns_validation_error`
-- `test_retry_does_not_duplicate_completed_job`
+- `test_regression_16767_user_cannot_delete_published_post`
+- `test_empty_cart_checkout_returns_400_not_500`
+- `test_retry_after_timeout_does_not_duplicate_order`
 
 Bad regression names:
 
@@ -83,288 +182,203 @@ Bad regression names:
 
 ## Feature Test Workflow
 
-For new features, tests come from acceptance criteria:
+For new features:
 
-1. Identify the public behavior and user-visible result.
-2. Add at least one integration or e2e test for the main workflow when the change affects an API, CLI, UI, persistence, or external interface.
-3. Add focused logic/unit tests for branches, boundaries, and error paths.
-4. Use contract tests for external service request/response assumptions.
-5. Avoid asserting internal call order unless ordering is itself part of the public behavior.
+1. Identify the user-visible workflow and expected outcomes.
+2. Write an e2e test that exercises the complete workflow against a running instance.
+3. Assert user-visible results: API responses, UI state, CLI output, persisted data.
+4. Add additional e2e tests for error paths, edge cases, and authorization boundaries -- all at the user-facing level.
+5. Do NOT write unit tests for internal functions. If a function is complex enough to need isolated testing, it is a candidate for a property test -- and only if it is pure (no side effects, no I/O).
 
-## Logic Coverage Checklist
+## E2E Test Patterns
 
-When testing logic, cover:
-
-- Happy path.
-- Empty input.
-- Single item.
-- Multiple items.
-- Minimum boundary.
-- Maximum boundary.
-- Just below and just above boundaries.
-- Invalid input.
-- Duplicate input.
-- Ordering differences.
-- Idempotent retry.
-- Partial failure.
-- Timeout or cancellation.
-- Permission denied.
-- State transition from each valid state.
-- Invalid state transition.
-- Serialization/deserialization round trip.
-- Persistence save/load round trip.
-
-Use parametrized tests for branch and boundary matrices.
+### API Tests (httpx against live server)
 
 ```python
+import httpx
 import pytest
 
 
-@pytest.mark.parametrize(
-    ("quantity", "expected"),
-    [
-        (0, "empty"),
-        (1, "single"),
-        (2, "many"),
-    ],
-)
-def test_classifies_quantity_boundaries(quantity: int, expected: str) -> None:
-    assert classify_quantity(quantity) == expected
+@pytest.fixture(scope="module")
+def api(dev_server: str) -> httpx.Client:
+    return httpx.Client(base_url=dev_server)
+
+
+def test_create_and_get_resource(api: httpx.Client) -> None:
+    r = api.post("/items", json={"name": "widget"})
+    assert r.status_code == 201
+    item_id = r.json()["id"]
+
+    r = api.get(f"/items/{item_id}")
+    assert r.status_code == 200
+    assert r.json()["name"] == "widget"
+
+
+def test_duplicate_creation_is_rejected(api: httpx.Client) -> None:
+    payload = {"idempotency_key": "abc", "name": "widget"}
+    api.post("/items", json=payload)
+    r = api.post("/items", json=payload)
+    assert r.status_code == 409
+    assert "already exists" in r.json()["detail"]
+
+
+def test_unauthenticated_request_is_rejected(api: httpx.Client) -> None:
+    r = api.get("/items")
+    assert r.status_code == 401
+
+
+@pytest.mark.parametrize("role,expected_status", [
+    ("admin", 200),
+    ("user", 403),
+    ("anonymous", 401),
+])
+def test_role_based_access(dev_server: str, role: str, expected_status: int) -> None:
+    client = httpx.Client(base_url=dev_server, headers={"X-Role": role})
+    r = client.get("/admin/dashboard")
+    assert r.status_code == expected_status
 ```
 
-## Good Test Criteria
+### Browser Tests (Playwright against live server)
 
-A good test:
+```python
+from playwright.sync_api import sync_playwright
 
-- Has a descriptive name stating behavior.
-- Fails on a plausible real defect.
-- Uses realistic inputs.
-- Asserts outputs, persisted state, emitted events, API responses, files, logs, or errors that users/operators observe.
-- Keeps setup smaller than the behavior under test.
-- Uses deterministic time, randomness, and IDs.
-- Fails with a useful assertion message or diff.
+
+def test_user_can_complete_checkout(dev_server: str) -> None:
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+
+        page.goto(f"{dev_server}/products")
+        page.click('button:has-text("Add to cart")')
+        page.click('a:has-text("Cart")')
+        page.click('button:has-text("Checkout")')
+
+        page.fill('input[name="address"]', "123 Main St")
+        page.click('button:has-text("Place Order")')
+
+        page.wait_for_selector("text=Order confirmed")
+        assert page.text_content(".order-id") is not None
+        browser.close()
+```
+
+### CLI Tests (subprocess against installed app)
+
+```python
+import subprocess
+
+
+def test_cli_version_flag() -> None:
+    result = subprocess.run(
+        ["myapp", "--version"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0
+    assert "myapp v" in result.stdout
+
+
+def test_cli_import_rejects_missing_file() -> None:
+    result = subprocess.run(
+        ["myapp", "import", "/nonexistent/file.csv"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert "not found" in result.stderr.lower()
+```
+
+## Assertions: What to Check
+
+| Layer | Assert On |
+|-------|-----------|
+| HTTP API | Status code, response body shape, response body values, headers |
+| Browser | Visible text, element presence/absence, URL, page title, form values |
+| CLI | Exit code, stdout, stderr, written files |
+| Database | Rows inserted/updated/deleted (query via the app's own API, not direct DB access unless testing data migrations) |
+| Email | Delivery, subject, body content, links |
+| Logs | Error presence, structured fields |
+
+Never assert on:
+- Internal function was called or not called
+- Internal state of a class or module
+- Order of internal method invocations
+- Private attributes or methods
+
+## Dependency Management for Tests
+
+Use real dependencies, not mocks:
+
+| Need | Solution |
+|------|----------|
+| Database | Test database instance (SQLite file, Postgres test container, Docker compose) |
+| Cache | Real Redis with test prefix/namespace |
+| Message queue | Real broker with test queues (RabbitMQ test vhost, Redis test stream) |
+| File storage | Temporary directory (`tmp_path`) or MinIO test bucket |
+| Email | Mailpit, mailhog, or catch-all SMTP server |
+| External API | Local fake server that implements the same HTTP contract, or VCR-style record/replay |
+| Time | System time for e2e tests; inject a configurable clock for pure logic property tests only |
+| UUIDs/randomness | Real randomness for e2e tests; deterministic generator for property tests only |
+
+If a dependency cannot run locally, use a test instance in CI, not a mock.
 
 ## Low-Signal Test Anti-Patterns
 
 Reject or rewrite tests that:
 
-- Only import a module.
-- Only assert that something does not crash.
-- Mock most of the system under test.
-- Patch the function or class being tested.
-- Assert that an internal helper was called instead of checking the outcome.
-- Duplicate the implementation logic in the assertion.
-- Use vague names like `test_success`, `test_error`, or `test_works`.
-- Have no meaningful assertion.
-- Test private methods directly instead of public behavior.
-- Pass immediately when written for a bug fix.
-
-Smoke test example, acceptable but low coverage:
-
-```python
-def test_app_imports() -> None:
-    import myapp
-
-    assert myapp is not None
-```
-
-Behavior test, higher signal:
-
-```python
-def test_rejects_duplicate_idempotency_key(client) -> None:
-    payload = {"idempotency_key": "abc", "amount": 100}
-
-    first = client.post("/payments", json=payload)
-    second = client.post("/payments", json=payload)
-
-    assert first.status_code == 201
-    assert second.status_code == 409
-    assert second.json()["error"] == "duplicate_idempotency_key"
-```
-
-## Mock Policy
-
-Allowed by default:
-
-- External HTTP APIs.
-- Cloud SDK clients.
-- Payment gateways.
-- Email/SMS providers.
-- Time, UUID, randomness, and clocks when determinism is needed.
-- Slow or unavailable third-party services.
-
-Not allowed by default:
-
-- Mocking internal domain services.
-- Mocking repositories when a temporary database or in-memory fake is practical.
-- Mocking the unit under test.
-- Mocking internal helpers to force branches.
-- Asserting internal call graphs as proof of correctness.
-
-Preferred alternatives:
-
-| Need | Preferred Pattern |
-|------|-------------------|
-| Database behavior | Temporary DB, transaction rollback fixture, in-memory SQLite if compatible. |
-| File behavior | `tmp_path` with real reads/writes. |
-| Time | Inject fake clock or freeze time at boundary. |
-| UUIDs/randomness | Inject deterministic generator. |
-| External HTTP | Local fake server, response stub at client boundary, contract fixture. |
-| Message queue | In-memory broker fake that preserves queue semantics. |
-
-If internal mocking is unavoidable, add a clear marker and pair it with integration coverage:
-
-```python
-# mock-allow-internal: legacy singleton cannot be constructed twice; covered by integration test.
-```
-
-## Pytest Patterns
-
-Use `tmp_path` for filesystem tests:
-
-```python
-def test_writes_report_atomically(tmp_path) -> None:
-    path = tmp_path / "report.txt"
-
-    write_report(path, "ok")
-
-    assert path.read_text(encoding="utf-8") == "ok"
-```
-
-Use `monkeypatch` for environment and boundary replacement:
-
-```python
-def test_uses_default_region(monkeypatch) -> None:
-    monkeypatch.delenv("APP_REGION", raising=False)
-
-    assert load_region() == "us-east-1"
-```
-
-Use `pytest.raises` to assert error type and message:
-
-```python
-def test_rejects_negative_amount() -> None:
-    with pytest.raises(ValueError, match="amount must be positive"):
-        charge(amount=-1)
-```
-
-Mark slow or external suites explicitly:
-
-```python
-pytestmark = pytest.mark.integration
-```
-
-Recommended default config:
-
-```toml
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-filterwarnings = ["error"]
-markers = [
-  "integration: requires external services or full app wiring",
-  "e2e: user-visible end-to-end workflow",
-  "slow: intentionally slow stress or soak test",
-]
-addopts = "-m 'not integration and not e2e and not slow'"
-```
-
-## Hermetic Test Environment
-
-Tests should not depend on the developer machine.
-
-- Clear credential environment variables in tests.
-- Use per-test temp directories for home/config/state.
-- Pin timezone and locale when relevant.
-- Avoid live network calls in default CI.
-- Avoid real user config, caches, and global state.
-- Reset mutable module-level state or isolate test files in separate processes when state leakage is common.
-- Use deterministic random seeds unless the test intentionally explores randomness.
-
-## Property-Based Testing
-
-Use property tests when examples are too narrow.
-
-Good targets:
-
-- Parsers and serializers.
-- Validators.
-- Normalizers.
-- Permission rules.
-- Scheduling logic.
-- State machines.
-- Migrations and round trips.
-- Numeric and date/time logic.
-
-Common properties:
-
-- Round trip: `decode(encode(x)) == x`.
-- Idempotency: `normalize(normalize(x)) == normalize(x)`.
-- Monotonicity: increasing input does not decrease output.
-- Conservation: totals remain equal after transformation.
-- Equivalence: optimized path equals reference implementation.
-- Invariant: invalid states are never reachable.
-
-Example:
-
-```python
-from hypothesis import given
-from hypothesis import strategies as st
-
-
-@given(st.lists(st.integers(), max_size=100))
-def test_sort_is_idempotent(values: list[int]) -> None:
-    once = sort_values(values)
-    twice = sort_values(once)
-
-    assert twice == once
-```
-
-When property testing finds a failure, save the minimized case as a normal regression test too.
-
-## Mutation Testing
-
-Mutation testing asks whether tests detect wrong logic.
-
-Use it selectively for:
-
-- Billing.
-- Permissions.
-- Security checks.
-- Parsers and validators.
-- Data migrations.
-- Retry/idempotency logic.
-- State machines.
-
-Do not require mutation testing globally. It is a high-signal audit for critical logic, not a default tax on every change.
+- Mock or patch any internal function, class, or module.
+- Use `unittest.mock`, `MagicMock`, `patch.object`, `jest.mock` for local code.
+- Assert that an internal helper was called.
+- Assert internal state or private attributes.
+- Test private methods directly.
+- Contain no real I/O or system interaction.
+- Have a vague name like `test_success`, `test_error`, `test_works`.
+- Pass immediately when written for a bug fix (no red-green).
+- Duplicate implementation logic in the assertion.
+- Only import a module and assert it exists.
 
 ## Test Review Checklist
 
 When reviewing tests, ask:
 
-- Would this test fail if the bug returned?
-- Does it assert user-visible or operator-visible behavior?
-- Is there too much mocking?
-- Is the setup realistic but minimal?
-- Are boundary and error cases covered?
-- Are warnings treated as failures?
-- Does the test touch real secrets, user state, or live services?
-- Could a refactor break the test while behavior remains correct?
-- Is the test fast enough for the default suite?
-- If slow or external, is it marked and separated?
+- Does this test exercise the system from the outside, the way a user would?
+- Does it run against a real instance (not mocked internals)?
+- Would this test fail if the user-visible behavior regressed?
+- Does it assert user-observable outcomes (status codes, response bodies, UI text, CLI output)?
+- Are there any internal mocks or patches? If yes, reject.
+- Does the test touch real secrets, user state, or live services without isolation?
+- Is the test deterministic and safe to run repeatedly?
+- Does the test name describe the user-facing behavior?
 
 ## Verification Commands
 
-Prefer the project's canonical runner. If none exists, start with:
+Run tests against a live instance:
 
 ```bash
-pytest -q
-pytest --cov --cov-branch
+python -m myapp --test-mode &
+APP_PID=$!
+pytest tests/e2e/ -q
+kill $APP_PID
 ```
 
-For a bug fix, first run the specific regression test:
+For a single test:
 
 ```bash
-pytest tests/path/test_file.py::test_regression_behavior -q
+pytest tests/e2e/test_auth.py::test_user_signup_and_login -q
 ```
 
-Then run the related suite and the full default suite.
+## Configuration
+
+Recommended pytest config for e2e-only projects:
+
+```toml
+[tool.pytest.ini_options]
+testpaths = ["tests/e2e"]
+markers = [
+    "e2e: user-visible end-to-end workflow against a running instance",
+    "browser: requires browser automation (Playwright)",
+    "property: pure logic property-based test",
+    "slow: intentionally slow stress or soak test",
+]
+addopts = "-m 'not browser and not slow'"
+```

@@ -13,12 +13,13 @@ const DEFAULT_PROFILE_DIR = path.join(SCRIPT_DIR, "profile");
 
 function usage() {
   return `Usage:
-  /opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." [--around 3] [--headed]
+  /opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/<thread-id>/<message-id>" [--around 3] [--headed]
+  /opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/chat/<thread-id>/conversations" [--around 3] [--headed]
   /opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --status
 
 Options:
-  --url <url>              Teams message URL. Required.
-  --around <count>         Number of visible messages to return around target. Default: ${DEFAULT_AROUND}.
+  --url <url>              Teams message or chat URL. Required.
+  --around <count>         Number of visible messages to return. Default: ${DEFAULT_AROUND}.
   --message-only           Return only the last visible message after opening the permalink.
   --raw                    Include raw extracted DOM text for debugging.
   --status                 Check whether the isolated Teams profile is authenticated.
@@ -99,7 +100,11 @@ function parseTeamsMessageUrl(rawUrl) {
   if (parts[0] !== "l" || parts.length < 3) {
     throw new Error("URL must match https://teams.microsoft.com/l/message/<thread-id>/<message-id> or https://teams.microsoft.com/l/chat/<thread-id>/conversations");
   }
-  const isChat = parts[1] === "chat";
+
+  const kind = parts[1];
+  if (kind !== "message" && kind !== "chat") {
+    throw new Error("URL path must start with /l/message/ or /l/chat/");
+  }
 
   let context = {};
   const contextParam = parsed.searchParams.get("context");
@@ -113,11 +118,10 @@ function parseTeamsMessageUrl(rawUrl) {
 
   return {
     contextType: context.contextType || null,
-    isChat,
-    messageId: isChat ? null : decodeURIComponent(parts[3]),
-    threadId: decodeURIComponent(isChat ? parts[2] : parts[2]),
+    isChat: kind === "chat",
+    messageId: kind === "message" ? decodeURIComponent(parts[3]) : null,
+    threadId: decodeURIComponent(parts[2]),
     url: parsed.toString(),
-    chatUrl: isChat ? parsed.toString() : null,
   };
 }
 
@@ -333,7 +337,7 @@ async function main() {
     const messages = args.raw
       ? selectedMessages
       : selectedMessages.map(({ rawText: _rawText, ...message }) => message);
-    const { isChat, chatUrl: _chatUrl, ...cleanTarget } = target;
+    const { isChat: _isChat, ...cleanTarget } = target;
     console.log(JSON.stringify({ ...cleanTarget, messages }, null, 2));
   } finally {
     await browser.close();

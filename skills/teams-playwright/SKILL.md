@@ -30,10 +30,16 @@ Show help:
 /opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --help
 ```
 
-Read a Teams message URL:
+Read a Teams message URL (permalink):
 
 ```bash
-/opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/..." --around 3
+/opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/message/<thread-id>/<message-id>" --around 3
+```
+
+Read a Teams chat URL (latest messages):
+
+```bash
+/opt/homebrew/opt/node@22/bin/node /Users/joao/.config/opencode/tools/teams-reader/read-teams-message.js --url "https://teams.microsoft.com/l/chat/<thread-id>/conversations" --around 15
 ```
 
 Read only the permalink target message:

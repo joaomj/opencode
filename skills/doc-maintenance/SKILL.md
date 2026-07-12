@@ -1,7 +1,6 @@
 ---
 name: doc-maintenance
 description: Audit and update project documentation for accuracy and relevance. Use when the user asks to update docs, clean up documentation, or after code changes that affect public APIs.
-license: MIT
 ---
 
 # Documentation Maintenance
@@ -14,6 +13,14 @@ Update and prune project documentation to maintain accuracy and relevance.
 - Remove obsolete documentation
 - Ensure consistency across documents
 - Keep documentation aligned with code
+
+## Domain glossary and ADRs
+
+Where the project has a `CONTEXT.md` glossary or ADRs under `docs/adr/`, keep them consistent:
+
+- When a term in `CONTEXT.md` conflicts with how the code actually uses it, surface the conflict
+- When a decision documented in an ADR is contradicted by newer code, note the discrepancy
+- Keep the glossary vocabulary-only — no implementation details, spec content, or scratch notes
 
 ## Workflow
 
@@ -44,7 +51,6 @@ For each document:
 ### Step 4: Propose Changes
 
 For each issue found, present:
-
 - **File**: path/to/doc.md
 - **Line**: N
 - **Issue**: description of problem

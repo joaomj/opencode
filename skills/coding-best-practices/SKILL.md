@@ -41,7 +41,7 @@ Each microstep in the Plan section must state:
 - **Step ID**: e.g. `T1-S1`
 - **Minimal change**: exactly what to implement, no more
 - **Defers**: what remains for later microsteps
-- **Verifies**: one concrete check (lint, import, unit test) that passes after this step
+- **Verifies**: one concrete check (lint, import, e2e test) that passes after this step
 
 Example:
 
@@ -55,7 +55,7 @@ Example:
 
 **Microsteps:**
 1. **T1-S1**: Add `ExportRequest` schema in `schemas/export.py`. Defers: endpoint, CSV logic, tests. Verifies: `import succeeds; mypy strict passes`.
-2. **T1-S2**: Add pure `build_export(user) -> bytes` service fn using csv.writer. Defers: endpoint wiring, persistence, auth. Verifies: `unit test on a fixed User fixture passes`.
+2. **T1-S2**: Add pure `build_export(user) -> bytes` service fn using csv.writer. Defers: endpoint wiring, persistence, auth. Verifies: `e2e test against running instance passes`.
 ```
 
 The expensive model writes the spec with microsteps once. The cheap model implements each microstep one at a time without deciding scope.
@@ -63,13 +63,13 @@ The expensive model writes the spec with microsteps once. The cheap model implem
 ### Phase 3: Test Plan
 
 Load `testing-best-practices` for any non-trivial test design, test writing,
-bug regression test, mock-heavy test cleanup, integration/e2e strategy, or
+bug regression test, mock-heavy test cleanup, e2e strategy, or
 test-quality review.
 
 Propose what to test:
-- Integration tests for user-visible behavior
-- Unit tests for edge cases and error paths
-- Mock only external boundaries (3rd-party APIs, services you can't spin up)
+- E2E tests against a running instance for all user-visible behavior, error paths, and edge cases
+- Property tests for pure functions (parsers, validators, serializers) only
+- No mocking internals; use real dependencies (test database, test broker, test filesystem)
 
 ### Phase 4: Implement
 
@@ -92,7 +92,7 @@ All must pass with zero failures and zero errors.
 
 ### Phase 6: Review
 
-Use `/review` command. If P0 or P1 issues are found, fix and re-review (max 3 cycles). Escalate to user if still failing after 3 cycles.
+Load the `code-review` skill. If P0 or P1 issues are found, fix and re-review (max 3 cycles). Escalate to user if still failing after 3 cycles.
 
 ### Phase 7: Documentation
 
@@ -121,14 +121,14 @@ This is the only context where TDD applies.
 
 | When | Action |
 |------|--------|
-| Code review | Use `/review` command |
+| Code review | Load `code-review` skill |
 | Test strategy, regression tests, or test quality | Load `testing-best-practices` skill |
 | Unfamiliar libraries/APIs | Load `context7` skill |
 | Simplify code | Load `simplify` skill (only on explicit user request) |
 | Browser frontend verification | Load `browser-readonly` skill |
 | Docker or containerization | Load `docker-best-practices` skill |
 | Documentation updates | Load `doc-maintenance` skill |
-| Write an issue | Load `issue-writing` skill |
+| Break into tickets | Load `to-tickets` skill |
 
 ## Quality Standards
 
@@ -248,7 +248,6 @@ Core rules defined in `opencode_lint/rules/` and enforced via `.pre-commit-confi
 | No raw dicts for API schemas (OC001) | Block if detected |
 | Use detected package manager for deps | Block if direct pyproject.toml edit |
 | Lockfile must exist and be committed (OC009) | Block if no lockfile |
-| 80% coverage minimum (OC007) | Block if `pytest --cov` < 80% |
 | ZERO test skipping (OC008) | Block if `# noqa`, `skip`, or `xfail` found in tests |
 | No hardcoded configurable values (OC014) | Block if magic numbers, inline URLs, hardcoded ports/timeouts/thresholds |
 | Hardcoding avoidance | Block if literal values belong in config |
@@ -370,14 +369,13 @@ Before committing: `ruff check .`
 
 Load `testing-best-practices` before writing or changing tests beyond a trivial
 single assertion. That skill is the source of truth for regression tests,
-logic coverage, integration/e2e strategy, property tests, pytest patterns,
-mock policy, and test-quality review.
+e2e strategy, property tests, test patterns, and test-quality review.
 
 Core policy retained here:
-- Every bug fix requires a failing regression test before implementation
-- Test behavior, not implementation details
+- Every bug fix requires a failing e2e regression test before implementation
+- Test user-visible behavior from the outside; treat the system as a blackbox
 - Do not test private methods directly
-- Prefer integration tests for I/O boundaries and user-visible behavior
+- E2E tests against a running instance are the default for all behavior
 - A good test must fail when behavior regresses
 
 #### Test Integrity (OC008)
@@ -392,39 +390,40 @@ When a test fails:
 
 There is no option 4: "suppress the failure."
 
-#### E2E/Integration Tests (OC016)
+#### E2E Tests (OC016)
 
-See `testing-best-practices` for detailed integration and e2e guidance.
+See `testing-best-practices` for detailed e2e guidance.
 
-User-visible behavior changes require e2e or integration tests.
-Unit tests alone are insufficient for features that affect external interfaces,
-APIs, or user workflows.
+All behavior must be verified with e2e tests against a running instance. Unit
+tests that mock internals are not acceptable as the sole verification of any
+feature or fix.
 
-- Every user-facing change must have at least one e2e/integration test
-- E2E tests verify real system behavior, not mocked internals
-- Use TestClient (FastAPI/Flask), Playwright, or HTTP requests for integration
-- Prefer integration tests over heavy mocking at internal boundaries
-- If mocking is required, add `mock-allow-internal: <reason>` marker
+- Every user-facing change must have at least one e2e test
+- E2E tests exercise the system from the outside (browser, terminal, HTTP client)
+- E2E tests run against a dev server, staging, or production instance
+- Mock internals are not allowed; use real dependencies (test DB, test broker, etc.)
 
 #### Mock Usage
 
-See `testing-best-practices` for the full mock policy and preferred test
-doubles.
+Mocking internal code is not allowed. See `testing-best-practices` for the full
+policy.
 
-| Need | Preferred Double |
-|------|------------------|
-| External service isolation | Stub/mock external client |
-| Time/UUID determinism | Fake clock/ID generator |
-| Persistence simulation | In-memory fake repository |
-| Service compatibility check | Contract test (CDC/Pact) |
+| Need | Solution |
+|------|----------|
+| Database | Test database instance (SQLite file, Postgres test container) |
+| Cache | Real Redis with test prefix/namespace |
+| Message queue | Real broker with test queues |
+| File storage | Temporary directory or MinIO test bucket |
+| Email | Mailpit, mailhog, or catch-all SMTP server |
+| External API | Local fake server implementing the same HTTP contract |
 
-**Allowed:** Mock external services (HTTP SDKs, cloud clients, payment gateways).
-**Not allowed by default:** Mocking internal domain/services. If needed, add comment: `mock-allow-internal: <reason>` and pair with an integration test.
+If a dependency cannot run locally, use a test instance in CI, never a mock.
 
 #### LLM Anti-Patterns to Reject
-- Patching the function/class under test
-- Mocking every collaborator by default
-- Asserting implementation internals instead of observable outcomes
+- Patching or mocking the system under test or any internal code
+- Writing unit tests that mock collaborators instead of running against real instances
+- Asserting implementation internals instead of user-observable outcomes
+- Writing tests that don't exercise real I/O or system interaction
 
 ### Security
 
@@ -492,15 +491,15 @@ Recent incidents: axios (Mar 2026), telnyx (Mar 2026), Ultralytics (Dec 2024). D
 - [ ] Unsafe concurrent runs are guarded by locks, dedupe keys, or equivalent controls
 - [ ] No secrets hardcoded
 - [ ] No magic numbers, inline URLs, or hardcoded config values (OC014)
-- [ ] Tests written for new functionality
-- [ ] Tests assert behavior (not implementation)
+- [ ] Tests written for new functionality (e2e against a running instance)
+- [ ] Tests assert user-observable behavior (not implementation)
 - [ ] Spec approved before implementation (SDD gate)
-- [ ] Coverage >= 80% for new code
 - [ ] `ruff check .` passes
 - [ ] Dependencies added via package manager
 - [ ] Lockfile committed
 - [ ] ZERO test suppression mechanisms
-- [ ] E2E/integration tests for user-visible changes (OC016)
+- [ ] E2E tests for user-visible changes (OC016)
+- [ ] No internal mocking in tests
 - [ ] `exclude-newer = "1 week"` configured in pyproject.toml (OC010)
 - [ ] CI uses `uv sync --locked` / `poetry install --locked` (OC011)
 - [ ] Dependency upgrades use `--upgrade-package` only (OC012)
