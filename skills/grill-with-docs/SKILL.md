@@ -1,6 +1,8 @@
 ---
 name: grill-with-docs
 description: Interview-driven design alignment that sharpens domain language and records decisions into CONTEXT.md glossary and ADRs. Invoke at the start of a change when the plan is fuzzy.
+metadata:
+  credit: Matt Pocock (https://github.com/mattpocock/skills)
 ---
 
 # grill-with-docs

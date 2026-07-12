@@ -1,6 +1,8 @@
 ---
 name: research
 description: Investigate a question against high-trust primary sources and capture findings as a Markdown file. Use when the user wants a topic researched or reading legwork delegated.
+metadata:
+  credit: Matt Pocock (https://github.com/mattpocock/skills)
 ---
 
 Spin up a **background agent** to do the research, so you keep working while it reads.

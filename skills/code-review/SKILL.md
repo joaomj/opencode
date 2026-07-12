@@ -1,6 +1,8 @@
 ---
 name: code-review
 description: Review changes since a fixed point along two axes — Standards (coding standards compliance, security, performance, code quality, resilience) and Spec (correctness against requirements). FAIL-CLOSED on P0/P1. Can post results to GitHub PR.
+metadata:
+  credit: Matt Pocock (https://github.com/mattpocock/skills)
 ---
 
 Two-axis review of the diff between `HEAD` and a fixed point the user supplies:

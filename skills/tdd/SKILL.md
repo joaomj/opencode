@@ -1,6 +1,8 @@
 ---
 name: tdd
 description: Reference material for test-driven development. Red-green loop for agentic coding — one failing test, then just enough code to pass, repeat. Refactoring is handled separately in code review.
+metadata:
+  credit: Matt Pocock (https://github.com/mattpocock/skills)
 ---
 
 # tdd
