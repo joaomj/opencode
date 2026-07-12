@@ -3,7 +3,7 @@
 ## Core Principles
 
 - **no-assumptions**: read code first, no hedging ("likely", "probably", "might"). investigate if uncertain
-- **branch-sync-before-commit**: `git fetch && git rebase origin/<base>` (or `--ff-only`) before committing, pushing, or creating PRs
+- **branch-sync-before-pr**: `git fetch && git rebase origin/<base>` (or `--ff-only`) before pushing or creating PRs (commit command skips this)
 - **infra-code-separation**: separate commits+PRs from app code changes. exception if deeply intertwined, call out in PR description
 - **no-silent-failures**: every failure must surface. logged, raised, or classified recoverable
 - **gh-cli-only**: all GitHub via `gh` CLI only (PRs, issues, releases, code, refs). no curl/wget/WebFetch against github.com
@@ -43,7 +43,7 @@ The standard flow for feature work:
 | 2 | `/to-spec` | Synthesizes conversation into a spec on the issue tracker |
 | 3 | `/to-tickets` | Breaks spec into vertical-slice tickets with blocking edges, asks approval, publishes |
 | 4 | `/implement` | One ticket per session using TDD at agreed seams, typechecks, runs tests |
-| 5 | `/code-review` | Two-axis review: Standards (coding standards + Fowler smells) and Spec (correctness) |
+| 5 | `/code-review` | Two-axis review: Standards (coding standards + Fowler smells + P0-P3 checklists) and Spec (correctness). FAIL-CLOSED on P0/P1. |
 
 ### Wayfinder
 

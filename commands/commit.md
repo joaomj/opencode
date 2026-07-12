@@ -3,23 +3,12 @@ description: Stage and commit recent changes with auto-generated conventional co
 model: opencode/deepseek-v4-flash-free
 ---
 
-Commit recent changes following these rules:
-
-**CRITICAL: ATOMIC COMMITS ONLY**
-- NEVER use `git add -A` or stage all files at once
-- Each commit must represent ONE logical change
-- Group related files by purpose, not by timing
-- Multiple commits are preferred over one large commit
+Commit recent changes. Do not fetch, rebase, or merge.
 
 1. Check git status to see what files are modified:
    !`git status --porcelain`
 
-2. Analyze changes and group them into logical atomic units:
-   - Review each modified file to understand its purpose
-   - Group files that belong to the same logical change
-   - If unrelated changes exist, create separate commits for each group
-
-3. Scan all changes for planning/draft files once:
+2. Scan all changes for planning/draft files once:
    !`git diff --name-only` and !`git ls-files --others --exclude-standard`
 
    Check for files containing these patterns (case-insensitive):
@@ -29,12 +18,10 @@ Commit recent changes following these rules:
    - Exclude it: !`git reset HEAD [filename]` if staged, otherwise note it
    - Report: "Excluded [filename] - appears to be planning/draft file"
 
-4. Stage files for ONE atomic commit at a time:
-   - Stage only the files belonging to the current logical group
-   - Use: !`git add [specific-files]` for each group
-   - NEVER stage all files with `git add -A` or `git add .`
+3. Stage all remaining changes:
+   !`git add -A`
 
-5. Analyze remaining staged changes to determine commit type:
+4. Analyze staged changes to determine commit type:
    - `feat:` - new features, added functionality
    - `fix:` - bug fixes, corrections
    - `docs:` - documentation changes
@@ -43,19 +30,18 @@ Commit recent changes following these rules:
    - `test:` - test files, testing infrastructure
    - `chore:` - dependencies, build process, configuration
 
-6. Generate a concise one-line commit message:
+5. Generate a concise one-line commit message:
    - Maximum 72 characters
    - Format: `<type>: <description>`
    - No scope (no parentheses)
    - Imperative mood ("Add" not "Added", "Fix" not "Fixed")
    - No body text (one-line only)
 
-7. Show summary and commit:
+6. Show summary and commit:
    - Display: "Committing with message: [message]"
    - Show list of files being committed
    - Execute: !`git commit -S -m "[message]"`
 
-8. If commit succeeds:
-   - Show: "Committed [hash] - [message]"
-   - Check if there are more unstaged files remaining
-   - Repeat for remaining logical groups if user confirms
+7. If commit succeeds: "Committed [hash] - [message]"
+
+   If unstaged changes remain after all above, ask user if they want a second commit.
