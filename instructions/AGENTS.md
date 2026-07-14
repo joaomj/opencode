@@ -16,6 +16,7 @@
 
 - **Config**: `opencode.json`, `local.json`
 - **Skills**: `skills/*/SKILL.md` — load when the description matches the task
+- **Google Drive files**: use `skills/google-drive-files/SKILL.md` for uploading, downloading, and listing files on personal Google Drive via rclone
 - **Teams Web reading**: use `skills/teams-playwright/SKILL.md` with the local Playwright CLI wrapper for read-only Teams message access; do not use Playwright MCP or personal browser profiles
 - **Commands**: `commands/*.md`
 - **Linter**: `opencode_lint/`
