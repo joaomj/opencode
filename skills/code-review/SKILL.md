@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Review changes since a fixed point along two axes — Standards (coding standards compliance, security, performance, code quality, resilience) and Spec (correctness against requirements). FAIL-CLOSED on P0/P1. Can post results to GitHub PR.
+description: Review changes since a fixed point for standards and specification compliance. Add a falsification-first adversarial review only for large, complex, high-risk, or explicitly requested diffs. FAIL-CLOSED on P0/P1. Can post results to GitHub PR.
 metadata:
   credit: Matt Pocock (https://github.com/mattpocock/skills)
 ---
@@ -10,7 +10,7 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 - **Standards** — does the code conform to documented coding standards and pass concrete quality/security/resilience checks?
 - **Spec** — does the code faithfully implement the originating spec or ticket?
 
-Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
+Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings. Large, complex, high-risk, or explicitly adversarial reviews add focused sub-agents that try to prove the implementation incorrect.
 
 ## Process
 
@@ -125,7 +125,27 @@ On top of whatever the repo documents, the Standards axis always checks the foll
 
 The repo's documented standards always override the baseline; each item is a labelled heuristic, never a hard violation.
 
-### 5. Spawn both sub-agents in parallel
+### 5. Select the review depth
+
+Start every review in **standard** mode. Escalate to **adversarial** mode only when at least one condition applies:
+
+- The user explicitly asks for an adversarial, hostile, red-team, deep, or security review.
+- The diff changes more than 300 non-generated lines or more than 8 non-test source files.
+- The diff changes authentication, authorization, permissions, secrets, cryptography, payments, personally identifiable data, input parsing, or externally reachable endpoints.
+- The diff changes persistence, schema or data migrations, concurrency, caching, retries, queues, transactions, background jobs, filesystem writes, or other external side effects.
+- The diff introduces or materially changes a public API, dependency, infrastructure, deployment, or cross-service integration.
+- The implementation has complex state transitions, non-obvious invariants, or a specification with meaningful failure modes.
+
+Do not escalate solely because documentation, formatting, generated files, lockfiles, or test fixtures make the diff large. If the trigger is unclear, use standard mode and state the unresolved risk rather than starting a lengthy review.
+
+State the selected mode and every trigger before reporting findings:
+
+```
+Review mode: adversarial
+Triggers: persistence change; externally reachable endpoint
+```
+
+### 6. Spawn review sub-agents
 
 **Standards sub-agent**: include the diff, standards-source files, the full checklist baseline (smells + all categories above), and the associated P0-P3 severity table. Report violations per file/hunk with severity, distinguish hard violations from judgement calls. Format each finding as:
 
@@ -137,7 +157,30 @@ file/path.py:15 (P1)
 
 **Spec sub-agent**: include the diff and the spec. Report missing requirements, scope creep, and wrong implementations.
 
-### 6. Aggregate
+In standard mode, run only these two sub-agents. Keep findings focused on defects and documented standards, not speculative style suggestions.
+
+In adversarial mode, retain the two baseline sub-agents and run applicable focused passes in parallel. Each pass assumes the implementation is wrong and attempts to falsify it:
+
+- **Correctness and invariants**: derive intended invariants from the spec and code, then find inputs, sequences, or states that violate them.
+- **Boundary and robustness**: test malformed input, empty values, limits, ordering, partial failure, timeouts, overflow, and resource exhaustion.
+- **State and concurrency**: seek race conditions, stale reads, non-atomic updates, retry duplication, deadlocks, and invalid recovery after interruption.
+- **Security and authorization**: seek trust-boundary failures, injection, traversal, data exposure, missing authorization, and denial of service.
+- **Performance and operations**: seek unbounded work, unexpected complexity, N+1 calls, leaks, retry storms, missing backpressure, and unsafe observability.
+
+Skip passes that cannot apply to the changed code. Do not invent hypothetical findings just to complete a pass.
+
+Every adversarial finding must include:
+
+```
+file/path.py:15 (P1)
+  Failure scenario: A retry after the remote timeout repeats the already-applied charge.
+  Evidence: The request is issued before durable idempotency state is written.
+  Impact: A customer can be charged twice.
+  Reproduction: Send the same request twice after a simulated response timeout.
+  Fix: Persist and enforce an idempotency key before the external call.
+```
+
+### 7. Aggregate
 
 Present two reports under `## Standards` and `## Spec` headings. Do NOT merge or rerank findings.
 
@@ -155,7 +198,7 @@ End with one-line summary: total findings per axis and the worst issue within ea
 
 If P0 > 0 or P1 > 0, state: **"Review FAILED — P0/P1 issues must be fixed before merge."**
 
-### 7. Offer to post to GitHub PR
+### 8. Offer to post to GitHub PR
 
 After presenting findings, check if the current branch is associated with a pull request:
 
