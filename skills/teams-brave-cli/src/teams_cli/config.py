@@ -16,6 +16,7 @@ LINUX_BROWSER_CANDIDATES = (
     Path("/usr/bin/chromium"),
     Path("/usr/bin/chromium-browser"),
     Path("/usr/bin/google-chrome"),
+    Path("/snap/bin/chromium"),
 )
 DEFAULT_CDP_HOST = "127.0.0.1"
 DEFAULT_CDP_START_TIMEOUT_SECONDS = 30.0
@@ -33,15 +34,20 @@ class Settings:
     socket_path: Path
 
 
+DEFAULT_PROFILE_DIR = Path.home() / ".config" / "teams-cli" / "teams-authd-profile"
+
+
 def load_settings() -> Settings:
     data_dir = Path.home() / ".config" / "teams-cli"
     browser = os.getenv("TEAMS_CDP_BROWSER") or _default_browser()
+    profile_env = os.getenv("TEAMS_CDP_PROFILE")
+    profile_dir = Path(profile_env) if profile_env else DEFAULT_PROFILE_DIR
     return Settings(
         browser=browser,
         cdp_host=DEFAULT_CDP_HOST,
         cdp_start_timeout_seconds=DEFAULT_CDP_START_TIMEOUT_SECONDS,
         cdp_command_timeout_seconds=DEFAULT_CDP_COMMAND_TIMEOUT_SECONDS,
-        profile_dir=data_dir / "teams-authd-profile",
+        profile_dir=profile_dir,
         socket_path=data_dir / "run" / "teams-authd.sock",
     )
 

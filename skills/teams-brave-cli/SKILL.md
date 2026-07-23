@@ -105,8 +105,44 @@ launchctl setenv TEAMS_CDP_BROWSER "/path/to/browser"
 launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.opencode.teams-authd.plist"
 ```
 
-The profile and socket locations are fixed to prevent the daemon from ever
-opening an interactive browser profile.
+## Daemon Setup (Linux)
+
+Install the systemd user service after `uv sync --locked`:
+
+```bash
+install -D -m 600 systemd/user/teams-authd.service "$HOME/.config/systemd/user/teams-authd.service"
+install -D -m 600 systemd/user/teams-authd.service.d/snap.conf "$HOME/.config/systemd/user/teams-authd.service.d/snap.conf"
+systemctl --user daemon-reload
+systemctl --user enable --now teams-authd.service
+```
+
+Verify its health and Teams API access:
+
+```bash
+uv run teams-authd-status
+uv run teams-cli --auth-provider daemon auth
+```
+
+The service file includes `TEAMS_CDP_BROWSER` and `TEAMS_CDP_PROFILE` environment
+variables configured for Snap Chromium. Override them when your setup differs:
+
+```bash
+mkdir -p "$HOME/.config/systemd/user/teams-authd.service.d"
+cat > "$HOME/.config/systemd/user/teams-authd.service.d/env.conf" << 'EOF'
+[Service]
+Environment=TEAMS_CDP_BROWSER=/usr/bin/google-chrome
+Environment=TEAMS_CDP_PROFILE=%h/.config/teams-cli/teams-authd-profile
+EOF
+systemctl --user daemon-reload
+systemctl --user restart teams-authd
+```
+
+The daemon owns only these private paths (configurable via `TEAMS_CDP_PROFILE`):
+
+```text
+~/.config/teams-cli/teams-authd-profile  (default)
+~/.config/teams-cli/run/teams-authd.sock (fixed)
+```
 
 ## Reading Messages
 
@@ -133,6 +169,8 @@ Use this once to initialize the daemon profile. After that, do not use it for
 daily access. Repeat it only when `teams-cli --auth-provider daemon auth` fails
 because Microsoft expired the session, requires MFA, or applies Conditional Access.
 
+### macOS
+
 1. Stop the daemon:
 
 ```bash
@@ -150,6 +188,28 @@ Teams sign-in or MFA:
 
 ```bash
 launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.opencode.teams-authd.plist"
+uv run teams-cli --auth-provider daemon auth
+```
+
+### Linux
+
+1. Stop the daemon:
+
+```bash
+systemctl --user stop teams-authd
+```
+
+2. Open the profile directory in a graphical browser and complete Teams sign-in
+or MFA. Adjust the browser command and profile path to match your setup:
+
+```bash
+chromium --user-data-dir="$HOME/snap/chromium/common/teams-authd-profile" --password-store=basic https://teams.microsoft.com/v2
+```
+
+3. Close that browser window, restart the daemon, and verify:
+
+```bash
+systemctl --user start teams-authd
 uv run teams-cli --auth-provider daemon auth
 ```
 
