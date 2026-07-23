@@ -32,6 +32,20 @@
 
 ## Skills Workflow (Matt Pocock)
 
+### Incoming work gate
+
+Raw issues and PRs enter through `/triage`, which sorts them through a state machine:
+
+```
+raw report  →  /triage  →  needs-triage  →  needs-info  →  ready-for-agent  →  /implement
+                                                ↓                ↗
+                                             wontfix         ready-for-human
+```
+
+`/triage` categorises (bug/enhancement), verifies claims (reproduce bugs, check out PRs), grills incomplete requests into shape, and produces agent-ready briefs. See `skills/triage/SKILL.md`.
+
+### Standard build chain
+
 The standard flow for feature work:
 
 ```
@@ -46,6 +60,16 @@ The standard flow for feature work:
 | 4 | `/implement` | One ticket per session using TDD at agreed seams, typechecks, runs tests |
 | 5 | `/code-review` | Two-axis review: Standards (coding standards + Fowler smells + P0-P3 checklists) and Spec (correctness). FAIL-CLOSED on P0/P1. |
 
-### Wayfinder
+### Supporting skills
 
-For work too large for one agent session, use `/wayfinder` before the standard flow. It charts a shared map of investigation tickets (research, prototype, grilling, task) on the issue tracker with blocking relationships, resolved one per session until the route is clear. Then feed the result into the standard flow above.
+These are model-invoked (reached automatically when the description matches) or user-invoked as needed:
+
+| Skill | Invocation | Purpose |
+|-------|-----------|---------|
+| `/domain-modeling` | model | Maintain domain glossary (`CONTEXT.md`) and ADRs during any phase. Sharpen fuzzy terms, cross-reference code, offer ADRs sparingly. Called internally by `grill-with-docs`, `triage`, and `improve-codebase-architecture`. |
+| `/codebase-design` | model | Shared vocabulary for deep modules: interface, seam, adapter, depth, leverage, locality. Design-it-twice sub-agent pattern for alternative interfaces. Called by `implement`, `code-review`, and `improve-codebase-architecture`. |
+| `/wayfinder` | user | Plan oversized work as a shared map of investigation tickets on the issue tracker, resolved one per session until the route is clear. Runs before the standard flow. |
+| `/improve-codebase-architecture` | user | Scan codebase for deepening opportunities (shallow modules), present as visual HTML report with Mermaid diagrams, grill through the chosen candidate. |
+| `/diagnosing-bugs` | model | Disciplined diagnosis loop for hard bugs: reproduce, minimise, hypothesise, instrument, fix, regression-test. |
+| `/prototype` | model | Throwaway code to answer a design question (logic or UI). |
+| `/research` | model | Investigate a question against primary sources, write findings to a Markdown file. |
