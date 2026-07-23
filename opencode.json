@@ -13,15 +13,7 @@
       "model": "opencode/deepseek-v4-flash-free"
     },
     "explore": {
-      "model": "opencode/deepseek-v4-flash-free",
-      "permission": {
-        "task": "ask"
-      }
-    },
-    "general": {
-      "permission": {
-        "task": "ask"
-      }
+      "model": "opencode/deepseek-v4-flash-free"
     }
   },
   "permission": {
@@ -123,12 +115,12 @@
       "uniq *": "allow",
       "uptime": "allow",
       "wget *": "allow",
-      "*.env*": "deny"
+      "chown *": "deny",
+      "*.env": "deny"
     },
     "read": {
       "*": "allow",
       "*.env": "deny",
-      "*.env.*": "deny",
       "*.env.example": "allow"
     },
     "glob": "allow",

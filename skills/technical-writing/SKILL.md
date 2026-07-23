@@ -1,12 +1,50 @@
 ---
 name: technical-writing
-description: Write and edit technical reports, README files, API docs, architecture explanations, and implementation summaries. Use when producing project documentation, reports, technical explanations, or user-facing written material.
+description: Write and edit technical reports, README files, API docs, architecture explanations, and implementation summaries. All output must comply with ASD-STE100 Issue 9 (Simplified Technical English, January 2025). Use when producing project documentation, reports, technical explanations, or user-facing written material.
 license: MIT
 ---
 
 # Technical Writing
 
 Use this skill for clear, factual technical writing: reports, READMEs, API docs, architecture explanations, issue records, issue writeups, and implementation summaries.
+
+All output MUST comply with **ASD-STE100 Simplified Technical English Issue 9 (January 2025)**, the international standard for technical documentation. STE is a controlled natural language with 53 writing rules and a controlled dictionary of approximately 900 approved words. Use the official standard at [asd-ste100.org](https://www.asd-ste100.org) as the definitive reference. The rules below capture the most critical requirements.
+
+## STE Compliance Rules
+
+### Words (Section 1)
+
+- Use only words from the STE approved dictionary, technical nouns (Rule 1.5), or technical verbs (Rule 1.12). Do not use unapproved words.
+- Use approved words only as the specified part of speech (Rule 1.2) and only with their approved meaning (Rule 1.3).
+- Use American English spelling (Rule 1.14). Use British English only when quoting text that requires it.
+
+### Multi-Word Nouns (Section 2)
+
+- Write multi-word nouns of no more than three words (Rule 2.1). Use hyphens to join words that belong together (Rule 2.2).
+
+### Verbs (Section 3)
+
+- Use only the approved forms of verbs (Rules 3.1-3.2). Use simple present tense (Rule 3.3). Use active voice (Rule 3.4). Use imperative mood for instructions (Rule 5.3).
+
+### Sentences (Sections 4-5)
+
+- Write short sentences. In procedural writing, use a maximum of 20 words (Rule 5.1).
+- Write one instruction per sentence unless two or more actions occur at the same time (Rule 5.2).
+- Use vertical lists for sequences or parallel items (Rules 4.3, 8.4).
+- Keep paragraphs short (Rule 6.1). Use one paragraph for each topic.
+
+### Safety Instructions (Section 7)
+
+- Use "warning" or "caution" to identify the level of risk (Rule 7.1).
+- Start with a clear and accurate command or condition (Rule 7.2).
+- Explain the risk or possible result (Rule 7.3).
+
+### General Writing Principles (Section 9)
+
+- Use the possessive form only when no simpler alternative is correct (GR-8).
+- Use positive phrasing. Write what the reader must do, not what they must not do (GR-7).
+- Do not use technical jargon or undefined abbreviations.
+- Do not use noun clusters that combine more than three words.
 
 ## Principles
 
@@ -114,13 +152,16 @@ For each endpoint or public API, include:
 
 ## Editing Rules
 
-- Use active voice.
-- Use present tense.
+These rules derive from STE. When they conflict with the STE Compliance Rules above, the standard prevails.
+
+- Use active voice, present tense, and imperative mood for instructions.
 - Use direct headings.
-- Use bullets for scannability, but avoid deep nesting.
+- Use vertical lists for sequences or parallel items (STE Rule 4.3).
 - Use fenced code blocks for commands or multi-line examples.
 - Use inline code for identifiers, paths, commands, and config keys.
 - Remove stale claims instead of qualifying them vaguely.
+- Write short sentences. Keep each sentence to a single topic.
+- Do not use parentheses to express alternative values (e.g. "the LED(s)"). Use "the LED or LEDs" instead.
 
 ## Cross-Skill Use
 

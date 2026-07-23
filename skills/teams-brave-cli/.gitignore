@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.coverage*
+build/
+dist/
+*.egg-info/
+.env
+*.log
+Cookies
+Cookies-journal
+Cookies-wal
+Cookies-shm

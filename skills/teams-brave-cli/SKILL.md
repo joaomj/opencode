@@ -1,60 +1,171 @@
 ---
 name: teams-brave-cli
-description: Read and send Microsoft Teams messages via the teams-cli Python CLI, which extracts session tokens from Brave's on-disk cookie database. Use when the user provides a Teams URL or needs to read/send Teams messages.
+description: Read and send Microsoft Teams messages through either local Brave profile cookies or a dedicated headless Brave CDP daemon. Use when the user asks to read, list, send, or reply to Teams messages on macOS or Linux.
 license: MIT
-compatibility: opencode
+compatibility: opencode, macOS, Linux
 ---
 
-# teams-brave-cli
+# Teams CLI
 
-Use the local `tools/teams-brave-cli` Python CLI to read and send Microsoft Teams messages through the undocumented chatsvc API, using session tokens extracted from Brave's browser profile.
+Read and send Microsoft Teams messages through the Teams chatsvc API. The CLI has
+two explicit local authentication providers. It never uses environment tokens,
+synced token files, MSAL, host scripts, or remote MCP servers.
 
 ## Safety Boundary
 
-- **NEVER send or reply to any message without explicit user confirmation.** Confirmation requires the user to say something like "yes, send it" or "go ahead" -- not just providing a message text to use.
-- Never expose authentication tokens (skypetoken, authtoken) in output.
-- Tokens are ephemeral; do not cache them to disk.
-- Prefer reading to writing by default.
+- Never send or reply without explicit user confirmation of the exact destination and text.
+- `send` and `reply` require the CLI `--confirm` flag after that approval.
+- Never expose or log cookies, tokens, authorization headers, or token-derived data.
+- Prefer reads by default.
+- The daemon profile is dedicated to this skill. Never point it at an interactive Brave profile.
 
-## Commands
+## Providers
 
-Run from `tools/teams-brave-cli/`:
+### `profile` (default)
 
-```bash
-uv run teams-cli auth
-uv run teams-cli list
-uv run teams-cli read "<conversation-id>"
-uv run teams-cli send "<conversation-id>" "<message text>"
-uv run teams-cli reply "<conv-id>" "<message-id>" "<reply text>"
-```
-
-## Initial Setup
+Reads Teams cookies from the existing local Brave profile and keeps decrypted values
+in memory only for the CLI process. This is best for normal interactive host use.
 
 ```bash
-cd tools/teams-brave-cli
-uv sync
+uv run teams-cli --auth-provider profile auth
 ```
 
-Then verify auth:
+Use a non-default Brave profile when needed:
 
 ```bash
-uv run teams-cli auth
+uv run teams-cli --profile "Profile 1" auth
+uv run teams-cli --profile "$HOME/path/to/Brave/Profile 1" list
 ```
 
-If auth fails, the user must be logged into teams.microsoft.com in Brave.
+### `daemon`
 
-## Expected Output
+Retrieves Teams credentials through a local Unix socket from `teams-authd`. The
+daemon owns a dedicated, headless Brave profile and keeps Teams open so ordinary
+web-session cookie rotation can occur without daily browser interaction.
 
-`auth` prints tenant ID, region, and status. `list` prints a table of conversations with IDs. `read` prints messages with timestamps, sender, and content. `send`/`reply` print a confirmation.
+```bash
+uv run teams-cli --auth-provider daemon auth
+```
+
+## Requirements
+
+- macOS or Linux.
+- Python 3.11 or newer and `uv`.
+- For `profile`: Brave Browser with an active Teams login.
+- For `profile` on macOS: access to `Brave Safe Storage` in Keychain.
+- For `profile` on Linux: an unlocked Secret Service keyring.
+- For `daemon`: Brave, Chromium, or Google Chrome. macOS defaults to Brave when installed.
+
+## Setup
+
+From the skill directory:
+
+```bash
+cd "$HOME/.config/opencode/skills/teams-brave-cli"
+uv sync --locked
+```
+
+The default Brave profile locations are:
+
+```text
+macOS: ~/Library/Application Support/BraveSoftware/Brave-Browser/Default
+Linux: ~/.config/BraveSoftware/Brave-Browser/Default
+Linux fallback: ~/.config/brave-browser/Default
+```
+
+## Daemon Setup (macOS)
+
+Install the launchd agent after `uv sync --locked`:
+
+```bash
+install -D -m 600 launchd/com.opencode.teams-authd.plist "$HOME/Library/LaunchAgents/com.opencode.teams-authd.plist"
+launchctl bootout "gui/$(id -u)"/com.opencode.teams-authd 2>/dev/null || true
+launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.opencode.teams-authd.plist"
+```
+
+Verify its health and Teams API access:
+
+```bash
+uv run teams-authd-status
+uv run teams-cli --auth-provider daemon auth
+```
+
+The daemon owns only these private paths:
+
+```text
+~/.config/teams-cli/teams-authd-profile
+~/.config/teams-cli/run/teams-authd.sock
+```
+
+Set `TEAMS_CDP_BROWSER` only when the default browser path is unsuitable. For a
+launchd-managed daemon, set it before bootstrapping the agent:
+
+```bash
+launchctl setenv TEAMS_CDP_BROWSER "/path/to/browser"
+launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.opencode.teams-authd.plist"
+```
+
+The profile and socket locations are fixed to prevent the daemon from ever
+opening an interactive browser profile.
+
+## Reading Messages
+
+```bash
+uv run teams-cli list -n 20
+uv run teams-cli read "<conversation-id-or-teams-url>" -n 20
+uv run teams-cli read --raw "<conversation-id-or-teams-url>" -n 20
+```
+
+Pass `--auth-provider daemon` before the command when using the daemon.
+
+## Sending and Replying
+
+Only after explicit user confirmation:
+
+```bash
+uv run teams-cli send "<conversation-id>" "<message text>" --confirm
+uv run teams-cli reply "<conversation-id>" "<message-id>" "<reply text>" --confirm
+```
+
+## Initial Login And Reauthentication (Last Resort)
+
+Use this once to initialize the daemon profile. After that, do not use it for
+daily access. Repeat it only when `teams-cli --auth-provider daemon auth` fails
+because Microsoft expired the session, requires MFA, or applies Conditional Access.
+
+1. Stop the daemon:
+
+```bash
+launchctl bootout "gui/$(id -u)"/com.opencode.teams-authd
+```
+
+2. Open its dedicated profile in the normal graphical Brave browser and complete
+Teams sign-in or MFA:
+
+```bash
+"/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" --user-data-dir="$HOME/.config/teams-cli/teams-authd-profile" --password-store=basic https://teams.microsoft.com/v2
+```
+
+3. Close that Brave window, restart the agent, and verify:
+
+```bash
+launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.opencode.teams-authd.plist"
+uv run teams-cli --auth-provider daemon auth
+```
 
 ## Failure Handling
 
-- If auth fails, tell the user to check they are logged into teams.microsoft.com in Brave.
-- If a conversation returns 404, it might be a channel (requires `@thread.tacv2`+CSA API) or the ID is stale.
-- If read returns no messages, the conversation may be empty or inaccessible.
+- **Profile database missing**: verify the Brave profile path and `--profile` value.
+- **Keychain or keyring failure**: unlock the local keyring, then retry `profile` mode.
+- **Daemon unavailable**: verify `teams-authd-status`, then bootstrap the launchd agent.
+- **Daemon authentication unavailable**: use the last-resort reauthentication flow above.
+- **Browser executable missing**: install Brave, Chromium, or Chrome, or set `TEAMS_CDP_BROWSER`.
+- **Conversation returns 404**: the ID may be stale or an unsupported channel conversation.
+- **No messages**: the conversation may be empty or inaccessible.
 
 ## Limitations
 
-- Channel/team messages (CSA API) not yet implemented.
-- Brave browser only; macOS only.
-- Reply chains not supported in meeting threads.
+- The Teams chatsvc API is undocumented and may change.
+- Channel and team messages are not implemented.
+- Meeting reply chains are not supported.
+- Microsoft identity policies can still require interactive reauthentication.

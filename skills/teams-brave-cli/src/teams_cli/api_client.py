@@ -1,25 +1,30 @@
 from __future__ import annotations
 
 import json
-import time
 import random
+import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import quote
 
 import httpx
 
+from teams_cli.logging_utils import get_logger
+
 DEFAULT_TEAMS_BASE = "https://teams.microsoft.com"
 CLIENT_VERSION = "1415/1.0.0.2025010401"
+HTTP_TIMEOUT_SECONDS = 30.0
+logger = get_logger(__name__)
 
 
 def _b64url_decode(data: str) -> bytes:
+    import base64
+
     data = data.replace("-", "+").replace("_", "/")
     padding = 4 - len(data) % 4
     if padding != 4:
         data += "=" * padding
-    return __import__("base64").urlsafe_b64decode(data)
+    return base64.b64decode(data)
 
 
 def _decode_jwt_payload(token: str) -> dict[str, Any]:
@@ -36,8 +41,11 @@ def _detect_region(skypetoken: str) -> str:
         m = endpoint and __import__("re").search(r"/chatsvc/([a-z]+)", endpoint)
         if m:
             return m.group(1)
-    except Exception:
-        pass
+        rgn = payload.get("rgn", "")
+        if rgn:
+            return rgn
+    except (ValueError, TypeError, KeyError) as error:
+        logger.debug("Could not detect Teams region from Brave cookie: %s", error)
     return "amer"
 
 
@@ -65,6 +73,14 @@ class Conversation:
     last_message_preview: str = ""
 
 
+@dataclass(frozen=True)
+class AuthProbe:
+    url: str
+    status_code: int
+    body: str
+    response_headers: dict[str, str]
+
+
 class TeamsClient:
     def __init__(self, skypetoken: str, authtoken: str, tenant_id: str = ""):
         self.skypetoken = skypetoken
@@ -72,7 +88,7 @@ class TeamsClient:
         self.tenant_id = tenant_id
         self.region = _detect_region(skypetoken)
         self.base = DEFAULT_TEAMS_BASE
-        self._client = httpx.Client(timeout=30.0)
+        self._client = httpx.Client(timeout=HTTP_TIMEOUT_SECONDS)
 
     @property
     def _read_headers(self) -> dict[str, str]:
@@ -94,16 +110,41 @@ class TeamsClient:
 
     def _request(self, method: str, path: str, **kwargs: Any) -> httpx.Response:
         url = self._url(path)
-        r = self._client.request(method, url, **kwargs)
-        return r
+        logger.info("Teams API request method=%s endpoint=%s", method, _safe_endpoint(path))
+        try:
+            response = self._client.request(method, url, **kwargs)
+        except httpx.HTTPError:
+            logger.exception("Teams API request failed method=%s", method)
+            raise
+        logger.info(
+            "Teams API response method=%s endpoint=%s status=%d",
+            method,
+            _safe_endpoint(path),
+            response.status_code,
+        )
+        return response
 
     def test_auth(self) -> bool:
+        return self.probe_auth().status_code == 200
+
+    def probe_auth(self) -> AuthProbe:
+        path = "/api/chatsvc/{region}/v1/users/ME/conversations?pageSize=1"
         r = self._request(
             "GET",
-            "/api/chatsvc/{region}/v1/users/ME/conversations?pageSize=1",
+            path,
             headers=self._read_headers,
         )
-        return r.status_code == 200
+        diagnostic_headers = {
+            key: r.headers[key]
+            for key in ("contextid", "ms-cv", "x-msedge-ref")
+            if key in r.headers
+        }
+        return AuthProbe(
+            url=self._url(path),
+            status_code=r.status_code,
+            body=r.text[:500],
+            response_headers=diagnostic_headers,
+        )
 
     def list_conversations(self, limit: int = 50) -> list[Conversation]:
         r = self._request(
@@ -128,8 +169,7 @@ class TeamsClient:
                 topic=topic,
                 chat_type=_classify_chat_type(cid),
                 last_message_time=(
-                    last_msg.get("originalarrivaltime", "")
-                    or last_msg.get("composetime", "")
+                    last_msg.get("originalarrivaltime", "") or last_msg.get("composetime", "")
                 ),
                 last_message_from=last_msg.get("imdisplayname", ""),
                 last_message_preview=_clean_content(last_msg.get("content", "")),
@@ -138,9 +178,7 @@ class TeamsClient:
 
         return conversations[:limit]
 
-    def get_messages(
-        self, conversation_id: str, limit: int = 20
-    ) -> list[Message]:
+    def get_messages(self, conversation_id: str, limit: int = 20) -> list[Message]:
         enc_id = quote(conversation_id, safe="")
         r = self._request(
             "GET",
@@ -187,8 +225,18 @@ class TeamsClient:
         r.raise_for_status()
         return r.text
 
-    def close(self):
+    def close(self) -> None:
+        logger.debug("Closing Teams API client")
         self._client.close()
+
+
+def _safe_endpoint(path: str) -> str:
+    """Return a log-safe endpoint without query values or conversation IDs."""
+    endpoint = path.split("?", 1)[0]
+    if "/conversations/" in endpoint:
+        prefix = endpoint.split("/conversations/", 1)[0]
+        return f"{prefix}/conversations/<redacted>"
+    return endpoint
 
 
 def _classify_chat_type(conv_id: str) -> str:
@@ -204,17 +252,23 @@ def _classify_chat_type(conv_id: str) -> str:
 
 
 _HTML_ENTITIES = {
-    "&nbsp;": " ", "&amp;": "&", "&lt;": "<", "&gt;": ">",
-    "&quot;": "\"", "&#39;": "'", "&apos;": "'",
+    "&nbsp;": " ",
+    "&amp;": "&",
+    "&lt;": "<",
+    "&gt;": ">",
+    "&quot;": '"',
+    "&#39;": "'",
+    "&apos;": "'",
 }
 
 
 def _clean_content(content: str) -> str:
     import re
+
     content = re.sub(r"<[^>]+>", "", content)
     for entity, replacement in _HTML_ENTITIES.items():
         content = content.replace(entity, replacement)
-    return content[:500]
+    return content
 
 
 def _parse_message(raw: dict[str, Any], conv_id: str) -> Message:
