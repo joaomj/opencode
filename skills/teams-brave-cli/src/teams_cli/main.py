@@ -11,8 +11,9 @@ from rich.table import Table
 
 from teams_cli.api_client import TeamsClient
 from teams_cli.auth import AuthUnavailable, TeamsAuth
+from teams_cli.config import graphical_session, load_settings
 from teams_cli.cookie_extractor import extract_auth
-from teams_cli.daemon_client import request_daemon_auth
+from teams_cli.daemon_client import DaemonUnavailable, request_daemon_auth, start_daemon
 from teams_cli.logging_utils import configure_logging, get_logger
 
 app = typer.Typer(no_args_is_help=True)
@@ -26,7 +27,7 @@ class CliState(TypedDict):
     client: TeamsClient | None
 
 
-state: CliState = {"auth_provider": "profile", "profile": None, "client": None}
+state: CliState = {"auth_provider": "auto", "profile": None, "client": None}
 
 
 @app.callback()
@@ -35,9 +36,9 @@ def cli_options(
         str,
         typer.Option(
             "--auth-provider",
-            help="Authentication provider: profile or dedicated CDP daemon.",
+            help="Authentication provider: auto, profile, or dedicated CDP daemon.",
         ),
-    ] = "profile",
+    ] = "auto",
     profile: Annotated[
         str | None,
         typer.Option(
@@ -51,8 +52,10 @@ def cli_options(
     ] = False,
 ) -> None:
     """Read and send Teams messages using a local Teams authentication provider."""
-    if auth_provider not in {"profile", "daemon"}:
-        raise typer.BadParameter("must be 'profile' or 'daemon'", param_hint="--auth-provider")
+    if auth_provider not in {"auto", "profile", "daemon"}:
+        raise typer.BadParameter(
+            "must be 'auto', 'profile', or 'daemon'", param_hint="--auth-provider"
+        )
     state["auth_provider"] = auth_provider
     state["profile"] = profile
     configure_logging(verbose=verbose)
@@ -237,8 +240,14 @@ def _parse_input_id(input_str: str) -> str:
 
 
 def _get_auth() -> TeamsAuth:
-    if state["auth_provider"] == "daemon":
-        auth = request_daemon_auth()
+    provider = state["auth_provider"]
+    if provider == "auto":
+        if state["profile"] is not None:
+            provider = "profile"
+        else:
+            provider = "profile" if graphical_session() else "daemon"
+    if provider == "daemon":
+        auth = _get_daemon_auth()
         logger.info("Daemon authentication retrieved successfully")
         return auth
     try:
@@ -251,10 +260,26 @@ def _get_auth() -> TeamsAuth:
     return auth
 
 
+def _get_daemon_auth() -> TeamsAuth:
+    settings = load_settings()
+    try:
+        return request_daemon_auth(settings)
+    except DaemonUnavailable as error:
+        if graphical_session():
+            raise
+        if not typer.confirm(
+            "No Teams headless daemon is running. Start it now?", default=False
+        ):
+            raise AuthUnavailable("Teams headless daemon was not started.") from error
+        start_daemon(settings)
+        return request_daemon_auth(settings)
+
+
 def _print_auth_recovery() -> None:
-    if state["auth_provider"] == "daemon":
+    if state["auth_provider"] in {"auto", "daemon"} and not graphical_session():
         console.print(
-            "[dim]Start teams-authd or use its documented browser recovery flow, then retry.[/dim]"
+            "[dim]Approve the daemon prompt or use its documented browser recovery flow, "
+            "then retry.[/dim]"
         )
         return
     console.print("[dim]Log into teams.microsoft.com in Brave, then retry.[/dim]")

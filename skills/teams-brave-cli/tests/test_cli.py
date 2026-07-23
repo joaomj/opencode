@@ -10,15 +10,23 @@ from teams_cli.logging_utils import redact_credentials
 SKILL_DIR = Path(__file__).resolve().parents[1]
 
 
-def _run_cli(home: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
+def _run_cli(
+    home: Path,
+    *arguments: str,
+    extra_environment: dict[str, str] | None = None,
+    input_text: str | None = None,
+) -> subprocess.CompletedProcess[str]:
     environment = os.environ.copy()
     environment["HOME"] = str(home)
+    if extra_environment:
+        environment.update(extra_environment)
     return subprocess.run(
         [sys.executable, "-m", "teams_cli.main", *arguments],
         cwd=SKILL_DIR,
         env=environment,
         capture_output=True,
         text=True,
+        input=input_text,
         check=False,
     )
 
@@ -29,6 +37,7 @@ def test_help_exposes_explicit_local_authentication_providers(tmp_path: Path) ->
     assert result.returncode == 0
     assert "auth" in result.stdout
     assert "--auth-provider" in result.stdout
+    assert "auto" in result.stdout
     assert "daemon" in result.stdout
     assert "login" not in result.stdout
     assert "mcp" not in result.stdout.lower()
@@ -49,6 +58,70 @@ def test_auth_reports_missing_local_brave_database(tmp_path: Path) -> None:
     assert "Teams authentication" in log_text
     assert "skypetoken" not in log_text.lower()
     assert "authtoken" not in log_text.lower()
+
+
+def test_auto_provider_uses_profile_on_gui_without_starting_daemon(tmp_path: Path) -> None:
+    result = _run_cli(
+        tmp_path,
+        "--auth-provider",
+        "auto",
+        "auth",
+        extra_environment={"TEAMS_CDP_GUI": "1"},
+    )
+
+    assert result.returncode == 1
+    assert "Brave cookies database not found" in result.stdout
+    assert not (tmp_path / ".config" / "teams-cli" / "run" / "teams-authd.sock").exists()
+
+
+def test_auto_provider_asks_before_starting_daemon_on_headless_host(tmp_path: Path) -> None:
+    result = _run_cli(
+        tmp_path,
+        "auth",
+        extra_environment={"TEAMS_CDP_HEADLESS": "1"},
+        input_text="n\n",
+    )
+
+    assert result.returncode == 1
+    assert "Start it now?" in result.stdout
+    assert "was not started" in result.stdout
+    assert not (tmp_path / ".config" / "teams-cli" / "run" / "teams-authd.sock").exists()
+
+
+def test_auth_daemon_refuses_to_start_on_gui_host(tmp_path: Path) -> None:
+    environment = os.environ.copy()
+    environment.update({"HOME": str(tmp_path), "TEAMS_CDP_GUI": "1"})
+    result = subprocess.run(
+        [sys.executable, "-m", "teams_cli.authd"],
+        cwd=SKILL_DIR,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 1
+    assert not (tmp_path / ".config" / "teams-cli" / "run" / "teams-authd.sock").exists()
+    log_file = tmp_path / ".config" / "teams-cli" / "logs" / "teams-cli.log"
+    assert "disabled in graphical sessions" in log_file.read_text(encoding="utf-8")
+
+
+def test_auth_daemon_requires_cli_approval_on_headless_host(tmp_path: Path) -> None:
+    environment = os.environ.copy()
+    environment.update({"HOME": str(tmp_path), "TEAMS_CDP_HEADLESS": "1"})
+    result = subprocess.run(
+        [sys.executable, "-m", "teams_cli.authd"],
+        cwd=SKILL_DIR,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 1
+    assert not (tmp_path / ".config" / "teams-cli" / "run" / "teams-authd.sock").exists()
+    log_file = tmp_path / ".config" / "teams-cli" / "logs" / "teams-cli.log"
+    assert "requires confirmation from the Teams CLI" in log_file.read_text(encoding="utf-8")
 
 
 def test_log_redaction_removes_credentials_and_jwts() -> None:

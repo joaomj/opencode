@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import signal
 import socketserver
 from dataclasses import asdict
@@ -11,7 +12,7 @@ from typing import Any, TextIO
 
 from teams_cli.auth import AuthUnavailable, TeamsAuth, auth_from_cookies
 from teams_cli.cdp import CdpError, ChromiumBrowser
-from teams_cli.config import Settings, load_settings
+from teams_cli.config import DAEMON_START_APPROVAL_ENV, Settings, graphical_session, load_settings
 from teams_cli.logging_utils import configure_logging, get_logger
 
 MAX_REQUEST_BYTES = 65_536
@@ -68,6 +69,15 @@ class AuthDaemon:
         self._lock_file: TextIO | None = None
 
     def run(self) -> None:
+        if graphical_session():
+            raise RuntimeError(
+                "Teams authentication daemon is disabled in graphical sessions; "
+                "use profile authentication."
+            )
+        if os.getenv(DAEMON_START_APPROVAL_ENV) != "1":
+            raise RuntimeError(
+                "Teams authentication daemon requires confirmation from the Teams CLI."
+            )
         self.settings.socket_path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         self.settings.socket_path.parent.chmod(0o700)
         self._acquire_instance_lock()
@@ -146,3 +156,7 @@ def main() -> None:
     except (CdpError, OSError, RuntimeError) as error:
         logger.exception("Teams authentication daemon failed: %s", error)
         raise SystemExit(1) from error
+
+
+if __name__ == "__main__":
+    main()

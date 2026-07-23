@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -22,6 +23,8 @@ DEFAULT_CDP_HOST = "127.0.0.1"
 DEFAULT_CDP_START_TIMEOUT_SECONDS = 30.0
 DEFAULT_CDP_COMMAND_TIMEOUT_SECONDS = 15.0
 TEAMS_BROWSER_URL = "https://teams.microsoft.com/v2"
+DAEMON_START_APPROVAL_ENV = "TEAMS_CDP_START_APPROVED"
+TRUE_VALUES = frozenset({"1", "true", "yes", "on"})
 
 
 @dataclass(frozen=True)
@@ -58,3 +61,38 @@ def _default_browser() -> str:
         if candidate.is_file():
             return str(candidate)
     return str(candidates[0])
+
+
+def graphical_session() -> bool:
+    """Return whether the current session has a graphical browser available."""
+    gui_override = _environment_flag("TEAMS_CDP_GUI")
+    if gui_override is not None:
+        return gui_override
+    headless_override = _environment_flag("TEAMS_CDP_HEADLESS")
+    if headless_override is not None:
+        return not headless_override
+    if sys.platform == "darwin":
+        return _macos_graphical_session()
+    if sys.platform.startswith("linux"):
+        return bool(os.getenv("DISPLAY") or os.getenv("WAYLAND_DISPLAY"))
+    return False
+
+
+def _environment_flag(name: str) -> bool | None:
+    value = os.getenv(name)
+    if value is None:
+        return None
+    return value.strip().lower() in TRUE_VALUES
+
+
+def _macos_graphical_session() -> bool:
+    try:
+        result = subprocess.run(
+            ["launchctl", "print", f"gui/{os.getuid()}"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+    except OSError:
+        return False
+    return result.returncode == 0
