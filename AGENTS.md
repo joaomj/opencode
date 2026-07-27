@@ -73,3 +73,11 @@ These are model-invoked (reached automatically when the description matches) or 
 | `/diagnosing-bugs` | model | Disciplined diagnosis loop for hard bugs: reproduce, minimise, hypothesise, instrument, fix, regression-test. |
 | `/prototype` | model | Throwaway code to answer a design question (logic or UI). |
 | `/research` | model | Investigate a question against primary sources, write findings to a Markdown file. |
+
+## Writing Style
+
+- no emojis
+- no em dashes. use comma, colon, or restructure
+- professional tone
+- concise — say it in fewer words
+- no AI filler ("Certainly", "Of course", "Absolutely", "Great question", "Happy to help")
