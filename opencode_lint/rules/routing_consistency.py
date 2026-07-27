@@ -42,21 +42,20 @@ class RoutingConsistency(Rule):
 
     # ── helpers ──────────────────────────────────────────────
 
-    def _find_skill_names(self, project_root: Path) -> dict[str, str]:
-        """Return {frontmatter_name: directory_name} for local skills."""
+    def _find_skill_names(self, project_root: Path) -> dict[str, Path]:
+        """Return {frontmatter_name: skill_directory} for local skills."""
         skills_dir = project_root / "skills"
         if not skills_dir.exists():
             return {}
-        result: dict[str, str] = {}
-        for skill_dir in skills_dir.iterdir():
-            if not skill_dir.is_dir():
+        result: dict[str, Path] = {}
+        for skill_file in skills_dir.rglob("SKILL.md"):
+            relative_parts = skill_file.relative_to(skills_dir).parts
+            if any(part.startswith(".") for part in relative_parts):
                 continue
-            skill_file = skill_dir / "SKILL.md"
-            if not skill_file.exists():
-                continue
+            skill_dir = skill_file.parent
             content = skill_file.read_text(encoding="utf-8")
             fm_name = self._parse_frontmatter_name(content)
-            result[fm_name or skill_dir.name] = skill_dir.name
+            result[fm_name or skill_dir.name] = skill_dir
         return result
 
     def _parse_frontmatter_name(self, content: str) -> str | None:
@@ -76,14 +75,14 @@ class RoutingConsistency(Rule):
         violations: List[Violation] = []
         local_skills = self._find_skill_names(project_root)
 
-        for fm_name, dir_name in local_skills.items():
-            if fm_name != dir_name:
+        for fm_name, skill_dir in local_skills.items():
+            if fm_name != skill_dir.name:
                 violations.append(self._create_violation(
-                    file_path=project_root / "skills" / dir_name / "SKILL.md",
+                    file_path=skill_dir / "SKILL.md",
                     line_number=0,
                     column=0,
                     message=(
-                        f"Skill directory '{dir_name}' differs from frontmatter name "
+                        f"Skill directory '{skill_dir.name}' differs from frontmatter name "
                         f"'{fm_name}'. Consider renaming the directory or the frontmatter name."
                     ),
                     severity="warning",

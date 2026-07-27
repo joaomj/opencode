@@ -75,7 +75,7 @@ uv run teams-cli --auth-provider daemon auth
 From the skill directory:
 
 ```bash
-cd "$HOME/.config/opencode/skills/teams-brave-cli"
+cd "$HOME/.config/opencode/skills/tooling/teams-brave-cli"
 uv sync --locked
 ```
 

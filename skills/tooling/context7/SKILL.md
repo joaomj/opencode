@@ -83,4 +83,3 @@ curl -s "https://context7.com/api/v2/context?libraryId=/fastapi/fastapi&query=de
 - If the first search result is not correct, check additional results in the array
 - URL-encode query parameters containing spaces (use `+` or `%20`)
 - No API key is required for basic usage (rate-limited)
-

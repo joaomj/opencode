@@ -1,0 +1,25 @@
+repos:
+  - repo: local
+    hooks:
+      - id: opencode-lint
+        name: opencode-lint
+        entry: uv run --directory opencode_lint opencode-lint --pre-commit
+        language: system
+        pass_filenames: false
+        files: '\.(py|ya?ml)$'
+        stages: [pre-commit]
+        require_serial: true
+
+      - id: ruff-format
+        name: ruff-format
+        entry: uvx ruff format --check
+        language: system
+        types: [python]
+        stages: [pre-commit]
+
+      - id: ruff-check
+        name: ruff-check
+        entry: uvx ruff check --select E,W,F,I,S --fix
+        language: system
+        types: [python]
+        stages: [pre-commit]

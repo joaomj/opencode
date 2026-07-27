@@ -15,9 +15,9 @@
 ## Opencode Map
 
 - **Config**: `opencode.json`, `local.json`
-- **Skills**: `skills/*/SKILL.md` — load when the description matches the task
+- **Skills**: `skills/**/SKILL.md` — load when the description matches the task
 - **Google Drive files**: use `skills/google-drive-files/SKILL.md` for uploading, downloading, and listing files on personal Google Drive via rclone
-- **Teams messaging**: use `skills/teams-brave-cli/SKILL.md` with the local Python CLI for Teams message access via Brave session token extraction; never use Playwright MCP or personal browser profiles
+- **Teams messaging**: use `skills/tooling/teams-brave-cli/SKILL.md` with the local Python CLI for Teams message access via Brave session token extraction; never use Playwright MCP or personal browser profiles
 - **Commands**: `commands/*.md`
 - **Linter**: `opencode_lint/`
 - **Linter rules**: `opencode_lint/rules/`
@@ -42,7 +42,7 @@ raw report  →  /triage  →  needs-triage  →  needs-info  →  ready-for-age
                                              wontfix         ready-for-human
 ```
 
-`/triage` categorises (bug/enhancement), verifies claims (reproduce bugs, check out PRs), grills incomplete requests into shape, and produces agent-ready briefs. See `skills/triage/SKILL.md`.
+`/triage` categorises (bug/enhancement), verifies claims (reproduce bugs, check out PRs), grills incomplete requests into shape, and produces agent-ready briefs. See `skills/matt-pocock/triage/SKILL.md`.
 
 ### Standard build chain
 

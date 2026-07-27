@@ -48,7 +48,7 @@ The linter runs automatically on `.py`, `.yml`, and `.yaml` files when committin
 
 ### Testing Policy Enforcement
 
-`OC-MOCK` enforces the mock policy from `skills/testing-best-practices/SKILL.md`:
+`OC-MOCK` enforces the mock policy from `skills/engineering/testing-best-practices/SKILL.md`:
 mock external boundaries only, avoid internal collaborator mocks, and prefer
 fakes, temporary resources, or integration tests for internal behavior.
 
