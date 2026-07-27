@@ -3,7 +3,7 @@
 ## Core Principles
 
 - **no-assumptions**: read code first, no hedging ("likely", "probably", "might"). investigate if uncertain
-- **branch-sync-before-pr**: `git fetch && git rebase origin/<base>` (or `--ff-only`) before pushing or creating PRs (commit command skips this)
+- **branch-sync-before-pr**: before creating a PR, check the current branch against the destination branch for conflicts. Do not rebase or merge automatically just to create the PR
 - **infra-code-separation**: separate commits+PRs from app code changes. exception if deeply intertwined, call out in PR description
 - **no-silent-failures**: every failure must surface. logged, raised, or classified recoverable
 - **gh-cli-only**: all GitHub via `gh` CLI only (PRs, issues, releases, code, refs). no curl/wget/WebFetch against github.com
@@ -14,9 +14,8 @@
 
 ## Opencode Map
 
-- **Config**: `opencode.json`, `local.json`
-- **Skills**: `skills/**/SKILL.md` — load when the description matches the task
-- **Google Drive files**: use `skills/google-drive-files/SKILL.md` for uploading, downloading, and listing files on personal Google Drive via rclone
+- **Config**: `opencode.json`
+- **Skills**: `skills/**/SKILL.md`: load when the description matches the task
 - **Teams messaging**: use `skills/tooling/teams-brave-cli/SKILL.md` with the local Python CLI for Teams message access via Brave session token extraction; never use Playwright MCP or personal browser profiles
 - **Commands**: `commands/*.md`
 - **Linter**: `opencode_lint/`
@@ -25,7 +24,8 @@
 ## Quality
 
 - Substantial features or architecture work: write a spec for user approval before code
-- Bug fixes: write a failing test before the fix (TDD)
+- Bug fixes: write a failing e2e or blackbox regression test before the fix (TDD)
+- Common coding: prioritize e2e and blackbox tests against user-visible behavior
 - Mutations must be safe to retry
 - Multi-step or long-running work needs checkpointing and error handling
 - Prefer Python for non-trivial automation; bash for one-liners
@@ -57,7 +57,7 @@ The standard flow for feature work:
 | 1 | `/grill-with-docs` | Agent grills you on goals, builds domain glossary + ADRs |
 | 2 | `/to-spec` | Synthesizes conversation into a spec on the issue tracker |
 | 3 | `/to-tickets` | Breaks spec into vertical-slice tickets with blocking edges, asks approval, publishes |
-| 4 | `/implement` | One ticket per session using TDD at agreed seams, typechecks, runs tests |
+| 4 | `/implement` | One ticket per session using e2e and blackbox tests for user-visible behavior, typechecks, runs tests |
 | 5 | `/code-review` | Two-axis review: Standards (coding standards + Fowler smells + P0-P3 checklists) and Spec (correctness). FAIL-CLOSED on P0/P1. |
 
 ### Supporting skills
@@ -70,7 +70,7 @@ These are model-invoked (reached automatically when the description matches) or 
 | `/codebase-design` | model | Shared vocabulary for deep modules: interface, seam, adapter, depth, leverage, locality. Design-it-twice sub-agent pattern for alternative interfaces. Called by `implement`, `code-review`, and `improve-codebase-architecture`. |
 | `/wayfinder` | user | Plan oversized work as a shared map of investigation tickets on the issue tracker, resolved one per session until the route is clear. Runs before the standard flow. |
 | `/improve-codebase-architecture` | user | Scan codebase for deepening opportunities (shallow modules), present as visual HTML report with Mermaid diagrams, grill through the chosen candidate. |
-| `/diagnosing-bugs` | model | Disciplined diagnosis loop for hard bugs: reproduce, minimise, hypothesise, instrument, fix, regression-test. |
+| `/diagnosing-bugs` | model | Disciplined diagnosis loop for hard bugs: build a feedback loop, reproduce, minimise, hypothesise, instrument, fix, regression-test, clean up, and record a postmortem. |
 | `/prototype` | model | Throwaway code to answer a design question (logic or UI). |
 | `/research` | model | Investigate a question against primary sources, write findings to a Markdown file. |
 
@@ -79,5 +79,5 @@ These are model-invoked (reached automatically when the description matches) or 
 - no emojis
 - no em dashes. use comma, colon, or restructure
 - professional tone
-- concise — say it in fewer words
+- concise, say it in fewer words
 - no AI filler ("Certainly", "Of course", "Absolutely", "Great question", "Happy to help")

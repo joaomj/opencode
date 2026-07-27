@@ -5,8 +5,8 @@ Personal configuration for [OpenCode](https://opencode.ai).
 ## Quick Start
 
 ```bash
-git clone git@github.com:joaomj/skills.git ~/.config/opencode
-pip install -e ~/.config/opencode/opencode_lint
+git clone git@github.com:joaomj/opencode.git ~/.config/opencode
+uv sync --locked --project ~/.config/opencode/opencode_lint
 ```
 
 ## License

@@ -125,7 +125,6 @@ This is the only context where TDD applies.
 | Test strategy, regression tests, or test quality | Load `testing-best-practices` skill |
 | Unfamiliar libraries/APIs | Load `context7` skill |
 | Simplify code | Load `simplify` skill (only on explicit user request) |
-| Browser frontend verification | Load `browser-readonly` skill |
 | Docker or containerization | Load `docker-best-practices` skill |
 | Documentation updates | Load `doc-maintenance` skill |
 | Break into tickets | Load `to-tickets` skill |

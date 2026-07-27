@@ -60,7 +60,7 @@ Keep one primary workflow unless the user requests split workflows.
    - Add `exclude-newer` gate job that verifies config in pyproject.toml
 
 6. Reliability
-   - Pin action versions to stable releases (and SHA pinning for third-party actions when feasible)
+   - Resolve current supported action releases when creating the workflow, then pin them (SHA pinning for third-party actions when feasible)
    - Avoid brittle shell one-liners without `set -euo pipefail` for multiline scripts
 
 ## Python-First CI Shape
@@ -145,7 +145,7 @@ jobs:
       - name: Vulnerability audit
         run: uvx pip-audit --desc
       - name: Secret detection
-        uses: gitleaks/gitleaks-action@v2
+         uses: gitleaks/gitleaks-action@<verified-release-or-sha>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -184,6 +184,9 @@ For projects with requirements.txt:
 ### Container Image Scanning (Trivy)
 
 For projects building Docker images, add Trivy scanning:
+Resolve current supported action releases when creating the workflow, then pin
+each action to a release or commit SHA. Do not copy an old action reference
+unchanged.
 
 ```yaml
   container-scan:
@@ -194,14 +197,14 @@ For projects building Docker images, add Trivy scanning:
       - name: Build image
         run: docker build -t myapp:${{ github.sha }} .
       - name: Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@master
+         uses: aquasecurity/trivy-action@<verified-release-or-sha>
         with:
           image-ref: myapp:${{ github.sha }}
           format: sarif
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
       - name: Upload results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+         uses: github/codeql-action/upload-sarif@<verified-release-or-sha>
         with:
           sarif_file: trivy-results.sarif
 ```

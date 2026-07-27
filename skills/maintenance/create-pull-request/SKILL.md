@@ -53,7 +53,7 @@ Validate destination branch exists:
 git ls-remote --heads origin <destination-branch>
 ```
 
-### Phase 3: Merge Conflict Check
+### Phase 3: Conflict Check
 
 ```bash
 git fetch origin <destination-branch>
@@ -64,6 +64,10 @@ If conflicts found, present files and ask user how to proceed:
 1. Resolve now (guide through each file)
 2. Abort and resolve manually
 3. Continue with PR creation
+
+Do not rebase or merge automatically as part of PR creation. The conflict
+check is informational; push the source branch after the user confirms how to
+proceed.
 
 ### Phase 4: PR Description
 

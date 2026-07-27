@@ -35,7 +35,11 @@ The agent must be given the same interfaces a real user has:
 | Mobile | Appium, XCTest, Espresso | Tap, swipe, assert UI elements |
 | Email | IMAP/POP3 client, Mailpit API | Assert email received, assert content |
 
-The agent does NOT use: `unittest.mock`, `pytest.monkeypatch` for internal code, `MagicMock`, `patch.object`, `jest.mock` for local modules, or any other tool that replaces internal code paths.
+The agent does NOT use these tools to replace internal code paths: `unittest.mock`,
+`MagicMock`, `patch.object`, `jest.mock` for local modules, or
+`pytest.monkeypatch` for internal collaborators. `pytest.monkeypatch` is allowed
+for external seams such as environment variables, clocks, filesystem locations,
+and configuration values.
 
 ## Testing Against Running Instances
 

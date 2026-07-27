@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Reference material for test-driven development. Red-green loop for agentic coding — one failing test, then just enough code to pass, repeat. Refactoring is handled separately in code review.
+description: Reference material for test-driven development on bug fixes. Write one failing regression test, make it pass, and repeat. Refactoring is handled separately in code review.
 metadata:
   credit: Matt Pocock (https://github.com/mattpocock/skills)
 ---
@@ -32,4 +32,6 @@ The first cycle is a tracer bullet: one e2e test proving a single user-visible p
 grill-with-docs → to-spec → to-tickets → implement
 ```
 
-`tdd` is the engine inside the implement step. It can also be invoked directly via `/tdd` when there's concrete behaviour to build. After implementation, `/code-review` handles refactoring concerns.
+`tdd` is the regression-test engine inside the implement step for bug fixes. It can
+also be invoked directly via `/tdd` for a concrete bug. After implementation,
+`/code-review` handles refactoring concerns.

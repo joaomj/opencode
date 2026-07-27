@@ -7,7 +7,8 @@ metadata:
 
 Implement the work described by the user in the spec or tickets.
 
-Use `/tdd` where possible, at pre-agreed seams.
+For bug fixes, use `/tdd` at the pre-agreed seam. For common coding, use
+e2e and blackbox tests against user-visible behavior.
 
 Run typechecking regularly, single e2e test files regularly, and the full e2e suite once at the end.
 

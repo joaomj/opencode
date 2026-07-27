@@ -222,6 +222,10 @@ RUN trivy image --severity HIGH,CRITICAL python:3.11-slim || true
 ### CI/CD Security Scanning
 Add Trivy to your GitHub workflow to scan container images:
 
+Action references in examples are intentionally time-sensitive. Before using
+an example, resolve current supported releases and pin each action to a release
+or commit SHA. Do not copy an old action reference unchanged.
+
 ```yaml
   trivy:
     runs-on: ubuntu-latest
@@ -229,14 +233,14 @@ Add Trivy to your GitHub workflow to scan container images:
     steps:
       - uses: actions/checkout@v4
       - name: Scan container image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@<verified-release-or-sha>
         with:
           image-ref: myapp:latest
           format: sarif
           output: trivy-results.sarif
           severity: HIGH,CRITICAL
       - name: Upload results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@<verified-release-or-sha>
         with:
           sarif_file: trivy-results.sarif
 ```
@@ -352,8 +356,6 @@ CMD ["python", "app.py"]
 ## Docker Compose Example
 
 ```yaml
-version: '3.8'
-
 services:
   app:
     build:
