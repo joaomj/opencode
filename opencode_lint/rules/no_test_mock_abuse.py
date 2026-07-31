@@ -97,7 +97,8 @@ class NoTestMockAbuse(Rule):
                         column=0,
                         message=(
                             "Internal patch target detected. Prefer real collaborator/fake. "
-                            f"If required, add '{self.ALLOW_MARKER}: <reason>' and pair with integration coverage."
+                            f"If required, add '{self.ALLOW_MARKER}: <reason>' and pair with "
+                            "integration coverage."
                         ),
                     )
                 )
@@ -122,7 +123,8 @@ class NoTestMockAbuse(Rule):
                         line_number=line_number,
                         column=0,
                         message=(
-                            "Mock()/MagicMock() detected. Prefer fakes/in-memory adapters for internal code. "
+                            "Mock()/MagicMock() detected. Prefer fakes/in-memory adapters for "
+                            "internal code. "
                             f"Use '{self.ALLOW_MARKER}: <reason>' for justified exceptions."
                         ),
                     )
@@ -140,7 +142,8 @@ class NoTestMockAbuse(Rule):
                         line_number=line_number,
                         column=0,
                         message=(
-                            "Local module mock detected (jest/vi). Prefer integration/component tests for real behavior. "
+                            "Local module mock detected (jest/vi). Prefer integration/component "
+                            "tests for real behavior. "
                             f"Add '{self.ALLOW_MARKER}: <reason>' if unavoidable."
                         ),
                     )

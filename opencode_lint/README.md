@@ -5,12 +5,12 @@ A standalone Python linter enforcing core AGENTS.md guidelines via the pre-commi
 ## Installation
 
 ```bash
-pip install -e opencode_lint
+uv sync --project opencode_lint
 ```
 
 Or set up pre-commit hooks:
 ```bash
-pip install pre-commit && pre-commit install
+uvx pre-commit install
 ```
 
 ## Usage
@@ -43,7 +43,7 @@ The linter runs automatically on `.py`, `.yml`, and `.yaml` files when committin
 | OC010 | `exclude-newer` with 7-day buffer | Error | `opencode_lint` |
 | OC011 | No blind `uv lock --upgrade` | Error | `opencode_lint` |
 | OC012 | No unsafe `curl \| bash` downloads | Error | `opencode_lint` |
-| OC014 | No hardcoded configurable values | Warning | `opencode_lint` |
+| OC014 | No hardcoded configurable values | Error | `opencode_lint` |
 | OC-MOCK | Mock external boundaries only | Error | `opencode_lint` |
 
 ### Testing Policy Enforcement
@@ -95,11 +95,11 @@ ignore:
 
 ```bash
 # Install dev dependencies
-uv sync --dev
+uv sync --project opencode_lint --extra dev
 
 # Run tests
-uv run pytest
+uv run --project opencode_lint pytest
 
 # Lint
-uv run ruff check .
+uv run --project opencode_lint ruff check .
 ```

@@ -47,6 +47,7 @@ class NoEnvFileAccess(Rule):
         'dotenv_values',
         'find_dotenv',
     ]
+    PATH_SEPARATOR = "/"
 
     def check_file(self, file_path: Path, content: str) -> List[Violation]:
         """Check file for .env access violations."""
@@ -159,7 +160,7 @@ class NoEnvFileAccess(Rule):
             return False
         path_lower = path.lower()
         return any(
-            path_lower == pattern or path_lower.endswith(f'/{pattern}')
+            path_lower == pattern or path_lower.endswith(f'{self.PATH_SEPARATOR}{pattern}')
             for pattern in self.VIOLATION_PATTERNS
         )
 

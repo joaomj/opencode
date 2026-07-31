@@ -9,7 +9,12 @@ from typing import Any
 import httpx
 from websockets.sync.client import ClientConnection, connect
 
-from teams_cli.config import TEAMS_BROWSER_URL, Settings
+from teams_cli.config import (
+    CDP_ENDPOINT_POLL_INTERVAL_SECONDS,
+    CDP_VERSION_PATH,
+    TEAMS_BROWSER_URL,
+    Settings,
+)
 
 
 class CdpError(RuntimeError):
@@ -106,7 +111,7 @@ class ChromiumBrowser:
                 self._browser_websocket_url()
                 return
             except CdpError:
-                time.sleep(0.25)
+                time.sleep(CDP_ENDPOINT_POLL_INTERVAL_SECONDS)
         raise CdpError("Browser CDP endpoint did not start before the timeout.")
 
     def _browser_websocket_url(self) -> str:
@@ -115,7 +120,7 @@ class ChromiumBrowser:
             port, _websocket_path = endpoint_file.read_text(encoding="utf-8").splitlines()
         except (OSError, ValueError) as error:
             raise CdpError("Browser CDP endpoint is not ready.") from error
-        url = f"http://{self.settings.cdp_host}:{port}/json/version"
+        url = f"http://{self.settings.cdp_host}:{port}{CDP_VERSION_PATH}"
         try:
             response = httpx.get(url, timeout=self.settings.cdp_command_timeout_seconds)
             response.raise_for_status()

@@ -12,10 +12,15 @@ from typing import Any, TextIO
 
 from teams_cli.auth import AuthUnavailable, TeamsAuth, auth_from_cookies
 from teams_cli.cdp import CdpError, ChromiumBrowser
-from teams_cli.config import DAEMON_START_APPROVAL_ENV, Settings, graphical_session, load_settings
+from teams_cli.config import (
+    DAEMON_START_APPROVAL_ENV,
+    MAX_REQUEST_BYTES,
+    Settings,
+    graphical_session,
+    load_settings,
+)
 from teams_cli.logging_utils import configure_logging, get_logger
 
-MAX_REQUEST_BYTES = 65_536
 logger = get_logger(__name__)
 
 

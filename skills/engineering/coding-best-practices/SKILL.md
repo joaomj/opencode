@@ -82,10 +82,11 @@ Implement against the approved spec.
 Run the full toolchain:
 
 ```bash
-pytest -q
-ruff check --fix && ruff format
-mypy --strict
-trivy fs --scanners vuln,secret,misconfig .
+uv run pytest -q
+uv run ruff check --fix
+uv run ruff format
+uv run mypy --strict
+uvx trivy fs --scanners vuln,secret,misconfig .
 ```
 
 All must pass with zero failures and zero errors.
@@ -228,9 +229,9 @@ config = AppConfig()
 
 ## Pre-Commit Enforcement
 
-- Linter MUST pass zero-warnings before every commit: `ruff check .`
+- Linter MUST pass zero-warnings before every commit: `uv run ruff check .`
 - Pre-commit hook chain (`.pre-commit-config.yaml`) enforces this automatically via `opencode-lint`
-- Agent instruction: run `ruff check .` before staging files and block if any errors remain
+- Agent instruction: run `uv run ruff check .` before staging files and block if any errors remain
 - All AGENTS.md rules (OC001-OC014, mock policy) are enforced by `opencode-lint`
 
 ---
@@ -362,7 +363,7 @@ max-args = 7
 max-statements = 50
 ```
 
-Before committing: `ruff check .`
+Before committing: `uv run ruff check .`
 
 ### Testing
 
@@ -371,10 +372,10 @@ single assertion. That skill is the source of truth for regression tests,
 e2e strategy, property tests, test patterns, and test-quality review.
 
 Core policy retained here:
-- Every bug fix requires a failing e2e regression test before implementation
+- Every confirmed bug requires one failing black-box regression test at the highest useful seam before implementation
 - Test user-visible behavior from the outside; treat the system as a blackbox
 - Do not test private methods directly
-- E2E tests against a running instance are the default for all behavior
+- Prefer user-flow tests, then e2e tests, integration tests, and unit or property tests
 - A good test must fail when behavior regresses
 
 #### Test Integrity (OC008)
@@ -393,11 +394,10 @@ There is no option 4: "suppress the failure."
 
 See `testing-best-practices` for detailed e2e guidance.
 
-All behavior must be verified with e2e tests against a running instance. Unit
-tests that mock internals are not acceptable as the sole verification of any
-feature or fix.
+Use the highest useful seam for each behavior. Unit tests that mock internals
+are not acceptable as the sole verification of user-visible behavior.
 
-- Every user-facing change must have at least one e2e test
+- User-facing changes should have a user-flow or e2e test when it gives a strong regression signal at an acceptable cost
 - E2E tests exercise the system from the outside (browser, terminal, HTTP client)
 - E2E tests run against a dev server, staging, or production instance
 - Mock internals are not allowed; use real dependencies (test DB, test broker, etc.)
@@ -416,7 +416,7 @@ policy.
 | Email | Mailpit, mailhog, or catch-all SMTP server |
 | External API | Local fake server implementing the same HTTP contract |
 
-If a dependency cannot run locally, use a test instance in CI, never a mock.
+If a dependency cannot run locally, use a test instance in CI or document the verification gap. Do not build large test infrastructure without approval.
 
 #### LLM Anti-Patterns to Reject
 - Patching or mocking the system under test or any internal code
@@ -477,7 +477,7 @@ Recent incidents: axios (Mar 2026), telnyx (Mar 2026), Ultralytics (Dec 2024). D
 
 - Python files: max 300 lines
 - Import order: stdlib -> third-party -> local
-- Auto-format: `ruff check . --fix`
+- Auto-format: `uv run ruff check . --fix`
 
 ### Completion Checklist
 
@@ -490,14 +490,14 @@ Recent incidents: axios (Mar 2026), telnyx (Mar 2026), Ultralytics (Dec 2024). D
 - [ ] Unsafe concurrent runs are guarded by locks, dedupe keys, or equivalent controls
 - [ ] No secrets hardcoded
 - [ ] No magic numbers, inline URLs, or hardcoded config values (OC014)
-- [ ] Tests written for new functionality (e2e against a running instance)
+- [ ] Tests use the highest useful seam for the behavior
 - [ ] Tests assert user-observable behavior (not implementation)
 - [ ] Spec approved before implementation (SDD gate)
-- [ ] `ruff check .` passes
+- [ ] `uv run ruff check .` passes
 - [ ] Dependencies added via package manager
 - [ ] Lockfile committed
 - [ ] ZERO test suppression mechanisms
-- [ ] E2E tests for user-visible changes (OC016)
+- [ ] User-flow or e2e coverage exists when it gives a strong signal
 - [ ] No internal mocking in tests
 - [ ] `exclude-newer = "1 week"` configured in pyproject.toml (OC010)
 - [ ] CI uses `uv sync --locked` / `poetry install --locked` (OC011)

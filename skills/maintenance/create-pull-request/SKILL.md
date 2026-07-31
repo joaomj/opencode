@@ -57,7 +57,7 @@ git ls-remote --heads origin <destination-branch>
 
 ```bash
 git fetch origin <destination-branch>
-git merge-tree $(git merge-base HEAD origin/<destination-branch>) HEAD origin/<destination-branch> | grep -c "changed in both" || echo "0"
+git merge-tree $(git merge-base HEAD origin/<destination-branch>) HEAD origin/<destination-branch> | rg -c "changed in both" || echo "0"
 ```
 
 If conflicts found, present files and ask user how to proceed:
@@ -99,18 +99,6 @@ gh api user --jq '.login'
 ```
 
 Generate title from commits (format: `type: description`, imperative mood, max 72 chars).
-
-### Phase 5a: Code Review Gate
-
-The `policy-gate` plugin blocks `gh pr create` unless a review receipt exists for HEAD.
-
-- Run `/code-review` before creating the PR.
-- If the review passes (or passes with no P0/P1), proceed.
-- If the review fails with P0/P1 issues, fix them and re-review.
-
-**Skip the gate** (review receipt not required):
-- Add `[skip-review]` to the latest commit message: `git commit -S --amend -m "commit msg [skip-review]"`
-- Or set `OPENCODE_SKIP_REVIEW=1` in the shell that runs `gh pr create`
 
 Ask user if draft PR, then:
 

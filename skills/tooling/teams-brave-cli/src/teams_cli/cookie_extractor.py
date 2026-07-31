@@ -13,6 +13,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from keyring.errors import KeyringError
 
 from teams_cli.auth import TeamsAuth
+from teams_cli.config import KEYRING_COMMAND_TIMEOUT_SECONDS
 from teams_cli.logging_utils import get_logger
 
 logger = get_logger(__name__)
@@ -85,7 +86,7 @@ def _get_brave_key_macos() -> bytes:
             capture_output=True,
             check=False,
             text=True,
-            timeout=10,
+            timeout=KEYRING_COMMAND_TIMEOUT_SECONDS,
         )
     except FileNotFoundError as error:
         raise RuntimeError("The macOS security command is unavailable.") from error

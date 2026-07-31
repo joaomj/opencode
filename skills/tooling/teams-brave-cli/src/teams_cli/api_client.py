@@ -9,18 +9,28 @@ from urllib.parse import quote
 
 import httpx
 
+from teams_cli.config import DEFAULT_HTTP_TIMEOUT_SECONDS
 from teams_cli.logging_utils import get_logger
 
 DEFAULT_TEAMS_BASE = "https://teams.microsoft.com"
 CLIENT_VERSION = "1415/1.0.0.2025010401"
-HTTP_TIMEOUT_SECONDS = 30.0
+AUTH_PROBE_PATH = "/api/chatsvc/{region}/v1/users/ME/conversations?pageSize=1"
+CONVERSATIONS_PATH = (
+    "/api/chatsvc/{region}/v1/users/ME/conversations?view=msnp24Equivalent&pageSize=200"
+)
+MESSAGES_PATH = "/api/chatsvc/{region}/v1/users/ME/conversations/{conversation}/messages"
+CONVERSATION_ROUTE = "/conversations/"
+PATH_SEPARATOR = "/"
+BASE64_STANDARD_SEPARATOR = "/"
+MILLISECONDS_PER_SECOND = 1000
+REGION_ENDPOINT_PATTERN = r"/chatsvc/([a-z]+)"
 logger = get_logger(__name__)
 
 
 def _b64url_decode(data: str) -> bytes:
     import base64
 
-    data = data.replace("-", "+").replace("_", "/")
+    data = data.replace("-", "+").replace("_", BASE64_STANDARD_SEPARATOR)
     padding = 4 - len(data) % 4
     if padding != 4:
         data += "=" * padding
@@ -38,7 +48,7 @@ def _detect_region(skypetoken: str) -> str:
     try:
         payload = _decode_jwt_payload(skypetoken)
         endpoint = payload.get("skypeendpoint", "")
-        m = endpoint and __import__("re").search(r"/chatsvc/([a-z]+)", endpoint)
+        m = endpoint and __import__("re").search(REGION_ENDPOINT_PATTERN, endpoint)
         if m:
             return m.group(1)
         rgn = payload.get("rgn", "")
@@ -88,7 +98,7 @@ class TeamsClient:
         self.tenant_id = tenant_id
         self.region = _detect_region(skypetoken)
         self.base = DEFAULT_TEAMS_BASE
-        self._client = httpx.Client(timeout=HTTP_TIMEOUT_SECONDS)
+        self._client = httpx.Client(timeout=DEFAULT_HTTP_TIMEOUT_SECONDS)
 
     @property
     def _read_headers(self) -> dict[str, str]:
@@ -96,7 +106,7 @@ class TeamsClient:
             "Content-Type": "application/json",
             "Accept": "application/json",
             "Origin": self.base,
-            "Referer": f"{self.base}/",
+            "Referer": f"{self.base}{PATH_SEPARATOR}",
             "Authentication": f"skypetoken={self.skypetoken}",
             "Authorization": f"Bearer {self.authtoken}",
         }
@@ -128,10 +138,9 @@ class TeamsClient:
         return self.probe_auth().status_code == 200
 
     def probe_auth(self) -> AuthProbe:
-        path = "/api/chatsvc/{region}/v1/users/ME/conversations?pageSize=1"
         r = self._request(
             "GET",
-            path,
+            AUTH_PROBE_PATH,
             headers=self._read_headers,
         )
         diagnostic_headers = {
@@ -140,7 +149,7 @@ class TeamsClient:
             if key in r.headers
         }
         return AuthProbe(
-            url=self._url(path),
+            url=self._url(AUTH_PROBE_PATH),
             status_code=r.status_code,
             body=r.text[:500],
             response_headers=diagnostic_headers,
@@ -149,7 +158,7 @@ class TeamsClient:
     def list_conversations(self, limit: int = 50) -> list[Conversation]:
         r = self._request(
             "GET",
-            "/api/chatsvc/{region}/v1/users/ME/conversations?view=msnp24Equivalent&pageSize=200",
+            CONVERSATIONS_PATH,
             headers=self._read_headers,
         )
         r.raise_for_status()
@@ -182,7 +191,7 @@ class TeamsClient:
         enc_id = quote(conversation_id, safe="")
         r = self._request(
             "GET",
-            f"/api/chatsvc/{{region}}/v1/users/ME/conversations/{enc_id}/messages",
+            MESSAGES_PATH.format(region=self.region, conversation=enc_id),
             headers=self._read_headers,
         )
         r.raise_for_status()
@@ -211,7 +220,9 @@ class TeamsClient:
             conversation_path = f"{conversation_id};messageid={reply_to}"
         enc_path = quote(conversation_path, safe="")
 
-        client_msg_id = f"{int(time.time() * 1000)}{random.randint(100000, 999999)}"
+        client_msg_id = (
+            f"{int(time.time() * MILLISECONDS_PER_SECOND)}{random.randint(100000, 999999)}"
+        )
         body: dict[str, Any] = {
             "content": content,
             "messagetype": "RichText/Html" if message_type == "html" else "Text",
@@ -220,7 +231,7 @@ class TeamsClient:
             "clientmessageid": client_msg_id,
         }
 
-        path = f"/api/chatsvc/{{region}}/v1/users/ME/conversations/{enc_path}/messages"
+        path = MESSAGES_PATH.format(region=self.region, conversation=enc_path)
         r = self._request("POST", path, headers=self._write_headers, json=body)
         r.raise_for_status()
         return r.text
@@ -233,9 +244,9 @@ class TeamsClient:
 def _safe_endpoint(path: str) -> str:
     """Return a log-safe endpoint without query values or conversation IDs."""
     endpoint = path.split("?", 1)[0]
-    if "/conversations/" in endpoint:
-        prefix = endpoint.split("/conversations/", 1)[0]
-        return f"{prefix}/conversations/<redacted>"
+    if CONVERSATION_ROUTE in endpoint:
+        prefix = endpoint.split(CONVERSATION_ROUTE, 1)[0]
+        return f"{prefix}{CONVERSATION_ROUTE}<redacted>"
     return endpoint
 
 

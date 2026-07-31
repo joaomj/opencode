@@ -14,7 +14,6 @@ from typing import List
 from opencode_lint.rule import Rule
 from opencode_lint.violation import Violation
 
-
 _MIN_DESC_LENGTH = 20
 _MAX_DESC_LENGTH = 600
 

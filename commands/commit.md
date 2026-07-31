@@ -42,7 +42,7 @@ Commit recent changes. Do not fetch, rebase, or merge.
    - `chore:` - dependencies, build process, configuration
 
 8. Generate a concise one-line commit message:
-   - Maximum 72 characters
+   - Maximum 50 characters
    - Format: `<type>: <description>`
    - No scope (no parentheses)
    - Imperative mood ("Add" not "Added", "Fix" not "Fixed")

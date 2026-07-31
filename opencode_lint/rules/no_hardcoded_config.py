@@ -35,7 +35,7 @@ class NoHardcodedConfig(Rule):
 
     rule_id = "OC014"
     description = "No hardcoded configurable values (magic numbers, inline URLs, etc.)"
-    severity = "warning"
+    severity = "error"
     categories = ["config", "quality", "security"]
 
     URL_PATTERN = re.compile(r'https?://[^\s\'"]+|wss?://[^\s\'"]+')
@@ -57,6 +57,33 @@ class NoHardcodedConfig(Rule):
         0.19, 0.21, 0.23, 0.25, 0.27,
         1.19, 1.21, 1.23, 1.25,
     }
+
+    CONFIG_NAME_PARTS: Set[str] = {
+        "backoff",
+        "batch",
+        "buffer",
+        "capacity",
+        "concurrency",
+        "connections",
+        "count",
+        "delay",
+        "interval",
+        "instances",
+        "limit",
+        "page",
+        "port",
+        "rate",
+        "retry",
+        "replicas",
+        "size",
+        "threads",
+        "threshold",
+        "timeout",
+        "ttl",
+    }
+
+    FILE_MODE_METHODS: Set[str] = {"chmod", "mkdir"}
+    PATH_FRAGMENT_VALUES: Set[str] = {"/"}
 
     def check_file(self, file_path: Path, content: str) -> List[Violation]:
         if self._should_skip_file(file_path):
@@ -127,6 +154,15 @@ class NoHardcodedConfig(Rule):
         if self._is_safe_numeric_context(node, tree):
             return None
 
+        parent = self._get_parent(tree, node)
+        if self._is_config_numeric_context(parent):
+            return self._make_violation(
+                node,
+                file_path,
+                f"Hardcoded configuration value {value} — move it to config",
+                "Add the value to the project configuration and reference it by name",
+            )
+
         if isinstance(value, int):
             if value in self.SUSPICIOUS_PORTS:
                 return self._make_violation(node, file_path,
@@ -149,7 +185,7 @@ class NoHardcodedConfig(Rule):
     def _is_well_known(self, value: int) -> bool:
         return value in {
             2, 4, 8, 10, 16, 24, 32, 64, 100, 128, 256,
-            200, 201, 204, 301, 302, 400, 401, 403, 404, 408,
+            3, 200, 201, 204, 301, 302, 400, 401, 403, 404, 408,
             429, 500, 502, 503,
             60, 3600, 86400,
         }
@@ -172,13 +208,17 @@ class NoHardcodedConfig(Rule):
         if isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             return True
 
-        if isinstance(parent, ast.AnnAssign):
-            return True
-
         if isinstance(parent, ast.Assign):
-            if self._is_module_level_constant(parent):
-                return True
-            return False
+            return not self._is_config_assignment(parent)
+
+        if isinstance(parent, ast.AnnAssign):
+            return not self._is_config_assignment(parent)
+
+        if isinstance(parent, ast.AugAssign):
+            return not self._is_config_assignment(parent)
+
+        if isinstance(parent, ast.JoinedStr):
+            return node.value in self.PATH_FRAGMENT_VALUES
 
         if isinstance(parent, (ast.Dict, ast.List, ast.Tuple, ast.Set)):
             return True
@@ -194,24 +234,29 @@ class NoHardcodedConfig(Rule):
             return True
 
         if isinstance(parent, ast.Assign):
-            return True
+            return not self._is_config_assignment(parent)
+
+        if isinstance(parent, ast.AnnAssign):
+            return not self._is_config_assignment(parent)
+
+        if isinstance(parent, ast.AugAssign):
+            return not self._is_config_assignment(parent)
 
         if isinstance(parent, (ast.Subscript, ast.Slice)):
             return True
 
         if isinstance(parent, ast.keyword):
-            return True
+            if parent.arg == "mode":
+                return True
+            return not self._is_config_like_name(parent.arg)
 
-        if isinstance(parent, ast.AnnAssign):
-            return True
+        if isinstance(parent, ast.Call):
+            return self._is_file_mode_call(parent)
 
         if isinstance(parent, (ast.arguments, ast.arg)):
             return True
 
         if isinstance(parent, ast.FunctionDef):
-            return True
-
-        if isinstance(parent, ast.AugAssign):
             return True
 
         if isinstance(parent, ast.Raise):
@@ -226,13 +271,47 @@ class NoHardcodedConfig(Rule):
                     return node
         return None
 
-    def _is_module_level_constant(self, node: ast.Assign) -> bool:
-        for target in node.targets:
-            if isinstance(target, ast.Name):
-                if target.id.isupper() and '_' in target.id:
-                    return True
-                if target.id.isupper() and len(target.id) > 1:
-                    return True
+    def _is_config_assignment(self, node: ast.Assign | ast.AnnAssign | ast.AugAssign) -> bool:
+        """Return whether an assignment target looks like runtime configuration."""
+        targets: list[ast.expr]
+        if isinstance(node, ast.Assign):
+            targets = node.targets
+        else:
+            targets = [node.target]
+
+        return any(
+            self._is_config_like_name(name)
+            for target in targets
+            for name in [self._target_name(target)]
+            if name is not None
+        )
+
+    def _is_config_numeric_context(self, parent: ast.AST | None) -> bool:
+        if isinstance(parent, (ast.Assign, ast.AnnAssign, ast.AugAssign)):
+            return self._is_config_assignment(parent)
+        if isinstance(parent, ast.keyword):
+            return self._is_config_like_name(parent.arg)
+        return False
+
+    def _target_name(self, target: ast.expr) -> str | None:
+        if isinstance(target, ast.Name):
+            return target.id
+        if isinstance(target, ast.Attribute):
+            return target.attr
+        return None
+
+    def _is_config_like_name(self, name: str | None) -> bool:
+        if not name:
+            return False
+        parts = set(re.split(r"[^a-z0-9]+", name.lower()))
+        return bool(parts & self.CONFIG_NAME_PARTS)
+
+    def _is_file_mode_call(self, node: ast.Call) -> bool:
+        function = node.func
+        if isinstance(function, ast.Name):
+            return function.id in self.FILE_MODE_METHODS
+        if isinstance(function, ast.Attribute):
+            return function.attr in self.FILE_MODE_METHODS
         return False
 
     def _make_violation(

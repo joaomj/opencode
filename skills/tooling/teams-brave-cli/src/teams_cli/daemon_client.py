@@ -10,6 +10,7 @@ import time
 from teams_cli.auth import AuthUnavailable, TeamsAuth
 from teams_cli.config import (
     DAEMON_START_APPROVAL_ENV,
+    DAEMON_POLL_INTERVAL_SECONDS,
     Settings,
     graphical_session,
     load_settings,
@@ -80,7 +81,7 @@ def start_daemon(settings: Settings | None = None) -> None:
             return
         except AuthUnavailable:
             pass
-        time.sleep(0.25)
+        time.sleep(DAEMON_POLL_INTERVAL_SECONDS)
     raise AuthUnavailable(
         "Teams authentication daemon did not become available before the startup timeout."
     )

@@ -12,14 +12,14 @@ Use this skill whenever writing, changing, reviewing, or planning tests. The goa
 
 The agent tests the system the same way a real user does.
 
-- **E2E-first**. The default test type is an end-to-end test that runs against a live instance (dev server, staging, production). The agent starts the app or connects to a running instance and exercises it from the outside.
+- **Highest useful seam**. Prefer user-flow tests, then e2e tests, integration tests, and unit or property tests. Choose the cheapest seam that gives a strong regression signal.
 - **Blackbox only**. Tests know nothing about internal implementation. No inspecting private methods, no asserting internal state, no patching internals. The system is a black box.
 - **Same tools as the user**. The agent tests with a browser, a terminal, an HTTP client, a CLI, a WebSocket client -- whatever tools a real user or operator uses to interact with the system.
 - **Assert user-visible outcomes**. Assert on API response bodies and status codes, rendered HTML/UI state, CLI stdout/stderr, files written, database state observable by the user, logs, and events -- not internal call graphs or internal state.
 - **No mocking internals**. The test exercises real code paths with real dependencies. A test database, a test broker, a test filesystem are acceptable. Patching or mocking internal functions, classes, or modules is not.
 - **A bug is not fixed until an e2e test reproduces it**. Reproduce the bug at the user-facing level. If you cannot reproduce it there, you have not found it.
 - **Error paths matter as much as happy paths**. Test what the user sees on failure: status codes, error bodies, UI messages. Do not test internal exception handlers in isolation.
-- **Every fixed bug must become an e2e regression test**.
+- **Do not write tests for every function or ordinary wiring** without a strong regression signal.
 - **Release readiness** benefits from checklists: what e2e tests passed, what was skipped, what was manually verified, what remains risky.
 
 ## The Agent's Test Toolkit
@@ -61,7 +61,7 @@ import pytest
 @pytest.fixture(scope="session")
 def dev_server():
     proc = subprocess.Popen(
-        ["python", "-m", "myapp", "--db", "sqlite:///tmp/test.db"],
+        ["uv", "run", "python", "-m", "myapp", "--db", "sqlite:///tmp/test.db"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -112,7 +112,7 @@ import subprocess
 
 def test_cli_export_produces_csv() -> None:
     result = subprocess.run(
-        ["python", "-m", "myapp", "export", "--format", "csv", "--user", "1"],
+        ["uv", "run", "python", "-m", "myapp", "export", "--format", "csv", "--user", "1"],
         capture_output=True,
         text=True,
     )
@@ -122,9 +122,16 @@ def test_cli_export_produces_csv() -> None:
 
 ## Test Taxonomy
 
-### E2E Tests (primary, default)
+### Test Hierarchy
 
-Every test that exercises the system from the outside, against a running instance. E2E tests cover:
+Choose the highest useful seam in this order:
+
+1. User-flow tests that match the real user experience
+2. E2E tests against a running instance
+3. Integration tests across real components
+4. Unit or property tests for complex pure logic
+
+User-flow and e2e tests cover:
 
 - User workflows (signup -> login -> create -> view -> edit -> delete)
 - API contracts (request/response shape, status codes, error bodies)
@@ -136,7 +143,7 @@ Every test that exercises the system from the outside, against a running instanc
 
 ### Property Tests (for pure logic only)
 
-The only non-e2e tests allowed. Apply exclusively to pure functions: same input always produces same output, no side effects, no I/O.
+Apply to complex pure functions only: same input always produces same output, no side effects, no I/O.
 
 Good targets: parsers, validators, serializers, normalizers, math utilities, cryptographic functions, state machines.
 
@@ -154,22 +161,21 @@ def test_sort_is_idempotent(values: list[int]) -> None:
 
 If a property test finds a failure, save the minimized case as a permanent regression test.
 
-### What No Longer Exists
+### Low-Signal Tests
 
-- **Unit tests that mock internals**: Replaced by e2e tests against the running instance.
-- **Integration tests that only wire internal components**: Replaced by e2e tests that cross the full stack.
-- **Contract tests with mock servers**: Replaced by e2e tests against real endpoints.
-- **Tests that assert internal call order or private state**: These test implementation, not behavior. Deleted on sight.
+- Tests that mock internals or assert private state are low signal.
+- Tests that only exercise ordinary wiring are low signal.
+- Tests added only to increase coverage are low signal.
 
 ## Regression Test Workflow
 
 For bug fixes:
 
-1. Reproduce the bug at the user-facing level (e2e test that fails against the running instance).
+1. Reproduce the bug at the highest useful black-box seam.
 2. Run the test and confirm it fails with the observed user-visible symptom.
 3. Implement the minimal fix.
 4. Run the e2e regression test and confirm it passes.
-5. Run the full e2e suite.
+5. Run the relevant suite and record any verification gap.
 6. Keep the regression test permanently.
 
 Good regression names:
@@ -189,10 +195,10 @@ Bad regression names:
 For new features:
 
 1. Identify the user-visible workflow and expected outcomes.
-2. Write an e2e test that exercises the complete workflow against a running instance.
-3. Assert user-visible results: API responses, UI state, CLI output, persisted data.
-4. Add additional e2e tests for error paths, edge cases, and authorization boundaries -- all at the user-facing level.
-5. Do NOT write unit tests for internal functions. If a function is complex enough to need isolated testing, it is a candidate for a property test -- and only if it is pure (no side effects, no I/O).
+2. Choose the highest useful seam for the behavior.
+3. Assert user-visible results where the test crosses a user-facing boundary.
+4. Add tests for error paths, edge cases, and authorization boundaries only when they provide a strong regression signal.
+5. Use a property test for complex pure logic. Do not test private methods or ordinary wiring.
 
 ## E2E Test Patterns
 
@@ -359,16 +365,16 @@ When reviewing tests, ask:
 Run tests against a live instance:
 
 ```bash
-python -m myapp --test-mode &
+uv run python -m myapp --test-mode &
 APP_PID=$!
-pytest tests/e2e/ -q
+uv run pytest tests/e2e/ -q
 kill $APP_PID
 ```
 
 For a single test:
 
 ```bash
-pytest tests/e2e/test_auth.py::test_user_signup_and_login -q
+uv run pytest tests/e2e/test_auth.py::test_user_signup_and_login -q
 ```
 
 ## Configuration

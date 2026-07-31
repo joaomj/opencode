@@ -1,5 +1,6 @@
 """LinterRunner - Main linter orchestration."""
 
+import sys
 from pathlib import Path
 from typing import Iterator, List, Optional, Type
 
@@ -22,7 +23,6 @@ from opencode_lint.rules.routing_consistency import RoutingConsistency
 from opencode_lint.rules.skill_descriptions import SkillDescriptions
 from opencode_lint.rules.strict_type_hints import StrictTypeHints
 from opencode_lint.violation import Violation
-
 
 DEFAULT_EXCLUDED_DIRS = frozenset(
     {
@@ -85,7 +85,11 @@ class LinterRunner:
 
         try:
             content = file_path.read_text(encoding="utf-8")
-        except (IOError, UnicodeDecodeError):
+        except (IOError, UnicodeDecodeError) as error:
+            print(
+                f"Warning: could not read {file_path}: {error}",
+                file=sys.stderr,
+            )
             return violations
 
         for rule in self.rules:
@@ -130,7 +134,11 @@ class LinterRunner:
             current = stack.pop()
             try:
                 entries = list(current.iterdir())
-            except OSError:
+            except OSError as error:
+                print(
+                    f"Warning: could not list {current}: {error}",
+                    file=sys.stderr,
+                )
                 continue
 
             for entry in entries:

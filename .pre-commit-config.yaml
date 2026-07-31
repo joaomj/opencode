@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: opencode-lint
         name: opencode-lint
-        entry: uv run --directory opencode_lint opencode-lint --pre-commit
+        entry: uv run --no-project python -m opencode_lint.cli --pre-commit
         language: system
         pass_filenames: false
         files: '\.(py|ya?ml)$'

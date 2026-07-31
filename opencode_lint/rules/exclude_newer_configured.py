@@ -91,7 +91,7 @@ def check_global_uv_config() -> List[Violation]:
         if "exclude-newer" in content:
             return violations
 
-    env_value = os.environ.get("UV_EXCLUDE_NEWER", "")
+    env_value = os.getenv("UV_EXCLUDE_NEWER", "")
     if env_value:
         return violations
 

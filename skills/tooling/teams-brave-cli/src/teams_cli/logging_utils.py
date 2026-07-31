@@ -6,11 +6,11 @@ import stat
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+from teams_cli.config import LOG_BACKUP_COUNT, LOG_MAX_BYTES
+
 LOGGER_NAME = "teams_cli"
 LOG_DIR = Path.home() / ".config" / "teams-cli" / "logs"
 LOG_FILE = LOG_DIR / "teams-cli.log"
-LOG_MAX_BYTES = 5_000_000
-LOG_BACKUP_COUNT = 3
 
 _SECRET_PATTERN = re.compile(
     r"(?i)(skypetoken|authtoken|authorization|authentication|access_token|"

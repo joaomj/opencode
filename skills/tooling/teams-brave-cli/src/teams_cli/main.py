@@ -28,6 +28,9 @@ class CliState(TypedDict):
 
 
 state: CliState = {"auth_provider": "auto", "profile": None, "client": None}
+MESSAGE_URL_MARKER = "/l/message/"
+CHAT_URL_MARKER = "/l/chat/"
+PATH_SEPARATOR = "/"
 
 
 @app.callback()
@@ -229,12 +232,12 @@ def reply(
 
 def _parse_input_id(input_str: str) -> str:
     """Parse a Teams URL into a conversation ID, or return as-is."""
-    for marker in ("/l/message/", "/l/chat/"):
+    for marker in (MESSAGE_URL_MARKER, CHAT_URL_MARKER):
         if marker in input_str:
             rest = input_str.split(marker, 1)[1]
             query_start = rest.find("?")
             path = rest[:query_start] if query_start != -1 else rest
-            parts = path.split("/")
+            parts = path.split(PATH_SEPARATOR)
             return parts[0] if parts else input_str
     return input_str
 

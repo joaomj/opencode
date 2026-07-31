@@ -103,7 +103,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check exclude-newer configured
         run: |
-          if ! grep -q 'exclude-newer' pyproject.toml; then
+          if ! rg -q 'exclude-newer' pyproject.toml; then
             echo 'ERROR: exclude-newer not configured in pyproject.toml (OC010)'
             exit 1
           fi
