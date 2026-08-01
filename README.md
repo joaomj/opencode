@@ -28,6 +28,16 @@ rules. Use `/implementation-plan` for repository-specific plans, conversational
 for medium or high complexity bug fixes, `/code-review` before a PR, and
 `/create-pr` only after review and branch verification.
 
+## Agent Improvement
+
+Run `/improve-agent` to audit the global OpenCode setup and session history.
+The audit checks for recurring agent friction, overlapping or redundant
+instructions, conflicts, stale artifacts, unsafe tools or plugins, and missing
+capabilities.
+
+The command is proposal-only. It does not modify skills, commands, plugins,
+tools, configuration, or session records.
+
 ## Decision Records
 
 See the artifact ownership rules in `AGENTS.md`. Do not duplicate the same
