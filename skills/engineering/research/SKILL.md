@@ -3,10 +3,18 @@ name: research
 description: Investigate external facts, unfamiliar tools, APIs, libraries, or deployed behavior with primary sources and explicit evidence. Use when a decision depends on information outside the current codebase.
 ---
 
-# Research
+# Research Workflow
 
-Use research to answer a specific question. Do not collect information without
-a decision that the information will support.
+Use this workflow to answer a specific question about external facts,
+unfamiliar tools, APIs, libraries, or deployed behavior. Do not collect
+information without a decision that the information will support.
+
+## Boundary
+
+State the selected workflow, deliverable, and side-effect boundary before
+research. Use `codebase-investigation` for questions about current local code
+without an external-facts component. Use `focused-exploration` for option
+generation without a specific factual question.
 
 ## Source order
 
@@ -69,3 +77,9 @@ access, stale documentation, and inconclusive results.
 
 Do not change project files unless the user requests a research note or the
 current workflow has approved that artifact.
+
+## Completion
+
+Stop after the findings, interpretation, recommendation, uncertainty, and
+sources answer the question. Do not create a specification, plan, ADR, or code
+change unless the user explicitly requests that handoff.

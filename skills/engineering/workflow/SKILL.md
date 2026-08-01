@@ -1,125 +1,93 @@
 ---
 name: workflow
-description: Select a risk-based software delivery route for features, bugs, refactors, architecture work, and unclear requests. Use before non-trivial code changes.
+description: Classify the user's intent and select the smallest workflow that delivers the requested result. Use for every substantial user request before execution.
 ---
 
-# Workflow
+# Workflow Router
 
-Use this skill before non-trivial code changes. It selects the smallest process
-that gives enough confidence for the risk.
+This is the top-level workflow router. It classifies the meaning of the full
+request, selects one workflow, and reports that selection before substantial
+work. It is not a keyword matcher.
 
-## First inspect
+## Intent Envelope
 
-Read the relevant repository structure and current behavior before making claims.
-Use this evidence order:
+Read the complete request and current conversation. Determine:
 
-1. Deployed or remote behavior
-2. Local code
-3. Updated documentation
-4. Jira tickets
+- The result the user expects to receive
+- The action the user wants performed
+- The maximum side effects the user appears to allow
+- The point where the work should stop
+- Whether the request concerns understanding, a decision, a change, recovery,
+  review, or a remote delivery action
 
-Treat Jira as context and intent. Report conflicts between evidence sources.
-This is the default project evidence order. Use the more specific source order
-in `research` when investigating external facts, APIs, or library behavior.
+Use the request's meaning, context, and expected result. Words such as
+"explore", "plan", or "research" are evidence, not routing rules. A request
+can select a workflow without using its name.
 
-## Classify the work
+## Routing Procedure
 
-Assess these factors:
+1. Read the full request and relevant previous decisions.
+2. Identify any explicit workflow, deliverable, or side-effect request.
+3. Classify the intended result, not only the subject matter.
+4. Select the smallest workflow that can produce that result.
+5. Use risk, uncertainty, reversibility, impact, scope, and available evidence
+   to choose the depth inside the selected workflow.
+6. If two workflows would produce materially different deliverables or side
+   effects, ask one focused question before acting.
+7. Otherwise, choose the best-supported workflow and state the assumption.
+8. Load the selected workflow and follow its ordered steps.
 
-- Behavior uncertainty: is the desired result clear?
-- Implementation uncertainty: is an established code pattern clear?
-- Reversibility: can the change be rolled back without data or contract loss?
-- Impact: can the change affect security, money, data, or many users?
-- Scope: can one focused session hold the work?
-- Evidence: is the problem or desired behavior reproduced?
+Risk selects preparation and verification depth. Risk does not turn an idea,
+question, or exploration request into an implementation plan.
 
-Choose one route.
+## Required Opening
 
-### Direct route
-
-Use when the behavior and implementation are clear, local, and reversible.
-
-```text
-inspect -> implement -> verify -> report
-```
-
-Do not create a specification or plan only to satisfy a process.
-
-### Planned route
-
-Use when the behavior is clear but the implementation is complex.
+Before substantial work, write:
 
 ```text
-ticket or request -> inspect -> implementation plan -> approval
--> implement -> verify -> review -> PR
+Selected workflow: <workflow name>
+Deliverable: <what the user will receive>
+Side effects: <files, code, branch, remote action, or none>
 ```
 
-Use `/implementation-plan`. The plan is repository-specific. It does not replace
-the ticket.
+Always show the selected workflow, including when the workflow is obvious.
 
-### Discovery route
+## Workflow Registry
 
-Use when product behavior, domain terms, feasibility, or architecture is unclear.
+| Intended result | Workflow | Default boundary |
+|---|---|---|
+| Develop an idea or compare options | `focused-exploration` | Conversation only |
+| Explain the current repository or behavior | `codebase-investigation` | Read-only findings |
+| Establish external or unfamiliar facts | `research` | Findings and sources |
+| Change code, configuration, or infrastructure | `software-delivery` | Approved implementation scope |
+| Resolve broken, slow, or incorrect behavior | `bug-resolution` | Fix and verification |
+| Produce repository-specific implementation steps | `implementation-planning` | Branch and plan only |
+| Select and record a durable architecture choice | `architecture-decision` | Decision record only when justified |
+| Evaluate a code change | `code-review` | Review findings only |
+| Publish a pull request | `create-pull-request` | Remote PR action with confirmation |
+| Record a medium/high complexity bug | `write-postmortem` | Postmortem record only |
+| Maintain technical documentation | `doc-maintenance` or `technical-writing` | Requested documentation scope |
 
-```text
-problem -> research, grilling, domain modeling, or prototype
--> specification when needed -> ADRs when needed
--> implementation plan -> approval -> delivery
-```
+Existing capability skills such as `research`, `domain-modeling`,
+`codebase-design`, `prototype`, `coding-standards`, `error-handling`, and
+`testing-best-practices` are invoked by workflows. They do not replace the
+top-level routing decision.
 
-Load only the discovery skill that matches the uncertainty. Use
-`specification` to record accepted behavior. Do not use a plan to hide
-unresolved product decisions.
+## Handoffs
 
-### Bug route
+A workflow may invoke a capability skill or hand off to another workflow when
+the user request permits that result. A handoff must state the new workflow and
+why it is needed.
 
-Use when the user reports incorrect, failing, slow, or broken behavior.
+Do not escalate automatically from exploration, investigation, or research to
+specification, planning, implementation, review, or PR creation. Return the
+current deliverable and let the user request or approve the next workflow.
 
-```text
-report -> reproduce -> failing black-box regression test when possible
--> diagnose -> minimal fix -> verify -> write-postmortem when medium/high
--> review -> PR
-```
+Do not create a ticket, specification, ADR, plan, branch, code, test, commit, or
+PR unless the selected workflow and the user's request permit it.
 
-Load `diagnosing-bugs` for hard bugs. Use selective TDD. Do not build a large
-test harness before a tight feedback loop exists.
+## Completion
 
-### Wayfinding route
-
-Use `wayfinder` only when the work is too large or unclear for one focused plan.
-Wayfinding produces a map of decisions. It does not start implementation.
-
-## Artifact selection
-
-Use the smallest artifact that preserves the decision:
-
-| Question | Artifact |
-|---|---|
-| Why is this needed? | Jira ticket |
-| What behavior is required? | Specification |
-| How will this repository change? | `PLAN-<ticket-id>.md` |
-| Why was a hard-to-reverse design selected? | ADR |
-| How does the current system work? | `tech-context.md` |
-| What was delivered and verified? | Pull request |
-
-Do not duplicate content. Link artifacts instead.
-
-## Approval gates
-
-- Small, clear, reversible work can proceed directly.
-- Substantial feature and architecture work needs user approval before code edits.
-- A specification needs approval when it defines behavior or scope for substantial work.
-- An implementation plan needs approval before implementation.
-- An ADR needs approval when it records a hard-to-reverse choice.
-
-## Required output
-
-Before the next phase, state:
-
-- Selected route
-- Evidence and risk that led to the route
-- Artifacts required
-- Next action
-- Any blocker or unresolved decision
-
-Do not implement code while this skill is selecting a route.
+Stop when the selected workflow's deliverable and completion condition are met.
+Do not continue into a plausible next workflow only because more work is
+possible.

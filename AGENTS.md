@@ -7,6 +7,7 @@
 - **infra-code-separation**: separate infrastructure and application changes into separate commits and PRs unless they are deeply intertwined.
 - **no-silent-failures**: every failure must surface through an error, log, recovery classification, or user-visible result.
 - **gh-cli-only**: use `gh` for GitHub operations. Do not use curl, wget, or WebFetch against github.com.
+- **github-repo-exploration**: for understanding or exploring a GitHub repository, prefer a temporary shallow clone of its default branch with `gh repo clone ... -- --depth=1`, then inspect the local checkout. Remove the temporary checkout after use.
 - **signed-commits**: sign every commit with the SSH key configured in `~/.gitconfig`. Use `git commit -S`.
 - **no-api-commits**: do not use the GitHub Contents API or `gh api --method PUT`.
 - **never-read-env**: never read or inspect `.env` values. Use `os.getenv()` for environment variables.
@@ -30,6 +31,11 @@
 ## Delivery Policy
 
 - Scale preparation to uncertainty, risk, and reversibility.
+- Route every substantial user request through the `workflow` skill before
+  execution, including requests that do not change code.
+- Always show `Selected workflow: <name>` before substantial work.
+- Treat the requested deliverable and permitted side effects as the workflow's
+  intent envelope. Do not exceed it without an explicit handoff.
 - Write a specification when required behavior is unclear.
 - Write an implementation plan when code changes are complex.
 - Require both for large, high-risk, or hard-to-reverse changes.
@@ -93,6 +99,7 @@
 - **Config**: `opencode.jsonc`
 - **Commands**: `commands/*.md`
 - **Skills**: `skills/**/SKILL.md`
+- **Workflows**: `skills/workflows/**/SKILL.md`
 - **Linter**: `opencode_lint/`
 - **Linter rules**: `opencode_lint/rules/`
 - **Teams messaging**: use `skills/tooling/teams-brave-cli/SKILL.md` with the local Python CLI. Never use Playwright MCP or personal browser profiles.
@@ -101,7 +108,12 @@
 
 | Need | Use | Scope |
 |------|-----|-------|
-| Select a delivery route | `workflow` skill | Before non-trivial feature, refactor, architecture, or bug work |
+| Route a user request | `workflow` skill | Before every substantial request |
+| Explore an idea or option space | `focused-exploration` workflow | The user wants clarity without delivery work |
+| Explain current code or behavior | `codebase-investigation` workflow | The user wants read-only repository findings |
+| Deliver a code, config, or infrastructure change | `software-delivery` workflow | The user requests a repository change |
+| Resolve broken or incorrect behavior | `bug-resolution` workflow | The user requests diagnosis or repair |
+| Produce implementation steps | `implementation-planning` workflow | The user requests a repository-specific plan |
 | Research external facts | `research` skill | Primary-source research or unfamiliar external behavior |
 | Resolve unclear requirements | `grill-with-docs` skill | Product behavior or domain language is unclear |
 | Model domain language | `domain-modeling` skill | Terms, entities, states, or relationships are ambiguous |

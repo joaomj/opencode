@@ -3,10 +3,11 @@ description: Create an implementation plan from the current repository state
 agent: build
 ---
 
-Create an implementation plan for `$ARGUMENTS`.
+Create an implementation plan for `$ARGUMENTS` using the
+`implementation-planning` workflow.
 
-This command is the planning writer for the planned route. It may create the
-required branch and plan file, but it must not implement code or create tickets.
+This command is an explicit workflow selector. Do not use it for exploration,
+research, specification, architecture discussion, or implementation.
 
 1. Explain the strategy in plain terms for a product manager.
 2. Inspect the current repository before making claims. Use deployed or remote behavior, local code, updated documentation, and Jira tickets in that evidence order.

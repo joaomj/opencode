@@ -22,8 +22,16 @@ Restart OpenCode after changing `opencode.jsonc`, plugins, commands, or skills.
 
 ## Delivery Workflow
 
-See `AGENTS.md` and the `workflow` skill for the risk-based routes and artifact
-rules. Use `/implementation-plan` for repository-specific plans, conversational
+See `AGENTS.md` and the `workflow` skill for intent-based routing. Every
+substantial request selects one workflow before execution and reports it as
+`Selected workflow: <name>`.
+
+Workflow skills define ordered steps, deliverables, allowed side effects, and
+completion conditions. Capability skills such as research, testing, and error
+handling are invoked by workflows. An exploration or investigation workflow
+does not become a plan unless the user explicitly requests that handoff.
+
+Use `/implementation-plan` for repository-specific plans, conversational
 `specification` and `implement` skills for approved work, `/write-postmortem`
 for medium or high complexity bug fixes, `/code-review` before a PR, and
 `/create-pr` only after review and branch verification.

@@ -4,7 +4,7 @@ description: Record a hard-to-reverse architectural choice, its alternatives, an
 disable-model-invocation: true
 ---
 
-# Architecture Decision
+# Architecture Decision Workflow
 
 Use an ADR only when all three conditions apply:
 
@@ -13,6 +13,22 @@ Use an ADR only when all three conditions apply:
 3. Real alternatives and trade-offs were assessed.
 
 Do not create ADRs for routine implementation choices or temporary plans.
+
+## Ordered Steps
+
+1. State the selected workflow, decision deliverable, and side-effect boundary.
+2. Define the architectural question and the constraints that make it material.
+3. Inspect current behavior, repository structure, relevant domain terms, and
+   existing decisions.
+4. Invoke `research`, `prototype`, `domain-modeling`, or `codebase-design` only
+   when that evidence is needed.
+5. Compare credible alternatives and their trade-offs.
+6. Select a recommendation or report that the ADR threshold is not met.
+7. Obtain approval before writing a durable ADR.
+8. Link the ADR from current technical context when one is created.
+
+Do not turn an architecture discussion into implementation planning unless the
+user requests that handoff.
 
 ## Record
 
