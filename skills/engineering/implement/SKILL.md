@@ -1,7 +1,6 @@
 ---
 name: implement
 description: Implement approved work from a ticket, specification, or implementation plan. Use after the required preparation and approval gates are complete.
-disable-model-invocation: true
 ---
 
 # Implement

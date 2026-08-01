@@ -183,36 +183,9 @@ For projects with requirements.txt:
 
 ### Container Image Scanning (Trivy)
 
-For projects building Docker images, add Trivy scanning:
-Resolve current supported action releases when creating the workflow, then pin
-each action to a release or commit SHA. Do not copy an old action reference
-unchanged.
-
-```yaml
-  container-scan:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build image
-        run: docker build -t myapp:${{ github.sha }} .
-      - name: Trivy vulnerability scan
-         uses: aquasecurity/trivy-action@<verified-release-or-sha>
-        with:
-          image-ref: myapp:${{ github.sha }}
-          format: sarif
-          output: trivy-results.sarif
-          severity: HIGH,CRITICAL
-      - name: Upload results to GitHub Security tab
-         uses: github/codeql-action/upload-sarif@<verified-release-or-sha>
-        with:
-          sarif_file: trivy-results.sarif
-```
-
-And add to job dependencies:
-```yaml
-    needs: [lockfile-check, lint, test, security, container-scan]
-```
+For projects that build Docker images, read
+`../references/container-scanning.md` and add the scan job to the required job
+dependencies. Resolve current action releases and pin them before use.
 
 ## Optional Deployment Block
 

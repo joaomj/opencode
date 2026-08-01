@@ -25,6 +25,8 @@ Every failure must become one of:
 - Distinguish validation errors, transient errors, permanent errors, and
   operator-action errors.
 - Make retry behavior explicit and safe.
+- Load `coding-standards` for mutation idempotency, concurrency, and security
+  rules.
 
 For multi-step work, define what happens after each partial failure. Prefer
 checkpointing, idempotency, rollback, or a clear manual recovery path.

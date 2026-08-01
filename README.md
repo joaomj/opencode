@@ -11,7 +11,8 @@ uv sync --locked --project ~/.config/opencode/opencode_lint
 
 ## Atlassian MCP
 
-Authenticate the configured Jira server when Jira work needs access:
+If the Atlassian MCP block is enabled in `opencode.jsonc`, authenticate it when
+Jira work needs access:
 
 ```bash
 opencode mcp auth atlassian
@@ -21,28 +22,16 @@ Restart OpenCode after changing `opencode.jsonc`, plugins, commands, or skills.
 
 ## Delivery Workflow
 
-Use the smallest route that matches the change risk:
-
-```text
-clear and small: inspect -> implement -> verify
-complex implementation: ticket -> plan -> approve -> implement -> review -> PR
-unclear behavior: discover -> specify -> decide -> plan -> implement -> review -> PR
-confirmed bug: reproduce -> regression test -> diagnose -> fix -> review -> PR
-```
-
-Use `/specification` only when behavior needs more detail than the ticket. Use
-`/implementation-plan` when repository-specific implementation steps are needed.
-Use `/implement` only with approved work. Use `/code-review` before a PR. Use
+See `AGENTS.md` and the `workflow` skill for the risk-based routes and artifact
+rules. Use `/implementation-plan` for repository-specific plans, conversational
+`specification` and `implement` skills for approved work, `/write-postmortem`
+for medium or high complexity bug fixes, `/code-review` before a PR, and
 `/create-pr` only after review and branch verification.
 
 ## Decision Records
 
-- Tickets record problems and desired user-visible outcomes.
-- Specifications record required behavior and scope.
-- `PLAN-<ticket-id>.md` records repository-specific implementation steps.
-- `docs/adr/` records hard-to-reverse architecture decisions.
-- `tech-context.md` records the current system and links to ADRs.
-- Pull requests record delivered changes and verification evidence.
+See the artifact ownership rules in `AGENTS.md`. Do not duplicate the same
+decision across a ticket, specification, plan, ADR, technical context, or PR.
 
 ## Linter
 

@@ -105,19 +105,25 @@
 | Research external facts | `research` skill | Primary-source research or unfamiliar external behavior |
 | Resolve unclear requirements | `grill-with-docs` skill | Product behavior or domain language is unclear |
 | Model domain language | `domain-modeling` skill | Terms, entities, states, or relationships are ambiguous |
-| Define required behavior | `/specification` | Discovery is complete but behavior needs a durable specification |
+| Define required behavior | `specification` skill | Discovery is complete but behavior needs a durable specification |
 | Test a design cheaply | `prototype` skill | A runnable artifact can answer a design question |
 | Evaluate interfaces and seams | `codebase-design` skill | Module depth, test seams, and structural design |
 | Record a durable architecture choice | `architecture-decision` skill | A hard-to-reverse design trade-off needs a record |
 | Plan very large unclear work | `wayfinder` skill | Work spans multiple sessions and decisions are not visible |
 | Inspect architecture friction | `improve-codebase-architecture` skill | User requests architecture maintenance or a clear hotspot exists |
+| Apply implementation standards | `coding-standards`, `error-handling`, `python-tooling`, `testing-best-practices` skills | During implementation or verification when applicable |
 | Create an implementation plan | `/implementation-plan` | A planned route is selected |
-| Implement approved work | `/implement` | A ticket, specification, or approved plan is available |
-| Create or update a Jira ticket | `/jira` | User asks to write, update, or inspect Jira work |
+| Implement approved work | `implement` skill | A ticket, specification, or approved plan is available |
+| Create or update a Jira ticket | `jira` skill | User asks to write, update, or inspect Jira work |
 | Review code | `/code-review` | User asks for a review or the delivery workflow reaches its review gate |
 | Create a pull request | `/create-pr` | Implementation and review are complete |
+| Record a medium/high bug fix | `/write-postmortem` | The fix is verified and the user wants the record |
 | Diagnose a hard bug | `diagnosing-bugs` skill | User asks to diagnose or debug a failure |
 | Maintain project documentation | `doc-maintenance` skill | User asks to update project documentation |
+| Simplify code | `simplify` skill | User explicitly asks to simplify code |
+| Write technical documentation | `technical-writing` skill | The requested output is prose-heavy technical documentation |
+| Read or send Teams messages | `teams-brave-cli` skill | User asks to inspect or send Teams messages |
+| Use domain-specific guidance | `docker-best-practices`, `github-cicd-lite`, `ml-best-practices`, `architecture-diagram`, `context7`, `firecrawl-web-scraper` skills | The task matches the skill description |
 
 ## Writing Style
 

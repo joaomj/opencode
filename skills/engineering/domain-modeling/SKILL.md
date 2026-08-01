@@ -7,6 +7,8 @@ description: Define and sharpen business terms, entities, states, relationships,
 
 Domain modeling answers: "What concepts exist, and what do their names mean?"
 It does not design classes or choose implementation details.
+When discussion is the bottleneck, use `grill-with-docs` to ask the questions
+and use this skill to record the accepted vocabulary.
 
 ## Method
 

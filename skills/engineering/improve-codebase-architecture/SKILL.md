@@ -6,33 +6,28 @@ disable-model-invocation: true
 
 # Improve Codebase Architecture
 
-This skill finds structural friction. It does not generate a general cleanup
-list and does not implement speculative refactors.
+Find evidence-based structural friction. Do not create a general cleanup list
+or implement a speculative refactor.
 
 ## Scope
 
-Prefer areas that:
-
-- Changed often in recent history.
-- Have repeated bugs or difficult verification.
-- Force callers to repeat orchestration.
-- Expose implementation details through a large interface.
-- Require internal mocks to test important behavior.
-
-Read the domain glossary and ADRs before proposing changes. Use
-`codebase-design` vocabulary.
+Prefer areas that changed often, repeat bugs, force callers to repeat
+orchestration, expose implementation details, or require internal mocks for
+important behavior.
 
 ## Method
 
 1. Select a scope from the user's direction or recent hotspots.
 2. Inspect the code, tests, history, and current behavior.
-3. Apply the deletion test to suspected shallow modules.
-4. Produce a small set of candidates with evidence.
-5. For each candidate, state the current interface, proposed seam, locality and
-   leverage gains, risks, and an alternative.
-6. Ask the user which candidate to explore.
-7. Use `grill-with-docs` and `domain-modeling` for the selected candidate.
-8. Write an ADR only when the decision meets the ADR threshold.
+3. Produce a small set of candidates with evidence.
+4. For each candidate, state the current interface, locality and leverage gains,
+   risks, and an alternative.
+5. Ask the user which candidate to explore.
+6. Load `codebase-design` for deletion, seam, depth, and test-surface analysis.
+7. Load `grill-with-docs` or `domain-modeling` only when a decision or term is
+   still unclear.
+8. Write an ADR only when the decision is hard to reverse, surprising, and
+   based on real trade-offs.
 
 Do not propose interfaces before the user selects a candidate. Do not change
-code during the scan.
+code during the scan. `codebase-design` owns detailed design analysis.

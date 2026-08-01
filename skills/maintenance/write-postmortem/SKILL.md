@@ -1,35 +1,43 @@
 ---
 name: write-postmortem
-description: Record completed bug fixes and significant incidents as blameless, searchable Markdown postmortems following Google SRE format. Use after a bug is fixed, a regression test passes, root cause is understood, and prevention measures are identified. Two tiers: standard record for every bug fix, full postmortem for outages, data loss, security incidents, repeated regressions, or user-visible degradation.
+description: Record medium or high complexity bug fixes and significant incidents as blameless, searchable Markdown postmortems following Google SRE format. Use after a bug is fixed, a regression test passes, root cause is understood, and prevention measures are identified.
+disable-model-invocation: true
 ---
 
 # Write Postmortem
 
-Record completed bug fixes and significant incidents as blameless, searchable Markdown postmortems in `docs/issues-database/`.
+Record medium or high complexity bug fixes and significant incidents as
+blameless, searchable Markdown postmortems. Use the repository's established
+postmortem directory. If none exists, use `docs/issues-database/`.
 
 ## When to Use
 
-- After a bug fix is complete: root cause understood, regression test written, fix merged.
+- After a medium or high complexity bug fix is complete: root cause understood,
+  regression test written, and fix verified.
 - After any outage, data loss, security incident, repeated regression, or user-visible degradation.
-- When the `diagnosing-bugs` skill reaches its Phase 6 (cleanup + post-mortem).
 - User says: "write postmortem", "record this bug", "create postmortem", "document this fix".
 
 ## Two Tiers
 
 | Tier | Trigger | Depth |
 |------|---------|-------|
-| **Standard record** | Every fixed bug | Concise: summary, root cause, resolution, regression test, prevention actions |
-| **Full postmortem** | Outage, data loss, security incident, repeated regression, user-visible degradation, or lengthy diagnosis | Complete: all sections with timeline, contributing factors, lessons learned |
+| **Standard record** | Medium complexity bug fix | Concise: summary, root cause, resolution, regression test, prevention actions |
+| **Full postmortem** | High complexity bug fix, outage, data loss, security incident, repeated regression, user-visible degradation, or lengthy diagnosis | Complete: all sections with timeline, contributing factors, lessons learned |
 
 The skill determines the tier by asking the user. If unclear, default to standard record and offer to expand.
 
 ## File Location and Naming
+
+The default directory is:
 
 ```
 docs/issues-database/
   README.md
   2026-07-27-short-description.md
 ```
+
+Use an existing repository convention instead of creating a second directory.
+Ask before choosing a different location when more than one convention exists.
 
 Filenames: `YYYY-MM-DD-short-description.md`. Use lowercase, hyphens for spaces, keep under 60 characters.
 
@@ -269,4 +277,7 @@ rg "^component:|^severity:|tags:" docs/issues-database/
 
 ## Integration with diagnosing-bugs
 
-When the `diagnosing-bugs` skill reaches Phase 6 (cleanup + post-mortem), load this skill. The diagnosis work already produced root cause, timeline, and regression test material. Repurpose that into the postmortem template instead of asking the user to repeat it.
+After the `diagnosing-bugs` skill reaches Completion, invoke `/write-postmortem`
+when the fix is medium or high complexity or the bug was a significant incident.
+The diagnosis work already produced root cause, timeline, and regression test
+material. Repurpose that material instead of asking the user to repeat it.

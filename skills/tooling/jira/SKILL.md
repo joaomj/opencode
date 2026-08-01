@@ -6,7 +6,9 @@ license: MIT
 
 # Jira
 
-Use the configured Atlassian MCP server for Jira work. Do not use direct HTTP requests or GitHub tools.
+Use the configured Atlassian MCP server for Jira work when it is enabled. Do not
+use direct HTTP requests or GitHub tools. If the server is disabled, report the
+configuration gap instead of claiming that Jira work succeeded.
 
 ## Ticket Content
 
@@ -30,4 +32,5 @@ Use the configured Atlassian MCP server for Jira work. Do not use direct HTTP re
 4. Report the issue key and the resulting user-visible state.
 5. Surface MCP errors. Do not convert failed operations into success responses.
 
-If authentication is required, tell the user to run `opencode mcp auth atlassian` and retry.
+If the server is enabled and authentication is required, tell the user to run
+`opencode mcp auth atlassian` and retry.

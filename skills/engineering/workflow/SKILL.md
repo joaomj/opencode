@@ -19,6 +19,8 @@ Use this evidence order:
 4. Jira tickets
 
 Treat Jira as context and intent. Report conflicts between evidence sources.
+This is the default project evidence order. Use the more specific source order
+in `research` when investigating external facts, APIs, or library behavior.
 
 ## Classify the work
 
@@ -75,7 +77,8 @@ Use when the user reports incorrect, failing, slow, or broken behavior.
 
 ```text
 report -> reproduce -> failing black-box regression test when possible
--> diagnose -> minimal fix -> verify -> review -> PR
+-> diagnose -> minimal fix -> verify -> write-postmortem when medium/high
+-> review -> PR
 ```
 
 Load `diagnosing-bugs` for hard bugs. Use selective TDD. Do not build a large

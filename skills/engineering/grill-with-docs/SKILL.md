@@ -21,6 +21,10 @@ human-in-the-loop skill.
 8. Stop when the behavior and constraints are clear enough for a specification
    or implementation plan.
 
+Load `domain-modeling` when precise terms, states, or relationships are the
+main uncertainty. This skill owns the interview; `domain-modeling` owns the
+resulting vocabulary.
+
 Do not interview yourself. Do not invent user answers. Do not implement code.
 
 ## Result
