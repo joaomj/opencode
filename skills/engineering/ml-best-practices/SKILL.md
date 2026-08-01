@@ -1,12 +1,12 @@
 ---
 name: ml-best-practices
-description: Complete ML development guide using SDD methodology. Covers CRISP-DM, data quality, evaluation, MLflow, hypothesis testing, and experiment reporting. Use when the user asks for ML work: data analysis, experiments, model training, or hypothesis testing.
+description: Complete ML development guide using risk-based preparation and CRISP-DM. Covers data quality, evaluation, MLflow, hypothesis testing, and experiment reporting. Use when the user asks for ML work: data analysis, experiments, model training, or hypothesis testing.
 license: MIT
 ---
 
 # Machine Learning Best Practices
 
-Comprehensive guide for ML development with focus on reproducibility, data quality, and proper evaluation. SDD is the default methodology: frame the problem and get a spec approved before modeling. TDD does not apply to ML work; evaluation rigor replaces it.
+Comprehensive guide for ML development with focus on reproducibility, data quality, and proper evaluation. Use a specification when the business question, data contract, or evaluation protocol is unclear. Do not require a specification for every small experiment. TDD does not apply to ML work; evaluation rigor replaces it.
 
 ## Non-Negotiable Rules (STOP if violated)
 
@@ -335,8 +335,8 @@ print(importance_df)
 
 ### Setup
 ```bash
-pip install mlflow
-mlflow ui
+uv add mlflow
+uv run mlflow ui
 ```
 
 ### Logging Experiments
@@ -442,7 +442,7 @@ Apply statistical rigor before modeling:
 
 ## Feasibility Gates
 
-Each SDD phase produces a verdict:
+Each CRISP-DM phase produces a verdict:
 
 | Phase | Verdict |
 |-------|---------|

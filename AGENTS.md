@@ -27,9 +27,29 @@
 - Keep commit messages within 50 characters.
 - Code reviews report only P0 and P1 findings, grouped by file, without line numbers or imperatives. Each finding explains the behavior, impact, and recommendation.
 
+## Delivery Policy
+
+- Scale preparation to uncertainty, risk, and reversibility.
+- Write a specification when required behavior is unclear.
+- Write an implementation plan when code changes are complex.
+- Require both for large, high-risk, or hard-to-reverse changes.
+- Do not create documents that do not improve a decision or verification.
+- Obtain user approval before substantial feature or architecture work.
+- Implement small changes directly when behavior and implementation are clear.
+- Load the `workflow` skill before non-trivial code changes.
+
+## Artifacts
+
+- Jira tickets describe the problem and desired user-visible state.
+- Specifications define required behavior and scope.
+- Implementation plans describe repository-specific changes.
+- ADRs record hard-to-reverse technical decisions and their tradeoffs.
+- `tech-context.md` describes the current system and links to ADRs.
+- PRs record the delivered change and verification evidence.
+- Do not duplicate the same information across artifacts. Link to its source.
+
 ## Planning
 
-- Substantial features and architecture work need a user-approved spec before implementation.
 - For a plan, create a new branch from `origin/<default-branch>` using the repository naming convention.
 - Write only `PLAN-<ticket-id>.md` at the repository root.
 - Back every plan step with current files, symbols, and behavior.
@@ -70,7 +90,7 @@
 
 ## Opencode Map
 
-- **Config**: `opencode.json`
+- **Config**: `opencode.jsonc`
 - **Commands**: `commands/*.md`
 - **Skills**: `skills/**/SKILL.md`
 - **Linter**: `opencode_lint/`
@@ -81,10 +101,21 @@
 
 | Need | Use | Scope |
 |------|-----|-------|
-| Create an implementation plan | `/implementation-plan` | User asks for a plan or ticket implementation strategy |
+| Select a delivery route | `workflow` skill | Before non-trivial feature, refactor, architecture, or bug work |
+| Research external facts | `research` skill | Primary-source research or unfamiliar external behavior |
+| Resolve unclear requirements | `grill-with-docs` skill | Product behavior or domain language is unclear |
+| Model domain language | `domain-modeling` skill | Terms, entities, states, or relationships are ambiguous |
+| Define required behavior | `/specification` | Discovery is complete but behavior needs a durable specification |
+| Test a design cheaply | `prototype` skill | A runnable artifact can answer a design question |
+| Evaluate interfaces and seams | `codebase-design` skill | Module depth, test seams, and structural design |
+| Record a durable architecture choice | `architecture-decision` skill | A hard-to-reverse design trade-off needs a record |
+| Plan very large unclear work | `wayfinder` skill | Work spans multiple sessions and decisions are not visible |
+| Inspect architecture friction | `improve-codebase-architecture` skill | User requests architecture maintenance or a clear hotspot exists |
+| Create an implementation plan | `/implementation-plan` | A planned route is selected |
+| Implement approved work | `/implement` | A ticket, specification, or approved plan is available |
 | Create or update a Jira ticket | `/jira` | User asks to write, update, or inspect Jira work |
-| Review code | `/code-review` | User explicitly asks for a code review |
-| Implement an approved plan | `implement` skill | A spec or approved plan is available |
+| Review code | `/code-review` | User asks for a review or the delivery workflow reaches its review gate |
+| Create a pull request | `/create-pr` | Implementation and review are complete |
 | Diagnose a hard bug | `diagnosing-bugs` skill | User asks to diagnose or debug a failure |
 | Maintain project documentation | `doc-maintenance` skill | User asks to update project documentation |
 

@@ -42,7 +42,7 @@ Out of scope:
 ## Requirements
 
 - `FIRECRAWL_API_KEY` environment variable
-- Firecrawl Python SDK: `pip install firecrawl-py`
+- Firecrawl Python SDK: `uv add firecrawl-py`
 - Add `.firecrawl/` to `.gitignore`
 
 ## Workflow

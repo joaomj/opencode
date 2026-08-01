@@ -29,21 +29,22 @@ COPY . /app
 CMD ["python", "app.py"]
 
 # GOOD - runs as non-root
-FROM python:3.11
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Install dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN uv venv /opt/venv && \
+    uv pip install --python /opt/venv/bin/python --no-cache -r requirements.txt
 
 # Copy app and set permissions
 COPY --chown=appuser:appuser . /app
 WORKDIR /app
 
 USER appuser
-CMD ["python", "app.py"]
+CMD ["uv", "run", "python", "app.py"]
 ```
 
 ### Minimal Layers
@@ -65,24 +66,25 @@ RUN apt-get update && \
 ### Multi-Stage Builds
 ```dockerfile
 # Build stage
-FROM python:3.11 AS builder
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS builder
 WORKDIR /build
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN uv venv /opt/venv && \
+    uv pip install --python /opt/venv/bin/python --no-cache -r requirements.txt
 
 # Runtime stage
-FROM python:3.11-slim
-COPY --from=builder /root/.local /root/.local
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
+COPY --from=builder /opt/venv /opt/venv
 COPY --chown=appuser:appuser . /app
 WORKDIR /app
-ENV PATH=/root/.local/bin:$PATH
+ENV PATH=/opt/venv/bin:$PATH
 USER appuser
-CMD ["python", "app.py"]
+CMD ["uv", "run", "python", "app.py"]
 ```
 
 ### Security Hardening
 ```dockerfile
-FROM python:3.11-slim
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
 # Install only necessary system packages
 RUN apt-get update && \
@@ -102,7 +104,7 @@ COPY --chown=appuser:appuser . /app
 WORKDIR /app
 
 USER appuser
-CMD ["python", "app.py"]
+CMD ["uv", "run", "python", "app.py"]
 ```
 
 ## Docker Compose Best Practices
@@ -210,13 +212,10 @@ services:
 ### Trivy Image Scanning
 ```dockerfile
 # Scan base images before using them
-FROM python:3.11-slim
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 
-# Add Trivy for vulnerability scanning
-RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-
-# Scan at build time (optional, fails on critical vulnerabilities)
-RUN trivy image --severity HIGH,CRITICAL python:3.11-slim || true
+# Run Trivy from CI or the operator workstation.
+# trivy image --severity HIGH,CRITICAL ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 ```
 
 ### CI/CD Security Scanning
@@ -304,22 +303,24 @@ services:
 
 ### Use Official Images
 ```dockerfile
-# BAD - use minimal official images
+# BAD - use a larger base image without the project package workflow
 FROM python:3.11
 
-# GOOD - use official minimal images
-FROM python:3.11-slim
+# GOOD - use the official uv image and the project package workflow
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 ```
 
 ### Caching
 ```dockerfile
 # BAD - breaks caching
 COPY . /app
-RUN pip install -r requirements.txt
+RUN uv venv /opt/venv && \
+    uv pip install --python /opt/venv/bin/python -r requirements.txt
 
 # GOOD - leverages caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN uv venv /opt/venv && \
+    uv pip install --python /opt/venv/bin/python --no-cache -r requirements.txt
 COPY . /app
 ```
 
@@ -342,15 +343,15 @@ CMD ["/app"]
 ## Health Checks
 
 ```dockerfile
-FROM python:3.11-slim
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim
 COPY --chown=appuser:appuser . /app
 USER appuser
 WORKDIR /app
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')"
+    CMD uv run python -c "import requests; requests.get('http://localhost:8000/health')"
 
-CMD ["python", "app.py"]
+CMD ["uv", "run", "python", "app.py"]
 ```
 
 ## Docker Compose Example

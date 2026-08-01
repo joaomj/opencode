@@ -74,7 +74,7 @@ Use this as the default pattern. Adapt to project tooling by detecting the packa
 | `uv.lock` | `uv sync --locked` | `uv run ...` | `uv.lock` exists |
 | `pdm.lock` | `pdm install --dev --locked` | `pdm run ...` | `pdm.lock` exists |
 | `poetry.lock` | `poetry install --with dev --locked` | `poetry run ...` | `poetry.lock` exists |
-| `requirements*.txt` | `pip install -r ...` | direct call | N/A |
+| `requirements*.txt` | `uv pip install -r ...` | `uv run ...` | N/A |
 
 Do not introduce a new package manager if one is already in use.
 

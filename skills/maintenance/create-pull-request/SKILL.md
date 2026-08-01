@@ -38,7 +38,7 @@ git status --porcelain
 ```bash
 git branch --show-current
 gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name'
-git ls-remote --heads origin 2>/dev/null | awk '{print $2}' | sed 's|refs/heads/||' | sort | uniq
+git ls-remote --heads origin
 ```
 
 Present detected branches. **Ask user which remote branch to compare against:**
