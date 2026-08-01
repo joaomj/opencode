@@ -1,6 +1,5 @@
 ---
 description: Verify branch state and create a pull request
-agent: build
 ---
 
 Use the `create-pull-request` skill to create a pull request for `$ARGUMENTS`.

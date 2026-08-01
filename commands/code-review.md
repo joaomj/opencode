@@ -1,6 +1,5 @@
 ---
 description: Review a change for P0 and P1 risks
-agent: build
 ---
 
 Review `$ARGUMENTS` with the `code-review` skill.

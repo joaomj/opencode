@@ -1,6 +1,5 @@
 ---
 description: Record a medium or high complexity bug fix postmortem
-agent: build
 ---
 
 Use the `write-postmortem` skill to record `$ARGUMENTS`.

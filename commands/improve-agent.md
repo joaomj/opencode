@@ -1,6 +1,5 @@
 ---
 description: Audit global OpenCode behavior and configuration for improvement proposals
-agent: plan
 ---
 
 Use the `improve-agent` skill to perform a read-only audit of the global

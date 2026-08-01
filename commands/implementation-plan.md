@@ -1,6 +1,5 @@
 ---
 description: Create an implementation plan from the current repository state
-agent: build
 ---
 
 Create an implementation plan for `$ARGUMENTS` using the
