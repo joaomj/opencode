@@ -1,4 +1,12 @@
-# Architecture Diagram Output Contract
+# Software Diagram Output Contract
+
+## Shared Rules
+
+- Give the diagram a clear title that names the view and scenario.
+- Include a short scope summary and state assumptions or unknowns.
+- Prefer one focused question per diagram. Split large views instead of
+  shrinking labels or adding unrelated detail.
+- Use consistent names across nodes, messages, states, and data entities.
 
 ## HTML
 
@@ -9,28 +17,51 @@
   explicit boundaries for trust or system boundaries.
 - Use arrowheads and relationship labels. Avoid crossing arrows when a clearer
   layout is possible.
+- For sequence diagrams, place participants across the top, use vertical
+  lifelines, and draw messages in top-to-bottom time order. Make synchronous
+  calls, responses, asynchronous messages, and branches visually distinct.
 - Use a viewBox suited to the diagram: approximately `1000 x 600` for System
   Context and `1000 x 800` for Container or Component views.
 - Include a title, legend, and a short summary of scope.
 
-## ASCII
+## SVG
 
-Use these shapes:
+- Produce a static SVG equivalent to the HTML diagram.
+- Keep the file self-contained. Do not use scripts, external stylesheets,
+  external images, external fonts, or `foreignObject`.
+- Use a useful `viewBox`, readable text, and a `<title>` or `<desc>` element.
+- Use basic SVG shapes, paths, text, arrowheads, and inline presentation
+  attributes or styles.
+- Preserve the same labels, relationships, colors, boundaries, and layout
+  hierarchy as the HTML version.
 
-```text
-[Person]       +== System ==+       +-- Container --+
-( Database )   { Queue }            [External system]
-. . . . . . .  System boundary
+## GitHub Markdown
+
+- Embed the static SVG with a repository-relative Markdown image reference:
+
+```md
+![Digest flow](./diagrams/digest-flow.svg)
 ```
 
-Use arrows with a separate protocol label:
+- Link to the HTML version only when it is hosted, for example through GitHub
+  Pages. Do not rely on a full HTML document, inline CSS, JavaScript, or an
+  iframe rendering inside GitHub Markdown.
+- Keep the SVG and HTML versions visually and semantically equivalent.
 
-```text
-[User] -- HTTPS/REST --> +== System ==+
+## Mermaid
+
+Use Mermaid only when the user explicitly requests it or requests native
+GitHub Mermaid rendering. Put the source in a fenced `mermaid` block:
+
+````md
+```mermaid
+sequenceDiagram
+    User->>API: Request digest
+    API-->>User: Accepted
 ```
+````
 
-Keep one-character gaps between boxes. Put the legend outside all boundaries.
-Split a large diagram into focused views instead of exceeding 80 columns.
+Keep Mermaid source semantically equivalent to the HTML and SVG diagrams.
 
 ## C4 Levels
 

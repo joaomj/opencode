@@ -56,6 +56,7 @@ Always show the selected workflow, including when the workflow is obvious.
 
 | Intended result | Workflow | Default boundary |
 |---|---|---|
+| Find and prioritize improvements or feature opportunities in an existing project | `project-opportunities` | Read-only opportunity map |
 | Develop an idea or compare options | `focused-exploration` | Conversation only |
 | Explain the current repository or behavior | `codebase-investigation` | Read-only findings |
 | Establish external or unfamiliar facts | `research` | Findings and sources |
