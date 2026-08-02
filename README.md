@@ -1,64 +1,50 @@
 # OpenCode Config
 
-Personal configuration for [OpenCode](https://opencode.ai).
+A personal [OpenCode](https://opencode.ai) setup for planning, building, and
+reviewing software with a consistent and safety-focused workflow.
+
+Use this repository as a ready-to-use global configuration or as a starting
+point for your own setup.
+
+## What You Get
+
+- Guided workflows for requests from discovery through delivery.
+- Reusable commands for plans, reviews, pull requests, releases, and more.
+- Skills for research, debugging, testing, documentation, and Jira.
+- Safe defaults for file changes, shell commands, and local secrets.
 
 ## Quick Start
 
-```bash
-git clone git@github.com:joaomj/opencode.git ~/.config/opencode
-uv sync --locked --project ~/.config/opencode/opencode_lint
-```
+1. [Install OpenCode](https://opencode.ai/docs).
+2. Clone this repository to OpenCode's global configuration directory (backup your own settings first!!):
 
-## Atlassian MCP
+   ```bash
+   git clone https://github.com/joaomj/opencode.git ~/.config/opencode
+   ```
 
-If the Atlassian MCP block is enabled in `opencode.jsonc`, authenticate it when
-Jira work needs access:
+3. Start OpenCode in any project:
 
-```bash
-opencode mcp auth atlassian
-```
+   ```bash
+   opencode
+   ```
 
-Restart OpenCode after changing `opencode.jsonc`, plugins, commands, or skills.
+If `~/.config/opencode` already contains your configuration, back it up before
+you clone this repository.
 
-## Delivery Workflow
+## Update
 
-See `AGENTS.md` and the `workflow` skill for intent-based routing. Every
-substantial request selects one workflow before execution and reports it as
-`Selected workflow: <name>`.
-
-Workflow skills define ordered steps, deliverables, allowed side effects, and
-completion conditions. Capability skills such as research, testing, and error
-handling are invoked by workflows. An exploration or investigation workflow
-does not become a plan unless the user explicitly requests that handoff.
-
-Use `/implementation-plan` for repository-specific plans, conversational
-`specification` and `implement` skills for approved work, `/write-postmortem`
-for medium or high complexity bug fixes, `/code-review` before a PR, and
-`/create-pr` only after review and branch verification.
-
-## Agent Improvement
-
-Run `/improve-agent` to audit the global OpenCode setup and session history.
-The audit checks for recurring agent friction, overlapping or redundant
-instructions, conflicts, stale artifacts, unsafe tools or plugins, and missing
-capabilities.
-
-The command is proposal-only. It does not modify skills, commands, plugins,
-tools, configuration, or session records.
-
-## Decision Records
-
-See the artifact ownership rules in `AGENTS.md`. Do not duplicate the same
-decision across a ticket, specification, plan, ADR, technical context, or PR.
-
-## Linter
-
-Run the linter and its focused tests through `uv`:
+Pull the latest configuration when you want to update this setup:
 
 ```bash
-uv run --project opencode_lint pytest opencode_lint/tests -q
-uv run --no-project python -m opencode_lint.cli
+git -C ~/.config/opencode pull --ff-only
 ```
+
+Review local changes before updating if you have customized the configuration.
+
+## Disclaimer
+
+This is a personal configuration. It is not built by the OpenCode team and is
+not affiliated with OpenCode or Anomaly.
 
 ## License
 
