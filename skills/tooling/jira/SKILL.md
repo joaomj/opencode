@@ -20,7 +20,7 @@ configuration gap instead of claiming that Jira work succeeded.
 
 ## Description Format
 
-- Use Markdown when the MCP description field defaults to Markdown.
+- Write ticket descriptions in Markdown, not Jira wiki format.
 - Use ADF only when the tool explicitly requests or accepts ADF.
 - Do not infer the MCP input format from Jira Cloud storage format.
 
