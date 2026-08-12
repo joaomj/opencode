@@ -13,8 +13,9 @@ reversibility, impact, scope, and evidence.
 ## Ordered Steps
 
 1. State the selected workflow, intended deliverable, and allowed side effects.
-2. Read the request, acceptance criteria, current code, relevant glossary,
-   ADRs, `tech-context.md`, and available remote behavior.
+2. Announce the investigation scope, then read the request, acceptance
+   criteria, current code, relevant glossary, ADRs, `tech-context.md`, and
+   available remote behavior.
 3. Classify the route:
    - Direct: behavior and implementation are clear, local, and reversible.
    - Planned: behavior is clear but implementation is complex.
@@ -25,13 +26,25 @@ reversibility, impact, scope, and evidence.
    contract. Obtain approval before treating it as the delivery contract.
 6. For complex work, invoke `implementation-planning`. Obtain approval before
    editing code.
-7. Invoke `implement` for the approved scope.
+7. Announce the exact files and behavior, then invoke `implement` for the
+   approved scope.
 8. Load `coding-standards`, `error-handling`, `python-tooling`, and
    `testing-best-practices` when applicable.
-9. Verify acceptance criteria at the highest useful seam and report every
-   failure or verification gap.
+9. Announce verification, then verify acceptance criteria at the highest useful
+   seam and report every failure or verification gap.
 10. Invoke `code-review` when review is requested or required by the delivery
     path. Invoke `create-pull-request` only when the user requests a PR.
+
+## Progress Contract
+
+- Report progress after each work stage. Group related reads or searches into
+  one stage, then report the result before you start the next stage.
+- Explain findings and outcomes in product terms. Use examples or analogies
+  when useful.
+- Surface every decision with a recommendation and its impact. Ask for a
+  decision before substantial or hard-to-reverse changes.
+- Report blockers, failures, and verification gaps immediately. Do not hide
+  them inside a final summary.
 
 ## Approval Boundaries
 

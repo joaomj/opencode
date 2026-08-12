@@ -10,6 +10,17 @@ const GREP_RE = /^grep\b/
 const ENV_PRINTENV_RE = /^(?:env|printenv)\b/
 const PYTHON_RE = /^(?:python3?|pip3?)\b/
 
+const GIT_NETWORK_RE =
+  /\bgit(?:-[^\s]+)?\s+(?:-\S+\s+)*(?:clone|fetch|pull|ls-remote)(?:\s|$)/
+const GIT_REMOTE_NETWORK_RE =
+  /\bgit(?:-[^\s]+)?\s+(?:-\S+\s+)*remote\s+(?:add|remove|rm|set-url)(?:\s|$)/
+const GIT_SUBMODULE_NETWORK_RE =
+  /\bgit(?:-[^\s]+)?\s+(?:-\S+\s+)*submodule\s+(?:add|update|sync)(?:\s|$)/
+const GIT_LFS_NETWORK_RE =
+  /\bgit(?:-[^\s]+)?\s+(?:-\S+\s+)*lfs\s+(?:fetch|pull|push)(?:\s|$)/
+const GIT_ARCHIVE_REMOTE_RE = /\bgit(?:-[^\s]+)?\s+(?:-\S+\s+)*archive\b[^\n]*--remote/
+const GITHUB_HTTP_RE = /\b(?:curl|wget)\b[^\n]*github/i
+
 function blockCommand(command: string): string | null {
   const segments = command.split(SEGMENT_RE).map((s) => s.trim())
   for (const segment of segments) {
@@ -22,6 +33,18 @@ function blockCommand(command: string): string | null {
     }
     if (PYTHON_RE.test(segment)) {
       return `bare python blocked, use uv run or uvx: ${segment}`
+    }
+    if (
+      GIT_NETWORK_RE.test(segment) ||
+      GIT_REMOTE_NETWORK_RE.test(segment) ||
+      GIT_SUBMODULE_NETWORK_RE.test(segment) ||
+      GIT_LFS_NETWORK_RE.test(segment) ||
+      GIT_ARCHIVE_REMOTE_RE.test(segment)
+    ) {
+      return `git network command blocked, use gh or ask for direction: ${segment}`
+    }
+    if (GITHUB_HTTP_RE.test(segment)) {
+      return `GitHub access through curl/wget blocked, use gh: ${segment}`
     }
   }
   return null
@@ -53,6 +76,15 @@ export default (async () => {
         const reason = blockCommand(cmd)
         if (reason) {
           throw new Error(`policy-gate: ${reason}`)
+        }
+      }
+
+      if (input.tool === "webfetch") {
+        const url = output.args?.url
+        if (typeof url === "string" && /github/i.test(url)) {
+          throw new Error(
+            "policy-gate: GitHub access through webfetch blocked, use gh",
+          )
         }
       }
     },

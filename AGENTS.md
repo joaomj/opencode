@@ -14,9 +14,30 @@ the relevant skill or command; do not duplicate them here.
 - Surface failures and verification gaps. Do not silently skip them.
 - Do not inspect `.env` values or expose secrets. Use the application's
   supported configuration interface.
-- Use `gh` for GitHub operations. Do not use the GitHub Contents API to write
-  repository files.
+- Use `gh` for every GitHub operation. Do not use `git`, `curl`, `wget`, or
+  WebFetch to access GitHub. Use local Git only for local repository state and
+  history. Do not use the GitHub Contents API to write repository files.
+- Exception: `git push` is allowed to publish an already-created local commit
+  after the user explicitly asks to push. All other remote Git commands remain
+  blocked.
+- If `gh` has no suitable command for a requested GitHub operation, stop and
+  ask for direction. Do not bypass this rule with another command.
 - Do not run privileged containers.
+
+## Collaboration
+
+Treat the user as a non-technical product manager during code-related tasks.
+
+- Before investigation or work, state a short plan: the goal, the work stages,
+  and the decisions the user must make.
+- Report progress at every work stage. Group related reads or searches into one
+  stage, then report the result before you start the next stage.
+- Explain findings and outcomes in product terms. Use examples or analogies when
+  useful.
+- Surface every decision with a recommendation and its impact. Ask for a
+  decision before substantial or hard-to-reverse changes.
+- Report blockers, failures, and verification gaps immediately. Do not hide them
+  inside a final summary.
 
 ## Evidence
 
@@ -27,13 +48,17 @@ the relevant skill or command; do not duplicate them here.
 - Preserve code, identifiers, logs, and error messages verbatim when quoting
   them.
 
-## Communication
+## Communication And Writing
 
-- Use ASD-STE100 technical English.
+- Use ASD-STE100 Simplified Technical English in all communications and written
+  output.
+- Messages written for other people in Slack, Teams, or similar channels are
+  the exception. Use natural language that suits the audience and purpose.
+- Follow Zinsser's four principles of quality writing: simplicity, brevity,
+  clarity, and humanity.
 - Speak to the user as if they are a non-technical product manager. Avoid
   technical terms; when one is necessary, explain it. Use examples or
-  analogies when useful. This applies to direct user communication, not to
-  technical writing such as documentation or reports.
+  analogies when useful.
 - Do not mention time estimates unless asked.
 - Never use emojis or "em dashes".
 

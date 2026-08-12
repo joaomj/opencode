@@ -3,25 +3,68 @@
   "instructions": ["AGENTS.md"],
   "autoupdate": "notify",
   "snapshot": false,
-  "subagent_depth": 0,
-  "small_model": "opencode/deepseek-v4-flash-free",
+  "subagent_depth": 1,
+  "small_model": "deepseek/deepseek-v4-flash",
   "compaction": {
     "auto": true,
     "prune": true
   },
-  /*"mcp": {
-    "atlassian": {
-      "type": "remote",
-      "url": "https://mcp.atlassian.com/v1/mcp/authv2",
-      "enabled": true
-    }
-  },*/
   "agent": {
     "compaction": {
-      "model": "opencode/deepseek-v4-flash-free"
+      "model": "deepseek/deepseek-v4-flash",
+      // Workaround for https://github.com/anomalyco/opencode/issues/41801.
+      "reasoningEffort": "none"
     },
     "explore": {
-      "model": "opencode/deepseek-v4-flash-free"
+      "model": "deepseek/deepseek-v4-flash"
+    }
+  },
+  "provider": {
+    "openai": {
+      "models": {
+        "gpt-5.6-luna": {
+          "name": "GPT 5.6 Luna",
+          "limit": {
+            "context": 200000,
+            "input": 200000,
+            "output": 64000
+          }
+        },
+        "gpt-5.6-sol": {
+          "name": "GPT 5.6 Sol",
+          "limit": {
+            "context": 200000,
+            "input": 200000,
+            "output": 64000
+          }
+        }
+      }
+    },
+    "deepseek": {
+      "models": {
+        "deepseek-v4-flash": {
+          "name": "DeepSeek V4 Flash",
+          "limit": {
+            "context": 150000,
+            "input": 150000,
+            "output": 64000
+          },
+          "options": {
+            "reasoningEffort": "max"
+          }
+        },
+        "deepseek-v4-pro": {
+          "name": "DeepSeek V4 Pro",
+          "limit": {
+            "context": 150000,
+            "input": 150000,
+            "output": 64000
+          },
+          "options": {
+            "reasoningEffort": "max"
+          }
+        }
+      }
     }
   },
   "permission": {
@@ -380,54 +423,6 @@
       "/private/var/tmp/**": "allow",
       "/var/folders/**/T/**": "allow",
       "/private/var/folders/**/T/**": "allow"
-    }
-  },
-  "provider": {
-    "openai": {
-      "models": {
-        "gpt-5.6-luna": {
-          "name": "GPT 5.6 Luna",
-          "limit": {
-            "context": 200000,
-            "input": 200000,
-            "output": 64000
-          }
-        },
-        "gpt-5.6-sol": {
-          "name": "GPT 5.6 Sol",
-          "limit": {
-            "context": 200000,
-            "input": 200000,
-            "output": 64000
-          }
-        }
-      }
-    },
-    "deepseek": {
-      "models": {
-        "deepseek-v4-flash": {
-          "name": "DeepSeek V4 Flash",
-          "limit": {
-            "context": 150000,
-            "input": 150000,
-            "output": 64000
-          },
-          "options": {
-            "reasoningEffort": "max"
-          }
-        },
-        "deepseek-v4-pro": {
-          "name": "DeepSeek V4 Pro",
-          "limit": {
-            "context": 150000,
-            "input": 150000,
-            "output": 64000
-          },
-          "options": {
-            "reasoningEffort": "max"
-          }
-        }
-      }
     }
   }
 }

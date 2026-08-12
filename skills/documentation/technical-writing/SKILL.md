@@ -49,6 +49,8 @@ All output MUST comply with **ASD-STE100 Simplified Technical English Issue 9 (J
 ## Principles
 
 - Write for the reader's task and current knowledge level.
+- Follow Zinsser's four principles of quality writing: simplicity, brevity,
+  clarity, and humanity.
 - Prefer concrete paths, commands, examples, and decisions over generic prose.
 - Preserve project terminology and naming.
 - Do not invent facts, metrics, links, requirements, or outcomes.

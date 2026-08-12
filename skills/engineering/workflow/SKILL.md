@@ -52,6 +52,25 @@ Side effects: <files, code, branch, remote action, or none>
 
 Always show the selected workflow, including when the workflow is obvious.
 
+## Progress Reporting
+
+Before substantial work, write:
+
+```text
+Plan: <work stages>
+Current stage: <active stage>
+```
+
+After each stage, write:
+
+```text
+Progress: <result and relevant finding>
+Next: <next stage and reason>
+```
+
+Do not start the next stage before you report the previous result. Group
+related reads or searches into one stage.
+
 ## Workflow Registry
 
 | Intended result | Workflow | Default boundary |
