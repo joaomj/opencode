@@ -16,7 +16,8 @@ Do not create ADRs for routine implementation choices or temporary plans.
 
 ## Ordered Steps
 
-1. State the selected workflow, decision deliverable, and side-effect boundary.
+1. State the user-visible goal, decision deliverable, work stages, reason for
+   the chosen path, and any decision the user must make.
 2. Define the architectural question and the constraints that make it material.
 3. Inspect current behavior, repository structure, relevant domain terms, and
    existing decisions.

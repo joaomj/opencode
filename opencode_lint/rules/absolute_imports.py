@@ -62,7 +62,7 @@ class AbsoluteImportsPreferred(Rule):
                             message=(
                                 f"Relative import detected: 'from {dots}{module_name} import ...'. "
                                 f"Use absolute imports for better grep-ability. "
-                                f"See AGENTS.md + Factory.ai: Grep-ability"
+                                 "Project policy: prefer absolute imports for grep-ability."
                             ),
                             fix=f"Replace with 'from project.{module_name} import ...'",
                         )

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "opencode-lint"
 version = "1.0.0"
-description = "Custom linter for AGENTS.md rules - Factory.ai 'Linters as Law Enforcement' concept"
+description = "Custom linter for repository policies"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}

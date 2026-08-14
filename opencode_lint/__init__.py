@@ -1,8 +1,6 @@
-"""OpenCode Lint - Custom linter for AGENTS.md rules.
+"""OpenCode Lint - Custom linter for repository policies.
 
-This package implements the Factory.ai concept of using linters as
-"law enforcement" for agents, encoding AGENTS.md guidelines as
-machine-checkable rules.
+This package encodes repository policies as machine-checkable rules.
 """
 
 __version__ = "1.0.0"

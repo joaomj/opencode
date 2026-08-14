@@ -1,6 +1,8 @@
-# OpenCode Lint - Custom Linter for AGENTS.md Rules
+# OpenCode Lint
 
-A standalone Python linter enforcing core AGENTS.md guidelines via the pre-commit hook chain. Runs as both a CLI (`opencode-lint`) and a single pre-commit hook.
+A standalone Python linter that checks repository policies through the
+pre-commit hook chain. It runs as both a CLI (`opencode-lint`) and a single
+pre-commit hook. A target repository does not need an `AGENTS.md` file.
 
 ## Installation
 
@@ -28,7 +30,7 @@ opencode-lint --pre-commit
 ```
 
 ### As Pre-commit Hook
-The linter runs automatically on `.py`, `.yml`, and `.yaml` files when committing.
+The linter runs automatically on `.md`, `.py`, `.yml`, and `.yaml` files when committing.
 
 ## Rules
 
@@ -45,6 +47,8 @@ The linter runs automatically on `.py`, `.yml`, and `.yaml` files when committin
 | OC012 | No unsafe `curl \| bash` downloads | Error | `opencode_lint` |
 | OC014 | No hardcoded configurable values | Error | `opencode_lint` |
 | OC-MOCK | Mock external boundaries only | Error | `opencode_lint` |
+| OC-DECISION | Decision notes use valid lifecycle, structure, and approval data | Error | `opencode_lint` |
+| OC-SKILL-CHECK | Skill descriptions use valid trigger-oriented frontmatter | Warning | `opencode_lint` |
 
 ### Testing Policy Enforcement
 

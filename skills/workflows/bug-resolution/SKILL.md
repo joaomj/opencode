@@ -10,7 +10,8 @@ Separate diagnosis from repair. Do not begin with a theory.
 
 ## Ordered Steps
 
-1. State the selected workflow, requested deliverable, and allowed side effects.
+1. State the user-visible goal, requested deliverable, work stages, reason for
+   the chosen path, and any decision the user must make.
 2. Build a feedback loop at the highest useful black-box seam.
 3. Reproduce the exact user-visible symptom.
 4. Minimize the reproduction without losing the failure.

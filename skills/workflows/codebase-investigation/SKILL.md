@@ -18,7 +18,8 @@ the user wants options for a future design rather than current facts.
 
 ## Ordered Steps
 
-1. State the selected workflow, deliverable, and read-only boundary.
+1. State the user-visible goal, deliverable, work stages, reason for the chosen
+   path, and any decision the user must make.
 2. State the specific question being answered.
 3. Inspect the smallest useful set of repository files, tests, history, and
    observed behavior.

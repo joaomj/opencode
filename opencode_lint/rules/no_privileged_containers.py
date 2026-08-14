@@ -96,7 +96,7 @@ class NoPrivilegedContainers(Rule):
                             f"Service '{service_name}' has privileged: true. "
                             f"This grants full host access and is a security risk. "
                             f"Use specific capabilities instead. "
-                            f"See AGENTS.md: 'No privileged: true'"
+                            "Project policy: do not use privileged containers."
                         ),
                         fix="Remove privileged: true and add only required capabilities",
                     )
@@ -116,7 +116,7 @@ class NoPrivilegedContainers(Rule):
                             f"Service '{service_name}' has cap_add: ALL. "
                             f"This grants all Linux capabilities. "
                             f"Add only required capabilities. "
-                            f"See AGENTS.md: 'No privileged: true'"
+                            "Project policy: do not use privileged containers."
                         ),
                         fix="Replace 'ALL' with specific required capabilities",
                     )
@@ -135,7 +135,7 @@ class NoPrivilegedContainers(Rule):
                                 message=(
                                     f"Service '{service_name}' has unconfined security option. "
                                     f"This disables seccomp profiles. "
-                                    f"See AGENTS.md: 'No privileged: true'"
+                                    "Project policy: do not use privileged containers."
                                 ),
                                 fix="Remove security_opt or use confined profile",
                             )

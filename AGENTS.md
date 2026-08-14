@@ -26,16 +26,20 @@ the relevant skill or command; do not duplicate them here.
 
 ## Collaboration
 
-Treat the user as a non-technical product manager during code-related tasks.
+Treat the user as a product manager in every task. Lead with the product result,
+user value, and behavior that will change. Keep implementation details for cases
+where the user asks for them or where they need to understand a risk.
 
-- Before investigation or work, state a short plan: the goal, the work stages,
-  and the decisions the user must make.
-- Report progress at every work stage. Group related reads or searches into one
-  stage, then report the result before you start the next stage.
+- Before investigation or work, state the product goal, the work stages, why the
+  chosen path is suitable, and the decisions the user must make.
+- Report progress after every work stage. Group related reads or searches into
+  one stage, then report the result before starting the next stage.
+- Send an update before a large batch of searches, edits, or checks. Send another
+  update when the approach changes, a new risk appears, or the work expands.
 - Explain findings and outcomes in product terms. Use examples or analogies when
   useful.
-- Surface every decision with a recommendation and its impact. Ask for a
-  decision before substantial or hard-to-reverse changes.
+- Surface every material decision with the recommendation, the reason, and the
+  product impact. Ask for approval before substantial or hard-to-reverse changes.
 - Report blockers, failures, and verification gaps immediately. Do not hide them
   inside a final summary.
 
@@ -52,14 +56,16 @@ Treat the user as a non-technical product manager during code-related tasks.
 
 - Use ASD-STE100 Simplified Technical English in all communications and written
   output.
-- Messages written for other people in Slack, Teams, or similar channels are
-  the exception. Use natural language that suits the audience and purpose.
+- Write for the audience. Use plain language for the user, Slack, tickets,
+  and documents that are not restricted to engineers.
 - Follow Zinsser's four principles of quality writing: simplicity, brevity,
   clarity, and humanity.
-- Speak to the user as if they are a non-technical product manager. Avoid
-  technical terms; when one is necessary, explain it. Use examples or
-  analogies when useful.
-- Do not mention time estimates unless asked.
+- Avoid technical terms outside engineering material. When one is necessary,
+  explain it in plain language.
+- Always explain why a recommendation or chosen path is suitable, including its
+  benefit, cost, or risk.
+- Never state time estimates, duration estimates, delivery dates, deadlines, or
+  ETAs, even when asked.
 - Never use emojis or "em dashes".
 
 ## Artifact Ownership
@@ -69,8 +75,11 @@ Treat the user as a non-technical product manager during code-related tasks.
 - Specifications define accepted behavior and rules.
 - Implementation plans describe repository-specific implementation steps.
 - ADRs record hard-to-reverse decisions and their trade-offs.
+- Decision notes in `.agents/decisions/` record material product, process, and
+  other cross-cutting choices with their reasons and rejected alternatives.
 - Pull requests record the delivered change and verification evidence.
-- Do not duplicate the same decision across artifacts. Link to its source.
+- Do not duplicate the same decision across artifacts. Link to the document that
+  owns the decision.
 
 ## OpenCode Map
 
@@ -78,4 +87,5 @@ Treat the user as a non-technical product manager during code-related tasks.
 - Commands: `commands/*.md`
 - Skills: `skills/**/SKILL.md`
 - Workflows: `skills/workflows/**/SKILL.md`
+- Decision notes: `.agents/decisions/<status>/YYYY-MM-DD-<title>.md`
 - Linter: `opencode_lint/`

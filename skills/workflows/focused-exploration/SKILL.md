@@ -18,7 +18,8 @@ code changes, a bug fix, a review, or a pull request.
 
 ## Ordered Steps
 
-1. State the selected workflow, deliverable, and side-effect boundary.
+1. State the user-visible goal, deliverable, work stages, reason for the chosen
+   path, and any decision the user must make.
 2. Restate the idea or decision in precise terms.
 3. Identify the decision that the exploration should improve.
 4. Inspect only the code, documentation, or external facts needed to avoid

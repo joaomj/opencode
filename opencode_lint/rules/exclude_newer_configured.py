@@ -51,7 +51,7 @@ class ExcludeNewerConfigured(Rule):
                     message=(
                         "exclude-newer not found in pyproject.toml. "
                         "Add [tool.uv] exclude-newer = \"1 week\" to protect "
-                        "against fresh malicious releases. Per AGENTS.md OC010."
+                        "against fresh malicious releases."
                     ),
                     fix='Add: exclude-newer = "1 week" under [tool.uv]',
                 )
@@ -67,7 +67,7 @@ class ExcludeNewerConfigured(Rule):
                     column=0,
                     message=(
                         f"exclude-newer value '{exclude_newer_value}' is not a 7-day buffer. "
-                        f"Use one of: {', '.join(self.VALID_DURATIONS)}. Per AGENTS.md OC010."
+                        f"Use one of: {', '.join(self.VALID_DURATIONS)}."
                     ),
                     fix='Set: exclude-newer = "1 week"',
                 )
@@ -81,9 +81,16 @@ class ExcludeNewerConfigured(Rule):
         return file_path.name == "pyproject.toml"
 
 
-def check_global_uv_config() -> List[Violation]:
-    """Check global uv config for exclude-newer."""
+def check_global_uv_config(project_root: Path | None = None) -> List[Violation]:
+    """Check project, global, and environment uv config for exclude-newer."""
     violations = []
+    if project_root:
+        pyproject_path = project_root / "pyproject.toml"
+        if pyproject_path.exists():
+            content = pyproject_path.read_text(encoding="utf-8")
+            if any(line.strip().startswith("exclude-newer") for line in content.splitlines()):
+                return violations
+
     home_config = Path.home() / ".config" / "uv" / "uv.toml"
 
     if home_config.exists():
@@ -97,13 +104,13 @@ def check_global_uv_config() -> List[Violation]:
 
     violation = Violation(
         rule_id="OC010",
-        file_path=Path.cwd() / "pyproject.toml",
+        file_path=(project_root or Path.cwd()) / "pyproject.toml",
         line_number=1,
         column=0,
         message=(
             "exclude-newer not configured: not in pyproject.toml, "
             "~/.config/uv/uv.toml, or UV_EXCLUDE_NEWER env var. "
-            "Must be set with 7-day buffer per AGENTS.md OC010."
+            "Must be set with a 7-day buffer."
         ),
         severity="error",
     )

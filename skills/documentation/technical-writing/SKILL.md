@@ -49,6 +49,9 @@ All output MUST comply with **ASD-STE100 Simplified Technical English Issue 9 (J
 ## Principles
 
 - Write for the reader's task and current knowledge level.
+- For stakeholder and other non-engineering documents, lead with the user or
+  business outcome. Use plain language and explain technical terms only when
+  they are necessary.
 - Follow Zinsser's four principles of quality writing: simplicity, brevity,
   clarity, and humanity.
 - Prefer concrete paths, commands, examples, and decisions over generic prose.
@@ -82,7 +85,8 @@ The report begins with an **Executive Summary** (business-first, metrics-driven)
 5. **Results** — Evidence-backed findings with concrete numbers, tables, or charts. Separate observation from interpretation.
 6. **Discussion** — What the results mean. Limitations, surprises, caveats, and how findings relate to the original question.
 7. **Conclusion** — Synthesis of findings into clear judgement. Restate the recommendation from the executive summary with supporting evidence now established.
-8. **Next Steps** — Actionable owners and timelines where applicable.
+8. **Next Steps** — Actionable owners and next actions. Do not invent dates or
+   time estimates.
 9. **References** — Links, prior reports, data sources, tools cited.
 
 > Do not fabricate metrics, impact figures, or business outcomes. Use ranges or mark as TBD when the user has not provided exact numbers.

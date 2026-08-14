@@ -11,8 +11,8 @@ information without a decision that the information will support.
 
 ## Boundary
 
-State the selected workflow, deliverable, and side-effect boundary before
-research. Use `codebase-investigation` for questions about current local code
+State the user-visible goal, deliverable, work stages, and reason for the chosen
+path before research. Use `codebase-investigation` for questions about current local code
 without an external-facts component. Use `focused-exploration` for option
 generation without a specific factual question.
 

@@ -19,7 +19,8 @@ work and wants repository-specific implementation steps.
 
 ## Ordered Steps
 
-1. State the selected workflow, deliverable, and read-only boundary.
+1. State the user-visible goal, deliverable, work stages, reason for the chosen
+   path, and any decision the user must make.
 2. State the project decision being supported: what should be improved, added,
    deferred, or stopped next.
 3. Reconstruct the project snapshot from the smallest useful evidence set:

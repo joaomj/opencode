@@ -45,31 +45,35 @@ question, or exploration request into an implementation plan.
 Before substantial work, write:
 
 ```text
-Selected workflow: <workflow name>
-Deliverable: <what the user will receive>
-Side effects: <files, code, branch, remote action, or none>
+Goal: <the user-visible result>
+Plan: <the work stages and why this path is suitable>
+Decision needed: <what the user must decide, or "none">
 ```
 
-Always show the selected workflow, including when the workflow is obvious.
+Do not lead with internal workflow names, implementation details, or side-effect
+lists. State those details only when they affect a user decision or risk.
 
 ## Progress Reporting
 
 Before substantial work, write:
 
 ```text
-Plan: <work stages>
-Current stage: <active stage>
+Goal: <the user-visible result>
+Plan: <work stages and why this path is suitable>
+Decision needed: <what the user must decide, or "none">
 ```
 
 After each stage, write:
 
 ```text
-Progress: <result and relevant finding>
-Next: <next stage and reason>
+Result: <what was learned or completed and what it means for the product>
+Next: <the next stage and why it is needed>
 ```
 
 Do not start the next stage before you report the previous result. Group
-related reads or searches into one stage.
+related reads or searches into one stage. Send an additional update before a
+large batch of searches, edits, or checks, and when the approach, scope, or risk
+changes.
 
 ## Workflow Registry
 
@@ -81,7 +85,7 @@ related reads or searches into one stage.
 | Establish external or unfamiliar facts | `research` | Findings and sources |
 | Change code, configuration, or infrastructure | `software-delivery` | Approved implementation scope |
 | Resolve broken, slow, or incorrect behavior | `bug-resolution` | Fix and verification |
-| Produce repository-specific implementation steps | `implementation-planning` | Branch and plan only |
+| Produce repository-specific implementation steps | `implementation-planning` | Approved plan only; branch and file require separate approval |
 | Select and record a durable architecture choice | `architecture-decision` | Decision record only when justified |
 | Evaluate a code change | `code-review` | Review findings only |
 | Publish a pull request | `create-pull-request` | Remote PR action with confirmation |

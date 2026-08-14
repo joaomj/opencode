@@ -76,7 +76,7 @@ def check_root_for_lockfile(root: Path) -> List[Violation]:
             message=(
                 "No lockfile found in project root. "
                 "Expected one of: uv.lock, pdm.lock, poetry.lock. "
-                "Lockfile is required per AGENTS.md OC009."
+                "The repository policy requires a committed lockfile."
             ),
             severity="error",
         )
@@ -95,7 +95,7 @@ def check_root_for_lockfile(root: Path) -> List[Violation]:
                     column=0,
                     message=(
                         f"Lockfile '{name}' appears in .gitignore. "
-                        "Lockfile must be committed per AGENTS.md OC009."
+                        "The repository policy requires the lockfile to be committed."
                     ),
                     severity="error",
                 )

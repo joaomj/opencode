@@ -91,7 +91,7 @@ class NoRawDictAPISchema(Rule):
                     message=(
                         f"API endpoint '{node.name}' returns raw dict. "
                         f"Use a Pydantic model instead. "
-                        f"See AGENTS.md: 'No raw dicts for API schemas'"
+                         "Project policy: use typed API schemas instead of raw dictionaries."
                     ),
                     fix=f"Define a Pydantic model for {node.name} response",
                 )
@@ -127,7 +127,8 @@ class NoRawDictAPISchema(Rule):
                                 message=(
                                     f"API endpoint '{func_node.name}' returns dict literal. "
                                     f"Use a Pydantic model instead. "
-                                    f"See AGENTS.md: 'No raw dicts for API schemas'"
+                                     "Project policy: use typed API schemas instead of "
+                                     "raw dictionaries."
                                 ),
                                 fix="Create Pydantic model and return model instance",
                             )

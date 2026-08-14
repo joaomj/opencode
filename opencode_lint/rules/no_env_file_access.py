@@ -85,7 +85,7 @@ class NoEnvFileAccess(Rule):
                                 message=(
                                     f"Direct .env file reference detected: '{node.value}'. "
                                     f"Use os.getenv() or pydantic-settings instead. "
-                                    f"See AGENTS.md: 'Never view .env content'"
+                                     "Project policy: never view .env content directly."
                                 ),
                                 fix="Use os.getenv('KEY') or BaseSettings from pydantic-settings",
                             )
@@ -113,7 +113,7 @@ class NoEnvFileAccess(Rule):
                     message=(
                         f"Direct .env file access with open(): '{first_arg.value}'. "
                         f"Use os.getenv() or pydantic-settings instead. "
-                        f"See AGENTS.md: 'Never view .env content'"
+                         "Project policy: never view .env content directly."
                     ),
                     fix="Use os.getenv('KEY') or BaseSettings from pydantic-settings",
                 )
@@ -147,7 +147,7 @@ class NoEnvFileAccess(Rule):
                             message=(
                                 f"Direct .env file access via Path: '{path_value}'. "
                                 f"Use os.getenv() or pydantic-settings instead. "
-                                f"See AGENTS.md: 'Never view .env content'"
+                                 "Project policy: never view .env content directly."
                             ),
                             fix="Use os.getenv('KEY') or BaseSettings from pydantic-settings",
                         )

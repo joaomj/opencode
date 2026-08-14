@@ -23,7 +23,7 @@ def create_parser() -> argparse.ArgumentParser:
     """Create argument parser."""
     parser = argparse.ArgumentParser(
         prog='opencode-lint',
-        description='Custom linter for AGENTS.md rules (Factory.ai concept)',
+        description='Custom linter for repository policies',
     )
 
     parser.add_argument(

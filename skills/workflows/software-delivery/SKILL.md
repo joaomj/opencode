@@ -12,7 +12,8 @@ reversibility, impact, scope, and evidence.
 
 ## Ordered Steps
 
-1. State the selected workflow, intended deliverable, and allowed side effects.
+1. State the product goal, intended deliverable, work stages, reason for the
+   chosen path, and any user decision required.
 2. Announce the investigation scope, then read the request, acceptance
    criteria, current code, relevant glossary, ADRs, `tech-context.md`, and
    available remote behavior.
@@ -21,7 +22,8 @@ reversibility, impact, scope, and evidence.
    - Planned: behavior is clear but implementation is complex.
    - Discovery: behavior, terms, feasibility, or architecture is unresolved.
 4. For Discovery, invoke only the needed `focused-exploration`, `research`,
-   `domain-modeling`, `grill-with-docs`, or `prototype` workflow or skill.
+    `domain-modeling`, `grill-with-docs`, or `prototype` workflow or skill.
+   Invoke `decision-notes` when a material decision needs a durable record.
 5. Create or update a specification only when accepted behavior needs a durable
    contract. Obtain approval before treating it as the delivery contract.
 6. For complex work, invoke `implementation-planning`. Obtain approval before
@@ -39,10 +41,14 @@ reversibility, impact, scope, and evidence.
 
 - Report progress after each work stage. Group related reads or searches into
   one stage, then report the result before you start the next stage.
+- Report before a large batch of searches, edits, or checks, and when the
+  approach, scope, or risk changes.
 - Explain findings and outcomes in product terms. Use examples or analogies
   when useful.
-- Surface every decision with a recommendation and its impact. Ask for a
-  decision before substantial or hard-to-reverse changes.
+- Surface every material decision with a recommendation, its reason, and its
+  product impact. Ask for approval before substantial or hard-to-reverse changes.
+- Do not state time estimates, duration estimates, delivery dates, deadlines, or
+  ETAs.
 - Report blockers, failures, and verification gaps immediately. Do not hide
   them inside a final summary.
 

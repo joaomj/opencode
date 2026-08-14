@@ -109,7 +109,7 @@ class StrictTypeHints(Rule):
                         message=(
                             f"Function '{node.name}' parameter '{arg.arg}' "
                             f"missing type annotation. "
-                            f"See AGENTS.md: 'Every function has type hints'"
+                             "Project policy: every function has type hints."
                         ),
                         fix=f"Add type annotation: {arg.arg}: Type",
                     )
@@ -128,7 +128,7 @@ class StrictTypeHints(Rule):
                         message=(
                             f"Function '{node.name}' parameter '{arg.arg}' "
                             f"missing type annotation. "
-                            f"See AGENTS.md: 'Every function has type hints'"
+                             "Project policy: every function has type hints."
                         ),
                         fix=f"Add type annotation: {arg.arg}: Type",
                     )
@@ -154,7 +154,7 @@ class StrictTypeHints(Rule):
                 column=node.col_offset,
                 message=(
                     f"Function '{node.name}' missing return type annotation. "
-                    f"See AGENTS.md: 'Every function has type hints'"
+                     "Project policy: every function has type hints."
                 ),
                 fix="Add return type: -> ReturnType",
             )
@@ -168,7 +168,7 @@ class StrictTypeHints(Rule):
                 message=(
                     f"Function '{node.name}' uses 'Any' return type. "
                     f"Use specific type instead. "
-                    f"See AGENTS.md: 'Every function has type hints'"
+                     "Project policy: every function has type hints."
                 ),
                 fix="Replace Any with specific return type",
             )

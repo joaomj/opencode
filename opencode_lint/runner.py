@@ -6,6 +6,7 @@ from typing import Iterator, List, Optional, Type
 
 from opencode_lint.rule import Rule
 from opencode_lint.rules.absolute_imports import AbsoluteImportsPreferred
+from opencode_lint.rules.decision_notes import DecisionNotes
 from opencode_lint.rules.exclude_newer_configured import (
     ExcludeNewerConfigured,
     check_global_uv_config,
@@ -18,8 +19,6 @@ from opencode_lint.rules.no_privileged_containers import NoPrivilegedContainers
 from opencode_lint.rules.no_raw_dict_api import NoRawDictAPISchema
 from opencode_lint.rules.no_test_mock_abuse import NoTestMockAbuse
 from opencode_lint.rules.no_unsafe_downloads import NoUnsafeDownloads
-from opencode_lint.rules.registry_sync import RegistrySync
-from opencode_lint.rules.routing_consistency import RoutingConsistency
 from opencode_lint.rules.skill_descriptions import SkillDescriptions
 from opencode_lint.rules.strict_type_hints import StrictTypeHints
 from opencode_lint.violation import Violation
@@ -42,6 +41,7 @@ DEFAULT_EXCLUDED_DIRS = frozenset(
 )
 
 RULE_REGISTRY: List[Type[Rule]] = [
+    DecisionNotes,
     NoRawDictAPISchema,
     NoEnvFileAccess,
     NoPrivilegedContainers,
@@ -53,8 +53,6 @@ RULE_REGISTRY: List[Type[Rule]] = [
     NoUnsafeDownloads,
     NoTestMockAbuse,
     NoHardcodedConfig,
-    RoutingConsistency,
-    RegistrySync,
     SkillDescriptions,
 ]
 
@@ -176,7 +174,7 @@ class LinterRunner:
         if project_root:
             if (project_root / "pyproject.toml").exists():
                 all_violations.extend(check_root_for_lockfile(project_root))
-                all_violations.extend(check_global_uv_config())
+                all_violations.extend(check_global_uv_config(project_root))
             for rule in self.rules:
                 all_violations.extend(rule.check_project(project_root))
 
