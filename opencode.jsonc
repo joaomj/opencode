@@ -4,19 +4,22 @@
   "autoupdate": "notify",
   "snapshot": false,
   "subagent_depth": 1,
-  "small_model": "deepseek/deepseek-v4-flash",
+  "small_model": "opencode/hy3-free",
   "compaction": {
     "auto": true,
     "prune": true
   },
   "agent": {
     "compaction": {
-      "model": "deepseek/deepseek-v4-flash",
-      // Workaround for https://github.com/anomalyco/opencode/issues/41801.
-      "reasoningEffort": "none"
+      "model": "opencode/hy3-free"
     },
     "explore": {
-      "model": "deepseek/deepseek-v4-flash"
+      "model": "openai/gpt-5.6-luna",
+      "reasoningEffort": "none",
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
     }
   },
   "provider": {
@@ -44,17 +47,6 @@
       "models": {
         "deepseek-v4-flash": {
           "name": "DeepSeek V4 Flash",
-          "limit": {
-            "context": 150000,
-            "input": 150000,
-            "output": 64000
-          },
-          "options": {
-            "reasoningEffort": "max"
-          }
-        },
-        "deepseek-v4-pro": {
-          "name": "DeepSeek V4 Pro",
           "limit": {
             "context": 150000,
             "input": 150000,

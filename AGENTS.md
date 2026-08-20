@@ -22,6 +22,9 @@ the relevant skill or command; do not duplicate them here.
   blocked.
 - If `gh` has no suitable command for a requested GitHub operation, stop and
   ask for direction. Do not bypass this rule with another command.
+- Python is blocked. Run all Python work through `uv` or `uvx`. Direct
+  `python`, `python3`, `pip`, `pip3`, `pytest`, `ruff`, `mypy`, and similar
+  commands are denied by the permission config; do not attempt them.
 - Do not run privileged containers.
 
 ## Collaboration

@@ -8,7 +8,8 @@ const SEGMENT_RE = /\s*(?:&&|\|\||[;&|\n])\s*/
 
 const GREP_RE = /^grep\b/
 const ENV_PRINTENV_RE = /^(?:env|printenv)\b/
-const PYTHON_RE = /^(?:python3?|pip3?)\b/
+const PYTHON_RE =
+  /^(?:python3?|pip3?|pytest|ruff|mypy|pyright|coverage|tox|nox|poetry|pipenv|conda)\b/
 
 const GIT_NETWORK_RE =
   /\bgit(?:-[^\s]+)?\s+(?:-\S+\s+)*(?:clone|fetch|pull|ls-remote)(?:\s|$)/
@@ -32,7 +33,8 @@ function blockCommand(command: string): string | null {
       return `env/printenv blocked (never-read-env), read files or use os.getenv(): ${segment}`
     }
     if (PYTHON_RE.test(segment)) {
-      return `bare python blocked, use uv run or uvx: ${segment}`
+      const name = segment.match(PYTHON_RE)?.[0] ?? "python tool"
+      return `${name} blocked, use uv run or uvx: ${segment}`
     }
     if (
       GIT_NETWORK_RE.test(segment) ||
