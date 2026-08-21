@@ -1,6 +1,6 @@
 ---
 name: doc-maintenance
-description: Audit and update project documentation for accuracy and relevance. Use when the user asks to update docs, clean up documentation, or after code changes that affect public APIs.
+description: Audit and update project documentation for accuracy and relevance. Use ONLY when the user asks to update docs, clean up documentation, or after code changes that affect public APIs.
 ---
 
 # Documentation Maintenance

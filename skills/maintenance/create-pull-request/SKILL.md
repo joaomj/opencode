@@ -1,6 +1,6 @@
 ---
 name: create-pull-request
-description: End-to-end PR creation with merge conflict detection and professional descriptions via GitHub CLI
+description: End-to-end pull request creation with merge conflict detection and professional descriptions via GitHub CLI. Use ONLY when the user explicitly asks to create a pull request.
 license: MIT
 ---
 

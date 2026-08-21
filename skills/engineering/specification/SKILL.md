@@ -1,6 +1,6 @@
 ---
 name: specification
-description: Define approved user-visible behavior, rules, failure outcomes, acceptance criteria, and scope for work that is not clear enough for a plan. Use after discovery and before implementation planning.
+description: Define approved user-visible behavior, rules, failure outcomes, acceptance criteria, and scope for work that is not clear enough for a plan. Use when discovery is complete and implementation planning needs an approved specification.
 ---
 
 # Specification

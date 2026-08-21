@@ -1,6 +1,6 @@
 ---
 name: implementation-planning
-description: Produce a repository-backed implementation plan when the user requests delivery steps for a clear change without implementing it.
+description: Produce a repository-backed implementation plan when the user requests delivery steps for a clear change without implementing it. Use when the user wants a plan instead of code.
 ---
 
 # Implementation Planning

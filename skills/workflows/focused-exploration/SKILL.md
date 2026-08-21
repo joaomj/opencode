@@ -1,6 +1,6 @@
 ---
 name: focused-exploration
-description: Explore an idea, option space, or design question and deliver useful clarity without starting implementation or creating durable delivery artifacts.
+description: Explore an idea, option space, or design question and deliver useful clarity without starting implementation or creating durable delivery artifacts. Use when the user wants exploration rather than implementation.
 ---
 
 # Focused Exploration

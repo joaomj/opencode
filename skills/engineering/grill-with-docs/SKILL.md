@@ -1,6 +1,6 @@
 ---
 name: grill-with-docs
-description: Resolve unclear product or technical decisions through a focused interview and record accepted domain terms and durable decisions. Use before a specification when important behavior is still unclear.
+description: Resolve unclear product or technical decisions through a focused interview and record accepted domain terms and durable decisions. Use when behavior is still unclear before a specification.
 disable-model-invocation: true
 ---
 

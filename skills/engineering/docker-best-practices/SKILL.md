@@ -1,6 +1,6 @@
 ---
 name: docker-best-practices
-description: Apply secure, minimal Dockerfile and Docker Compose practices for containerized applications.
+description: Apply secure, minimal Dockerfile and Docker Compose practices for containerized applications. Use when creating or reviewing container configuration.
 ---
 
 # Docker Best Practices

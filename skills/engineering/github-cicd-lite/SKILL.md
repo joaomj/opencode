@@ -1,6 +1,6 @@
 ---
 name: github-cicd-lite
-description: Lean GitHub-only CI pipelines for small Python projects, optimized for speed and security; deployment optional
+description: Lean GitHub-only CI pipelines for small Python projects, optimized for speed and security; deployment optional. Use when creating or reviewing a small Python CI pipeline.
 license: MIT
 ---
 

@@ -1,12 +1,13 @@
 ---
 name: diagnosing-bugs
-description: Diagnose hard bugs and performance regressions by building a tight black-box feedback loop, testing ranked hypotheses, and preserving a regression test. Use when behavior is broken, failing, incorrect, or slow.
+description: Diagnose hard bugs and performance regressions through reproduction and ranked hypotheses. Use ONLY when a bug-resolution workflow needs a diagnosis.
 ---
 
 # Diagnosing Bugs
 
-Do not begin with a theory. Build a feedback loop that can show the user's
-exact symptom first.
+This skill owns reproduction, minimization, hypothesis testing, and root-cause
+evidence. `bug-resolution` owns the fix, regression test, and final verification.
+Do not apply a fix from this skill.
 
 ## Loop
 
@@ -17,11 +18,8 @@ Use this order:
 3. Minimize the reproduction without losing the failure.
 4. Generate three to five ranked, falsifiable hypotheses.
 5. Test one variable at a time.
-6. Turn the minimized reproduction into one black-box regression test when a
-   correct seam exists.
-7. Apply the smallest fix.
-8. Re-run the original and minimized scenarios.
-9. Remove tagged diagnostic instrumentation and throwaway artifacts.
+6. Report the diagnosis and the remaining verification gap to the owning
+   workflow.
 
 Use a browser, HTTP client, CLI, shell script, or live system when that is the
 highest useful seam. Use a property test only for complex pure logic.
@@ -47,8 +45,6 @@ Report:
 - Reproduction command and result
 - Minimized scenario
 - Ranked hypotheses and tested predictions
-- Root cause
-- Fix
-- Regression test seam
-- Verification evidence
+- Root-cause evidence
+- Suggested regression-test seam for `bug-resolution`
 - Any remaining verification gap

@@ -34,9 +34,8 @@ Define:
 Each decision ticket contains one question. A ticket is ready only when its
 question is precise. Use dependency links or an explicit `Blocked by` section.
 
-Use the configured issue tracker. For Jira, load the `jira` skill, use its MCP
-workflow, and use Markdown when the description field defaults to Markdown. Do
-not create tracker work without user approval.
+Use the configured issue tracker when one exists. Do not create tracker work
+without user approval.
 
 ## Method
 

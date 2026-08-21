@@ -10,7 +10,7 @@ point for your own setup.
 
 - Guided workflows for requests from discovery through delivery.
 - Reusable commands for plans, reviews, pull requests, releases, and more.
-- Skills for research, debugging, testing, documentation, and Jira.
+- Skills for research, debugging, testing, and documentation.
 - Safe defaults for file changes, shell commands, and local secrets.
 
 ## Quick Start
@@ -33,13 +33,37 @@ you clone this repository.
 
 ## Update
 
-Pull the latest configuration when you want to update this setup:
+Use `/update-opencode` when you want to update this setup from `origin/main`.
+The command uses preview mode by default. Preview fetches the remote branch and
+creates a backup without merging or committing.
+
+Apply an approved update with:
+
+```text
+/update-opencode --apply
+```
+
+Restart OpenCode after you change `opencode.jsonc`, plugins, commands, or
+skills.
+
+For a manual checkout update, use:
 
 ```bash
 git -C ~/.config/opencode pull --ff-only
 ```
 
 Review local changes before updating if you have customized the configuration.
+
+## Releases
+
+Use semantic version tags for releases:
+
+- Increase the patch number for backward-compatible fixes.
+- Increase the minor number for backward-compatible features.
+- Increase the major number when command, skill, or permission behavior breaks.
+
+Use `/release <version>` to publish a GitHub release with GitHub-generated
+release notes.
 
 ## Disclaimer
 

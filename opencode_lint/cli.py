@@ -5,7 +5,6 @@ Usage:
     opencode-lint [options] [files...]
 
 Options:
-    --fix           Attempt to auto-fix violations where possible
     --pre-commit    Exit with non-zero code on any violation (CI mode)
     --help          Show this help message
 """
@@ -30,12 +29,6 @@ def create_parser() -> argparse.ArgumentParser:
         'files',
         nargs='*',
         help='Files or directories to lint (default: current directory)',
-    )
-
-    parser.add_argument(
-        '--fix',
-        action='store_true',
-        help='Attempt to auto-fix violations where possible',
     )
 
     parser.add_argument(
@@ -97,7 +90,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     # Run linter
     runner = LinterRunner()
-    violations, exit_code = runner.run(targets, fix=args.fix)
+    violations, exit_code = runner.run(targets)
 
     # Print results
     print_violations(violations)

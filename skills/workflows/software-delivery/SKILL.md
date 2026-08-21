@@ -1,6 +1,6 @@
 ---
 name: software-delivery
-description: Orchestrate an approved feature, refactor, configuration, or infrastructure change from intent through verification and optional review or pull request.
+description: Orchestrate an approved feature, refactor, configuration, or infrastructure change from intent through verification and optional review or pull request. Use when approved work needs end-to-end delivery.
 ---
 
 # Software Delivery

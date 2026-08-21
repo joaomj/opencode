@@ -1,6 +1,6 @@
 ---
 name: firecrawl-web-scraper
-description: Scrape single web pages with Firecrawl to markdown and structured JSON, with dynamic-page actions and local .firecrawl output
+description: Scrape single web pages with Firecrawl to Markdown and structured JSON, with dynamic-page actions and local .firecrawl output. Use when a page needs dynamic scraping.
 license: MIT
 ---
 

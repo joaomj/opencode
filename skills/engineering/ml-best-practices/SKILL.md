@@ -1,6 +1,6 @@
 ---
 name: ml-best-practices
-description: Apply risk-based CRISP-DM practices to data analysis, experiments, model training, evaluation, and ML deployment.
+description: Apply risk-based CRISP-DM practices to data analysis, experiments, model training, evaluation, and ML deployment. Use when planning or reviewing ML work.
 ---
 
 # Machine Learning Best Practices

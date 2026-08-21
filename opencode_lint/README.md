@@ -43,8 +43,8 @@ The linter runs automatically on `.md`, `.py`, `.yml`, and `.yaml` files when co
 | OC005 | Strict type hints required | Warning | `opencode_lint` |
 | OC009 | Lockfile must exist and be committed | Error | `opencode_lint` |
 | OC010 | `exclude-newer` with 7-day buffer | Error | `opencode_lint` |
-| OC011 | No blind `uv lock --upgrade` | Error | `opencode_lint` |
-| OC012 | No unsafe `curl \| bash` downloads | Error | `opencode_lint` |
+| OC011 | No unscoped dependency upgrades; use targeted package upgrades | Error | `opencode_lint` |
+| OC012 | No shell-piped remote install scripts; use explicit verified steps | Error | `opencode_lint` |
 | OC014 | No hardcoded configurable values | Error | `opencode_lint` |
 | OC-MOCK | Mock external boundaries only | Error | `opencode_lint` |
 | OC-DECISION | Decision notes use valid lifecycle, structure, and approval data | Error | `opencode_lint` |

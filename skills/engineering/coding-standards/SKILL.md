@@ -1,6 +1,6 @@
 ---
 name: coding-standards
-description: Apply general implementation standards for correctness, configuration, idempotency, concurrency, security, and maintainability. Use during code changes.
+description: Apply general implementation standards for correctness, configuration, idempotency, concurrency, security, and maintainability. Use when making code changes.
 ---
 
 # Coding Standards

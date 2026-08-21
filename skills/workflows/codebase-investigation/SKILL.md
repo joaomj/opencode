@@ -1,6 +1,6 @@
 ---
 name: codebase-investigation
-description: Explain how the current repository or behavior works through focused read-only investigation, without proposing delivery work unless requested.
+description: Explain how the current repository or behavior works through focused read-only investigation, without proposing delivery work unless requested. Use when the user wants explanation without implementation.
 ---
 
 # Codebase Investigation

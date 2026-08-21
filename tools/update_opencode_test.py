@@ -78,10 +78,10 @@ class UpdateOpenCodeTest(unittest.TestCase):
     def tearDown(self) -> None:
         self.temporary_directory.cleanup()
 
-    def test_dry_run_then_apply_preserves_local_settings(self) -> None:
-        dry_run = self.run_update("--dry-run")
-        self.assertEqual(dry_run.returncode, 0, dry_run.stderr)
-        self.assertIn("Dry run complete", dry_run.stdout)
+    def test_preview_then_apply_preserves_local_settings(self) -> None:
+        preview = self.run_update("--preview")
+        self.assertEqual(preview.returncode, 0, preview.stderr)
+        self.assertIn("Preview complete", preview.stdout)
         self.assertFalse((self.local / "commands" / "upstream.md").exists())
         self.assertTrue((self.local.parent / "local-backups").is_dir())
 

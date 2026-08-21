@@ -1,6 +1,6 @@
 ---
 name: implement
-description: Implement approved work from a ticket, specification, or implementation plan. Use after the required preparation and approval gates are complete.
+description: Implement approved work from a ticket, specification, or implementation plan. Use when the required preparation and approval gates are complete.
 ---
 
 # Implement

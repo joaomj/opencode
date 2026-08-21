@@ -188,12 +188,12 @@ def apply_update(repository: Path, merged_config: str) -> str:
 def parse_arguments(arguments: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     mode = parser.add_mutually_exclusive_group()
-    mode.add_argument("--dry-run", action="store_true", help="fetch and report changes without merging")
+    mode.add_argument("--preview", action="store_true", help="fetch and report changes without merging")
     mode.add_argument("--apply", action="store_true", help="merge and commit after safety checks")
     parser.add_argument("--repo", type=Path, help=argparse.SUPPRESS)
     options = parser.parse_args(arguments)
     if not options.apply:
-        options.dry_run = True
+        options.preview = True
     return options
 
 
@@ -228,8 +228,8 @@ def main(arguments: list[str] | None = None) -> int:
         local_config = read_git_file(repository, "HEAD:opencode.jsonc")
         upstream_config = read_git_file(repository, "origin/main:opencode.jsonc")
         merged_config = merge_candidate(repository, local_config, upstream_config)
-        if options.dry_run:
-            print("Dry run complete. No merge or commit was created.")
+        if options.preview:
+            print("Preview complete. Fetch and backup completed; no merge or commit was created.")
             return 0
 
         commit = apply_update(repository, merged_config)

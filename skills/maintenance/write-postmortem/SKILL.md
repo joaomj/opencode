@@ -1,6 +1,6 @@
 ---
 name: write-postmortem
-description: Record medium or high complexity bug fixes and significant incidents as blameless, searchable Markdown postmortems following Google SRE format. Use after a bug is fixed, a regression test passes, root cause is understood, and prevention measures are identified.
+description: Record medium or high complexity bug fixes and significant incidents as blameless, searchable Markdown postmortems following Google SRE format. Use when a bug is fixed, a regression test passes, root cause is understood, and prevention measures are identified.
 disable-model-invocation: true
 ---
 

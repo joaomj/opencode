@@ -1,6 +1,6 @@
 ---
 name: research
-description: Investigate external facts, unfamiliar tools, APIs, libraries, or deployed behavior with primary sources and explicit evidence. Use when a decision depends on information outside the current codebase.
+description: Investigate external facts, unfamiliar tools, APIs, libraries, or deployed behavior with primary sources and explicit evidence. Use ONLY when the user asks for external research or a decision depends on information outside the current codebase.
 ---
 
 # Research Workflow

@@ -115,7 +115,7 @@ class LinterRunner:
     ) -> List[Violation]:
         """Check all files in a directory recursively."""
         if extensions is None:
-            extensions = [".py", ".yml", ".yaml"]
+            extensions = [".md", ".py", ".yml", ".yaml"]
 
         all_violations = []
 
@@ -151,13 +151,11 @@ class LinterRunner:
     def run(
         self,
         targets: List[Path],
-        fix: bool = False,
     ) -> tuple[List[Violation], int]:
         """Run linter on targets.
 
         Args:
             targets: Files or directories to check
-            fix: Whether to attempt auto-fixes
 
         Returns:
             Tuple of (violations, exit_code)

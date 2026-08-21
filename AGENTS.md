@@ -7,6 +7,8 @@ the relevant skill or command; do not duplicate them here.
 
 - Read the current code and relevant documentation before making claims or
   edits. Investigate when uncertain.
+- Before `apply_patch`, read every existing `Update File` or `Delete File` target
+  in the same session. If a patch fails, read the target again before retrying.
 - Preserve unrelated user changes. Never reset, check out, overwrite, or
   otherwise discard them.
 - Keep side effects within the user's request. Do not create commits, branches,
@@ -14,14 +16,19 @@ the relevant skill or command; do not duplicate them here.
 - Surface failures and verification gaps. Do not silently skip them.
 - Do not inspect `.env` values or expose secrets. Use the application's
   supported configuration interface.
-- Use `gh` for every GitHub operation. Do not use `git`, `curl`, `wget`, or
-  WebFetch to access GitHub. Use local Git only for local repository state and
-  history. Do not use the GitHub Contents API to write repository files.
-- Exception: `git push` is allowed to publish an already-created local commit
-  after the user explicitly asks to push. All other remote Git commands remain
-  blocked.
-- If `gh` has no suitable command for a requested GitHub operation, stop and
-  ask for direction. Do not bypass this rule with another command.
+- Use native Git for local state, history, and remote read or sync operations
+  such as clone, fetch, and pull.
+- Use `gh` for GitHub write operations such as pull request, issue, release, and
+  repository changes. Do not use direct Git remote writes such as `git push`.
+- Keep local branch operations such as merge and rebase in native Git when the
+  task requires them. Do not treat a local branch operation as a GitHub write.
+- If `gh` has no suitable command for a requested GitHub write, stop and ask for
+  direction. Do not bypass this rule with another remote write command.
+- When you study a repository outside the current worktree, first use
+  `git clone --depth 1 --single-branch <url> <approved-temp-path>`. This checks
+  out the remote default branch without an API query. Study the local clone and
+  use remote APIs only when the clone cannot provide the required evidence.
+- Do not use the GitHub Contents API to write repository files.
 - Python is blocked. Run all Python work through `uv` or `uvx`. Direct
   `python`, `python3`, `pip`, `pip3`, `pytest`, `ruff`, `mypy`, and similar
   commands are denied by the permission config; do not attempt them.

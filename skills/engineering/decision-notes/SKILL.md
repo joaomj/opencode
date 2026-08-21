@@ -1,13 +1,14 @@
 ---
 name: decision-notes
-description: Record material product, process, architecture, or cross-cutting decisions with their reasons and alternatives. Use when a decision needs durable context.
+description: Record material product, process, security, or cross-cutting decisions with their reasons and alternatives. Use when a decision needs durable context outside an ADR.
 ---
 
 # Decision Notes
 
 Use this skill when a decision changes user expectations, shared rules, public
 behavior, security or privacy boundaries, working processes, or another area a
-maintainer may reasonably revisit.
+maintainer may reasonably revisit. Use `architecture-decision` for architectural
+choices recorded as ADRs.
 
 Do not create a note for a routine implementation choice, a small reversible
 change, or a fact discovered during investigation. Do not duplicate a decision
@@ -20,8 +21,8 @@ Create or update a note when at least one condition applies:
 
 - The decision changes product behavior or user expectations.
 - The decision changes a rule shared by agents or repositories.
-- The decision changes a public interface, security boundary, privacy rule, or
-  durable configuration format.
+- The decision changes a security boundary, privacy rule, or durable
+  configuration format.
 - The decision has meaningful alternatives and may be questioned later.
 - The decision gives up an important capability or creates a lasting restriction.
 
