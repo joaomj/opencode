@@ -16,14 +16,14 @@ the relevant skill or command; do not duplicate them here.
 - Surface failures and verification gaps. Do not silently skip them.
 - Do not inspect `.env` values or expose secrets. Use the application's
   supported configuration interface.
-- Use native Git for local state, history, and remote read or sync operations
-  such as clone, fetch, and pull.
+- Use native Git for local state, history, and remote transport operations such
+  as clone, fetch, pull, and push.
 - Use `gh` for GitHub write operations such as pull request, issue, release, and
-  repository changes. Do not use direct Git remote writes such as `git push`.
+  repository changes. Do not replace native Git transport with `gh`.
 - Keep local branch operations such as merge and rebase in native Git when the
   task requires them. Do not treat a local branch operation as a GitHub write.
 - If `gh` has no suitable command for a requested GitHub write, stop and ask for
-  direction. Do not bypass this rule with another remote write command.
+  direction. Do not bypass this rule with another GitHub API or shell command.
 - When you study a repository outside the current worktree, first use
   `git clone --depth 1 --single-branch <url> <approved-temp-path>`. This checks
   out the remote default branch without an API query. Study the local clone and

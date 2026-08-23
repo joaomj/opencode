@@ -13,10 +13,8 @@ const ENV_PRINTENV_RE = /^(?:env|printenv)\b/
 const PYTHON_RE =
   /^(?:python3?|pip3?|pytest|ruff|mypy|pyright|coverage|tox|nox|poetry|pipenv|conda)\b/
 
-const GIT_REMOTE_WRITE_RE =
-  /\bgit(?:-[^\s]+)?\s+(?:-\S+\s+)*push(?:\s|$)/
-const GIT_LFS_REMOTE_WRITE_RE =
-  /\bgit(?:-[^\s]+)?\s+(?:-\S+\s+)*lfs\s+push(?:\s|$)/
+const GIT_FORCE_REMOTE_WRITE_RE =
+  /\bgit(?:-[^\s]+)?\s+(?:-\S+\s+)*push\b[^\n|;&]*(?:--force(?:-with-lease)?|-f)(?:[=\s]|$)/
 const GITHUB_HTTP_RE = /\b(?:curl|wget)\b[^\n]*github/i
 
 const CLI_REPLACEMENTS = [
@@ -62,8 +60,8 @@ function blockCommand(command: string, availableCliTools: Set<string>): string |
       const name = segment.match(PYTHON_RE)?.[0] ?? "python tool"
       return `${name} blocked, use uv run or uvx: ${segment}`
     }
-    if (GIT_REMOTE_WRITE_RE.test(segment) || GIT_LFS_REMOTE_WRITE_RE.test(segment)) {
-      return `remote Git write blocked, use an approved gh workflow: ${segment}`
+    if (GIT_FORCE_REMOTE_WRITE_RE.test(segment)) {
+      return `force Git push blocked by policy, use a non-force push: ${segment}`
     }
     if (GITHUB_HTTP_RE.test(segment)) {
       return `GitHub access through curl/wget blocked, use gh: ${segment}`
