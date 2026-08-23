@@ -214,6 +214,7 @@ yarn.lock
 pnpm-lock.yaml
 
 # OpenCode Global Config
+tui.jsonc
 *.backup
 *.backup.*
 
