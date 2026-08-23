@@ -174,4 +174,4 @@ These rules derive from STE. When they conflict with the STE Compliance Rules ab
 - Load `doc-maintenance` for auditing existing documentation for staleness.
 - Load `architecture-diagram` for architecture tradeoffs or system design decisions.
 - Load `architecture-diagram` only when the user asks for a diagram (supports general architecture, C4 model, and ASCII output).
-- Load `context7` before documenting unfamiliar external APIs.
+- Use the `research` workflow before documenting unfamiliar external APIs.

@@ -75,27 +75,41 @@ related reads or searches into one stage. Send an additional update before a
 large batch of searches, edits, or checks, and when the approach, scope, or risk
 changes.
 
-## Workflow Registry
+## Default Waterfall Route
+
+For substantial product delivery, use this route unless the user clearly asks
+for another result:
+
+1. `focused-exploration` for brainstorm and unresolved product questions.
+2. `product-definition` for the approved PRD, behavior specification, optional
+   ADRs, and optional product-focused tickets.
+3. `implementation-planning` for one small-step plan with a verification gate
+   after every step.
+4. `software-delivery` for the approved plan, branch, edits, tests, commits,
+   and push.
+5. Ask once before creating a pull request through `create-pull-request`.
+
+The product-definition stage separates the PRD, behavior specification, ADR,
+and ticket boundaries. Do not create the next artifact until the preceding
+artifact is approved.
+
+## Alternate Routes
 
 | Intended result | Workflow | Default boundary |
 |---|---|---|
 | Find and prioritize improvements or feature opportunities in an existing project | `project-opportunities` | Read-only opportunity map |
-| Develop an idea or compare options | `focused-exploration` | Conversation only |
 | Explain the current repository or behavior | `codebase-investigation` | Read-only findings |
 | Establish external or unfamiliar facts | `research` | Findings and sources |
-| Change code, configuration, or infrastructure | `software-delivery` | Approved implementation scope |
 | Resolve broken, slow, or incorrect behavior | `bug-resolution` | Fix and verification |
-| Produce repository-specific implementation steps | `implementation-planning` | Approved plan only; branch and file require separate approval |
 | Select and record a durable architecture choice | `architecture-decision` | Decision record only when justified |
 | Evaluate a code change | `code-review` | Review findings only |
 | Publish a pull request | `create-pull-request` | Remote PR action with confirmation |
 | Record a medium/high complexity bug | `write-postmortem` | Postmortem record only |
 | Maintain technical documentation | `doc-maintenance` or `technical-writing` | Requested documentation scope |
 
-Existing capability skills such as `research`, `domain-modeling`,
-`codebase-design`, `prototype`, `coding-standards`, `error-handling`, and
-`testing-best-practices` are invoked by workflows. They do not replace the
-top-level routing decision.
+Capability skills such as `research`, `codebase-design`, `coding-standards`,
+`error-handling`, `python-tooling`, and `testing-best-practices` support these
+workflows. They do not replace the top-level routing decision.
 
 ## Handoffs
 
@@ -103,12 +117,15 @@ A workflow may invoke a capability skill or hand off to another workflow when
 the user request permits that result. A handoff must state the new workflow and
 why it is needed.
 
-Do not escalate automatically from exploration, investigation, or research to
-specification, planning, implementation, review, or PR creation. Return the
-current deliverable and let the user request or approve the next workflow.
+Do not escalate automatically from investigation or research to planning,
+implementation, review, or PR creation. In the default waterfall route, move
+forward only after the user approves the current artifact or plan.
 
 Do not create a ticket, specification, ADR, plan, branch, code, test, commit, or
-PR unless the selected workflow and the user's request permit it.
+PR unless the selected workflow and the user's request permit it. Approval of
+the implementation plan permits the delivery workflow to create the branch,
+edit files, run tests, commit, and push. Pull-request creation still requires a
+separate final prompt.
 
 ## Completion
 

@@ -33,9 +33,8 @@ the user wants options for a future design rather than current facts.
 ## Allowed Skills
 
 Invoke `codebase-design` when module depth, seams, or test boundaries matter.
-Invoke `domain-modeling` when terms or states are ambiguous. Invoke
-`diagnosing-bugs` only when the user has requested diagnosis and a reproduction
-loop is appropriate.
+Use focused product discovery when terms or states are ambiguous. Hand a
+requested reproduction and repair to `bug-resolution`.
 
 Do not turn an investigation into a design recommendation or plan unless the
 user requests that handoff.

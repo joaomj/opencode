@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 Record medium or high complexity bug fixes and significant incidents as
 blameless, searchable Markdown postmortems. Use the repository's established
-postmortem directory. If none exists, use `docs/issues-database/`.
+postmortem directory. If none exists, use `docs/issues/`.
 
 ## When to Use
 
@@ -31,7 +31,7 @@ The skill determines the tier by asking the user. If unclear, default to standar
 The default directory is:
 
 ```
-docs/issues-database/
+docs/issues/
   README.md
   2026-07-27-short-description.md
 ```
@@ -49,7 +49,7 @@ Assign a unique ID on creation: `ISSUE-YYYY-NNN`. Increment the sequence number 
 
 ### Step 1: Create the directory
 
-Ensure `docs/issues-database/` exists. Create it if missing.
+Ensure `docs/issues/` exists. Create it if missing.
 
 ### Step 2: Determine tier
 
@@ -70,7 +70,7 @@ Ask the user for each missing field. Do not invent facts. Sources to check:
 
 Scan existing files:
 ```bash
-ls docs/issues-database/*.md 2>/dev/null
+ls docs/issues/*.md 2>/dev/null
 ```
 
 Determine next sequence number. Propose filename and ID. Confirm with user.
@@ -83,7 +83,7 @@ Populate the template with confirmed information. Use the template that matches 
 
 ### Step 6: Create or update README.md
 
-If `docs/issues-database/README.md` does not exist, create it from the template below. If it exists, append the new entry to the index table.
+If `docs/issues/README.md` does not exist, create it from the template below. If it exists, append the new entry to the index table.
 
 ### Step 7: Confirm
 
@@ -238,7 +238,7 @@ Blameless postmortems for completed bug fixes and incidents. Two tiers:
 
 Use metadata tags, component, and severity to find records:
 ```bash
-rg "^component:|^severity:|tags:" docs/issues-database/
+rg "^component:|^severity:|tags:" docs/issues/
 ```
 
 ## Index
@@ -252,7 +252,7 @@ rg "^component:|^severity:|tags:" docs/issues-database/
 | When | Action |
 |------|--------|
 | Prose sections (Summary, Impact, Root Cause, Lessons Learned) | Load `technical-writing` skill for ASD-STE100 compliance |
-| Diagnosis not yet done | Load `diagnosing-bugs` skill first, then return here |
+| Root cause not yet known | Return to `bug-resolution` before writing the record |
 
 ## Blameless Language Rules
 
@@ -275,9 +275,7 @@ rg "^component:|^severity:|tags:" docs/issues-database/
 | Blameless language throughout | Block if blaming individuals |
 | Evidence over speculation | Block if unmarked speculation presented as fact |
 
-## Integration with diagnosing-bugs
+## Integration with Bug Resolution
 
-After the `diagnosing-bugs` skill reaches Completion, invoke `/write-postmortem`
-when the fix is medium or high complexity or the bug was a significant incident.
-The diagnosis work already produced root cause, timeline, and regression test
-material. Repurpose that material instead of asking the user to repeat it.
+Use the reproduction, root cause, regression test, and verification evidence
+from `bug-resolution`. Do not repeat questions that the workflow already answered.

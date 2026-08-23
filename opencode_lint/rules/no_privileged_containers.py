@@ -9,7 +9,8 @@ from typing import List
 
 try:
     import importlib.util  # noqa: F401
-    HAS_YAML = importlib.util.find_spec('yaml') is not None
+
+    HAS_YAML = importlib.util.find_spec("yaml") is not None
 except ImportError:
     HAS_YAML = False
 
@@ -36,9 +37,9 @@ class NoPrivilegedContainers(Rule):
     categories = ["security", "docker"]
 
     VIOLATION_KEYS = {
-        'privileged': True,
-        'security_opt': lambda x: isinstance(x, list) and any(
-            'unconfined' in str(item).lower() for item in x
+        "privileged": True,
+        "security_opt": lambda x: (
+            isinstance(x, list) and any("unconfined" in str(item).lower() for item in x)
         ),
     }
 
@@ -49,14 +50,11 @@ class NoPrivilegedContainers(Rule):
 
         name = file_path.name.lower()
         # Check if file is a yaml file AND contains docker-compose pattern
-        if not name.endswith(('.yml', '.yaml')):
+        if not name.endswith((".yml", ".yaml")):
             return False
 
         # Match docker-compose, compose, or files with "compose" in the name
-        return any(
-            pattern in name
-            for pattern in ['docker-compose', 'compose', 'docker_compose']
-        )
+        return any(pattern in name for pattern in ["docker-compose", "compose", "docker_compose"])
 
     def check_file(self, file_path: Path, content: str) -> List[Violation]:
         """Check docker-compose file for privileged containers."""
@@ -77,7 +75,7 @@ class NoPrivilegedContainers(Rule):
         if not isinstance(data, dict):
             return violations
 
-        services = data.get('services', {})
+        services = data.get("services", {})
         if not isinstance(services, dict):
             return violations
 
@@ -86,11 +84,11 @@ class NoPrivilegedContainers(Rule):
                 continue
 
             # Check privileged: true
-            if service_config.get('privileged') is True:
+            if service_config.get("privileged") is True:
                 violations.append(
                     self._create_violation(
                         file_path=file_path,
-                        line_number=self._find_line_number(content, 'privileged'),
+                        line_number=self._find_line_number(content, "privileged"),
                         column=0,
                         message=(
                             f"Service '{service_name}' has privileged: true. "
@@ -103,14 +101,12 @@ class NoPrivilegedContainers(Rule):
                 )
 
             # Check cap_add: [ALL]
-            cap_add = service_config.get('cap_add', [])
-            if isinstance(cap_add, list) and any(
-                str(cap).upper() == 'ALL' for cap in cap_add
-            ):
+            cap_add = service_config.get("cap_add", [])
+            if isinstance(cap_add, list) and any(str(cap).upper() == "ALL" for cap in cap_add):
                 violations.append(
                     self._create_violation(
                         file_path=file_path,
-                        line_number=self._find_line_number(content, 'cap_add'),
+                        line_number=self._find_line_number(content, "cap_add"),
                         column=0,
                         message=(
                             f"Service '{service_name}' has cap_add: ALL. "
@@ -123,14 +119,14 @@ class NoPrivilegedContainers(Rule):
                 )
 
             # Check security_opt for unconfined
-            security_opt = service_config.get('security_opt', [])
+            security_opt = service_config.get("security_opt", [])
             if isinstance(security_opt, list):
                 for opt in security_opt:
-                    if isinstance(opt, str) and 'unconfined' in opt.lower():
+                    if isinstance(opt, str) and "unconfined" in opt.lower():
                         violations.append(
                             self._create_violation(
                                 file_path=file_path,
-                                line_number=self._find_line_number(content, 'security_opt'),
+                                line_number=self._find_line_number(content, "security_opt"),
                                 column=0,
                                 message=(
                                     f"Service '{service_name}' has unconfined security option. "
@@ -146,7 +142,7 @@ class NoPrivilegedContainers(Rule):
 
     def _find_line_number(self, content: str, key: str) -> int:
         """Find the line number of a key in the content."""
-        lines = content.split('\n')
+        lines = content.split("\n")
         for i, line in enumerate(lines, 1):
             if key in line:
                 return i

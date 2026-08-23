@@ -34,18 +34,18 @@ class NoEnvFileAccess(Rule):
 
     # Patterns that indicate direct .env access
     VIOLATION_PATTERNS = [
-        '.env',
-        '.env.local',
-        '.env.production',
-        '.env.development',
-        '.env.test',
+        ".env",
+        ".env.local",
+        ".env.production",
+        ".env.development",
+        ".env.test",
     ]
 
     # Safe patterns that are allowed
     SAFE_FUNCTIONS = [
-        'load_dotenv',
-        'dotenv_values',
-        'find_dotenv',
+        "load_dotenv",
+        "dotenv_values",
+        "find_dotenv",
     ]
     PATH_SEPARATOR = "/"
 
@@ -75,8 +75,8 @@ class NoEnvFileAccess(Rule):
                     # Check if this is in a suspicious context
                     parent = self._get_parent_context(tree, node)
                     if parent and self._is_suspicious_context(parent):
-                        line_num = getattr(node, 'lineno', 1)
-                        col = getattr(node, 'col_offset', 0)
+                        line_num = getattr(node, "lineno", 1)
+                        col = getattr(node, "col_offset", 0)
                         violations.append(
                             self._create_violation(
                                 file_path=file_path,
@@ -85,7 +85,7 @@ class NoEnvFileAccess(Rule):
                                 message=(
                                     f"Direct .env file reference detected: '{node.value}'. "
                                     f"Use os.getenv() or pydantic-settings instead. "
-                                     "Project policy: never view .env content directly."
+                                    "Project policy: never view .env content directly."
                                 ),
                                 fix="Use os.getenv('KEY') or BaseSettings from pydantic-settings",
                             )
@@ -95,7 +95,7 @@ class NoEnvFileAccess(Rule):
 
     def _check_open_call(self, node: ast.Call, file_path: Path, content: str) -> Violation | None:
         """Check for open(".env", ...) calls."""
-        if not isinstance(node.func, ast.Name) or node.func.id != 'open':
+        if not isinstance(node.func, ast.Name) or node.func.id != "open":
             return None
 
         if not node.args:
@@ -104,8 +104,8 @@ class NoEnvFileAccess(Rule):
         first_arg = node.args[0]
         if isinstance(first_arg, ast.Constant) and isinstance(first_arg.value, str):
             if self._is_env_file_path(first_arg.value):
-                line_num = getattr(node, 'lineno', 1)
-                col = getattr(node, 'col_offset', 0)
+                line_num = getattr(node, "lineno", 1)
+                col = getattr(node, "col_offset", 0)
                 return self._create_violation(
                     file_path=file_path,
                     line_number=line_num,
@@ -113,7 +113,7 @@ class NoEnvFileAccess(Rule):
                     message=(
                         f"Direct .env file access with open(): '{first_arg.value}'. "
                         f"Use os.getenv() or pydantic-settings instead. "
-                         "Project policy: never view .env content directly."
+                        "Project policy: never view .env content directly."
                     ),
                     fix="Use os.getenv('KEY') or BaseSettings from pydantic-settings",
                 )
@@ -128,18 +128,18 @@ class NoEnvFileAccess(Rule):
             return None
 
         method_name = node.func.attr
-        if method_name not in ['read_text', 'read_bytes', 'open']:
+        if method_name not in ["read_text", "read_bytes", "open"]:
             return None
 
         # Check if parent is Path(".env")
         parent_node = self._get_parent_context(ast.parse(content), node)
         if isinstance(parent_node, ast.Call):
-            if isinstance(parent_node.func, ast.Name) and parent_node.func.id == 'Path':
+            if isinstance(parent_node.func, ast.Name) and parent_node.func.id == "Path":
                 if parent_node.args and isinstance(parent_node.args[0], ast.Constant):
                     path_value = parent_node.args[0].value
                     if isinstance(path_value, str) and self._is_env_file_path(path_value):
-                        line_num = getattr(node, 'lineno', 1)
-                        col = getattr(node, 'col_offset', 0)
+                        line_num = getattr(node, "lineno", 1)
+                        col = getattr(node, "col_offset", 0)
                         return self._create_violation(
                             file_path=file_path,
                             line_number=line_num,
@@ -147,7 +147,7 @@ class NoEnvFileAccess(Rule):
                             message=(
                                 f"Direct .env file access via Path: '{path_value}'. "
                                 f"Use os.getenv() or pydantic-settings instead. "
-                                 "Project policy: never view .env content directly."
+                                "Project policy: never view .env content directly."
                             ),
                             fix="Use os.getenv('KEY') or BaseSettings from pydantic-settings",
                         )
@@ -160,7 +160,7 @@ class NoEnvFileAccess(Rule):
             return False
         path_lower = path.lower()
         return any(
-            path_lower == pattern or path_lower.endswith(f'{self.PATH_SEPARATOR}{pattern}')
+            path_lower == pattern or path_lower.endswith(f"{self.PATH_SEPARATOR}{pattern}")
             for pattern in self.VIOLATION_PATTERNS
         )
 

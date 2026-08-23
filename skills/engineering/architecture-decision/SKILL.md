@@ -21,8 +21,7 @@ Do not create ADRs for routine implementation choices or temporary plans.
 2. Define the architectural question and the constraints that make it material.
 3. Inspect current behavior, repository structure, relevant domain terms, and
    existing decisions.
-4. Invoke `research`, `prototype`, `domain-modeling`, or `codebase-design` only
-   when that evidence is needed.
+4. Invoke `research` or `codebase-design` only when that evidence is needed.
 5. Compare credible alternatives and their trade-offs.
 6. Select a recommendation or report that the ADR threshold is not met.
 7. Obtain approval before writing a durable ADR.

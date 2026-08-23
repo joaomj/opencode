@@ -10,12 +10,11 @@ description: Apply the repository Python package-manager, command, type, lint, a
 - Do not run direct `python`, `pip`, `pytest`, `ruff`, `mypy`, or similar tools.
 - Use the detected project lockfile and package manager.
 - Keep dependency changes in the package manager workflow.
-- Run the repository's `OC014` checks and report zero warnings.
 - Never inspect `.env` values. Load environment configuration through the
   application's supported configuration interface.
 
 Load `coding-standards` for general correctness, configuration, and API
-boundary rules. This skill owns Python commands, dependencies, and OC014.
+boundary rules. This skill owns Python commands and dependencies.
 
 If the environment blocks a command, surface the exact failure and use the
 cheapest reliable alternative. Do not create a substitute test environment

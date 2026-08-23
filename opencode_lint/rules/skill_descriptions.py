@@ -41,60 +41,70 @@ class SkillDescriptions(Rule):
         description = fm.get("description", "")
 
         if not description:
-            violations.append(self._create_violation(
-                file_path=file_path,
-                line_number=0,
-                column=0,
-                message=f"Skill '{name}' has no description in frontmatter.",
-            ))
+            violations.append(
+                self._create_violation(
+                    file_path=file_path,
+                    line_number=0,
+                    column=0,
+                    message=f"Skill '{name}' has no description in frontmatter.",
+                )
+            )
             return violations
 
         desc_len = len(description)
 
         if desc_len < _MIN_DESC_LENGTH:
-            violations.append(self._create_violation(
-                file_path=file_path,
-                line_number=0,
-                column=0,
-                message=(
-                    f"Skill '{name}' description is too short ({desc_len} chars, "
-                    f"minimum {_MIN_DESC_LENGTH}). Add trigger-oriented detail."
-                ),
-            ))
+            violations.append(
+                self._create_violation(
+                    file_path=file_path,
+                    line_number=0,
+                    column=0,
+                    message=(
+                        f"Skill '{name}' description is too short ({desc_len} chars, "
+                        f"minimum {_MIN_DESC_LENGTH}). Add trigger-oriented detail."
+                    ),
+                )
+            )
 
         if desc_len > _MAX_DESC_LENGTH:
-            violations.append(self._create_violation(
-                file_path=file_path,
-                line_number=0,
-                column=0,
-                message=(
-                    f"Skill '{name}' description is very long ({desc_len} chars, "
-                    f"maximum {_MAX_DESC_LENGTH}). Consider shortening to reduce context bloat."
-                ),
-            ))
+            violations.append(
+                self._create_violation(
+                    file_path=file_path,
+                    line_number=0,
+                    column=0,
+                    message=(
+                        f"Skill '{name}' description is very long ({desc_len} chars, "
+                        f"maximum {_MAX_DESC_LENGTH}). Consider shortening to reduce context bloat."
+                    ),
+                )
+            )
 
         if not self._has_trigger_language(description):
-            violations.append(self._create_violation(
-                file_path=file_path,
-                line_number=0,
-                column=0,
-                message=(
-                    f"Skill '{name}' description should include trigger language "
-                    "like 'Use when...' or 'Use for...'."
-                ),
-            ))
+            violations.append(
+                self._create_violation(
+                    file_path=file_path,
+                    line_number=0,
+                    column=0,
+                    message=(
+                        f"Skill '{name}' description should include trigger language "
+                        "like 'Use when...' or 'Use for...'."
+                    ),
+                )
+            )
 
         # Check if the skill name suggests explicit-only but description doesn't say so
         if self._name_suggests_explicit(name) and not self._has_explicit_only_language(description):
-            violations.append(self._create_violation(
-                file_path=file_path,
-                line_number=0,
-                column=0,
-                message=(
-                    f"Skill '{name}' appears to be explicit-only (name suggests narrow scope) "
-                    "but doesn't include 'only when explicitly asked' language."
-                ),
-            ))
+            violations.append(
+                self._create_violation(
+                    file_path=file_path,
+                    line_number=0,
+                    column=0,
+                    message=(
+                        f"Skill '{name}' appears to be explicit-only (name suggests narrow scope) "
+                        "but doesn't include 'only when explicitly asked' language."
+                    ),
+                )
+            )
 
         return violations
 
@@ -184,7 +194,10 @@ class SkillDescriptions(Rule):
     def _name_suggests_explicit(self, name: str) -> bool:
         """Check if skill name suggests it should be explicit-only."""
         narrow_names = {
-            "simplify", "research", "issue-writing",
-            "create-pull-request", "doc-maintenance",
+            "simplify",
+            "research",
+            "issue-writing",
+            "create-pull-request",
+            "doc-maintenance",
         }
         return name in narrow_names

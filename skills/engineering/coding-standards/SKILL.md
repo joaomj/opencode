@@ -19,7 +19,6 @@ description: Apply general implementation standards for correctness, configurati
 - Do not inline secrets, credentials, URLs, ports, paths, timeouts, thresholds,
   retry counts, or environment-specific values.
 - Keep fixed protocol constants and true invariants as named constants.
-- Treat `OC014` warnings as errors.
 
 ## Side effects
 

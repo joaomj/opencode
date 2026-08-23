@@ -14,8 +14,8 @@ Create a GitHub release for `$ARGUMENTS` with GitHub-generated release notes.
 5. Show the proposed version, target commit, tag, and complete GitHub-generated
    release notes. Ask the user to approve the exact release contents before any
    remote write.
-6. After approval, publish the target branch through the approved GitHub
-   workflow. Create the tag and release with `gh release create --generate-notes`.
+6. After approval, create the tag and release with
+   `gh release create --generate-notes`.
 7. Verify that the remote branch and tag point to the target commit and that
    the release contains the generated notes.
 8. Report the release URL, tag, commit, and any failed or skipped verification.

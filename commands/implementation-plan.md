@@ -38,13 +38,9 @@ research, specification, architecture discussion, or implementation.
     trade-off, alternative, risk and rollback, exact gate command or check,
     exact pass condition, and stop condition.
 13. Present the complete plan in the conversation and ask the user whether they
-    approve it. Do not create a branch or write a file before approval.
-14. After plan approval, ask separately whether the user wants a planning branch.
-    Create a branch from `origin/<default-branch>` using the repository naming
-    convention only if the user agrees. Do not rebase or merge.
-15. After plan approval, ask separately whether the user wants the plan written
-    to Markdown. If yes, use `PLAN-<ticket-id>.md` when a ticket ID exists;
-    otherwise ask for or suggest a filename. Write only that plan file at the
-    repository root.
-16. Do not implement code, create tickets, or modify files other than the plan
-    file explicitly approved by the user.
+    approve it. Do not create a branch or edit application code before approval.
+14. After plan approval, write the requested plan file and hand off to
+    `software-delivery`. Plan approval authorizes the delivery branch, edits,
+    tests, commits, and push for the approved scope.
+15. Do not create tickets or modify files other than the approved plan file
+    during this command.

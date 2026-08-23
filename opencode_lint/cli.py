@@ -21,26 +21,26 @@ from opencode_lint.violation import Violation
 def create_parser() -> argparse.ArgumentParser:
     """Create argument parser."""
     parser = argparse.ArgumentParser(
-        prog='opencode-lint',
-        description='Custom linter for repository policies',
+        prog="opencode-lint",
+        description="Custom linter for repository policies",
     )
 
     parser.add_argument(
-        'files',
-        nargs='*',
-        help='Files or directories to lint (default: current directory)',
+        "files",
+        nargs="*",
+        help="Files or directories to lint (default: current directory)",
     )
 
     parser.add_argument(
-        '--pre-commit',
-        action='store_true',
-        help='Exit with non-zero code on any violation (for pre-commit hooks)',
+        "--pre-commit",
+        action="store_true",
+        help="Exit with non-zero code on any violation (for pre-commit hooks)",
     )
 
     parser.add_argument(
-        '--version',
-        action='version',
-        version='%(prog)s 1.0.0',
+        "--version",
+        action="version",
+        version="%(prog)s 1.0.0",
     )
 
     return parser
@@ -62,7 +62,7 @@ def print_violations(violations: List[Violation]) -> None:
     for file_path, file_violations in sorted(by_file.items()):
         print(f"{file_path}")
         for v in sorted(file_violations, key=lambda x: x.line_number):
-            marker = "✗" if v.severity == 'error' else "⚠"
+            marker = "✗" if v.severity == "error" else "⚠"
             print(f"  {marker} Line {v.line_number}:{v.column} - {v.rule_id}")
             print(f"     {v.message}")
             if v.fix:
@@ -80,7 +80,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         targets = [Path(f) for f in args.files]
     else:
         # Default to current directory
-        targets = [Path('.')]
+        targets = [Path(".")]
 
     # Validate targets exist
     for target in targets:
@@ -96,8 +96,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     print_violations(violations)
 
     # Summary
-    error_count = sum(1 for v in violations if v.severity == 'error')
-    warning_count = sum(1 for v in violations if v.severity == 'warning')
+    error_count = sum(1 for v in violations if v.severity == "error")
+    warning_count = sum(1 for v in violations if v.severity == "warning")
 
     print(f"\nSummary: {error_count} error(s), {warning_count} warning(s)")
 
@@ -110,5 +110,5 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 1 if error_count > 0 else 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

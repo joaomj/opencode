@@ -1,5 +1,5 @@
 ---
-description: Stage and commit recent changes with auto-generated conventional commit messages
+description: Stage and commit recent changes using repository conventions
 ---
 
 Commit recent changes. Do not fetch, rebase, or merge.
@@ -31,7 +31,8 @@ Commit recent changes. Do not fetch, rebase, or merge.
 6. Stage all remaining allowed files:
    !`git add [file1 file2 ...]`
 
-7. Analyze staged changes to determine commit type:
+7. Read repository commit guidance and analyze staged changes to determine the
+   repository-required commit type and scope:
    - `feat:` - new features, added functionality
    - `fix:` - bug fixes, corrections
    - `docs:` - documentation changes
@@ -40,12 +41,9 @@ Commit recent changes. Do not fetch, rebase, or merge.
    - `test:` - test files, testing infrastructure
    - `chore:` - dependencies, build process, configuration
 
-8. Generate a concise one-line commit message:
-   - Maximum 50 characters
-   - Format: `<type>: <description>`
-   - No scope (no parentheses)
-   - Imperative mood ("Add" not "Added", "Fix" not "Fixed")
-   - No body text (one-line only)
+8. Generate a concise commit message that follows the repository convention.
+   Use an imperative subject and include a body only when the convention needs
+   context. Do not replace repository rules with a global length or scope rule.
 
 9. Show summary and commit:
    - Display: "Committing with message: [message]"

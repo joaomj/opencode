@@ -32,12 +32,12 @@ code changes, a bug fix, a review, or a pull request.
 
 ## Allowed Skills
 
-Invoke `domain-modeling` for ambiguous terms, `codebase-design` for current
-interfaces and seams, `research` for external facts, or `prototype` when a
-small experiment is the cheapest way to answer one feasibility question.
+Use plain product language to resolve ambiguous terms. Invoke `codebase-design`
+for current interfaces and seams, or `research` for external facts. Use a
+throwaway experiment only when the user explicitly approves it.
 
-These skills support the exploration. They do not authorize implementation or
-change the deliverable without an explicit handoff.
+Supporting investigation does not authorize implementation or change the
+deliverable without an explicit handoff.
 
 ## Deliverable
 
@@ -52,5 +52,5 @@ explicit permission and must be disposable and cleaned up.
 
 ## Handoff
 
-Offer, but do not start, a next workflow such as research, prototype,
-architecture-decision, specification, or implementation-planning.
+Offer, but do not start, a next workflow such as research,
+architecture-decision, product-definition, or implementation-planning.

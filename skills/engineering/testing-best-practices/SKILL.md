@@ -43,8 +43,8 @@ Use the interface available to a real user:
 
 ## Regression Tests
 
-For a confirmed bug, load `diagnosing-bugs` for reproduction and hypothesis
-testing. This skill owns the test seam and test quality.
+For a confirmed bug, use the reproduction and hypothesis loop in
+`bug-resolution`. This skill owns the test seam and test quality.
 
 1. Reproduce the user-visible failure at the highest useful black-box seam.
 2. Confirm the test fails before the fix when the environment permits.

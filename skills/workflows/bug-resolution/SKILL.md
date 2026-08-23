@@ -25,9 +25,9 @@ Separate diagnosis from repair. Do not begin with a theory.
 
 ## Allowed Skills
 
-Invoke `diagnosing-bugs` for the feedback loop, `testing-best-practices` for
-the regression seam, `error-handling` for failure classification and recovery,
-and `coding-standards` for idempotency, concurrency, and security.
+Invoke `testing-best-practices` for the regression seam, `error-handling` for
+failure classification and recovery, and `coding-standards` for idempotency,
+concurrency, and security.
 
 For a medium or high complexity fix, offer `/write-postmortem` after the root
 cause and verification evidence are complete. Do not create the postmortem

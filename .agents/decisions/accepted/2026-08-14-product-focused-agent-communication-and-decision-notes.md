@@ -17,9 +17,10 @@ Use three layers:
 - Always-on rules in `AGENTS.md` for product-focused communication, plain
   language, reasons for recommendations, progress updates, and no time
   estimates.
-- The `decision-notes` skill for material decisions that need durable context.
-- The linter for decision-note structure, lifecycle, filename, and approval
-  checks.
+- Durable decision records under `.agents/decisions/` for material choices that
+  need future context.
+- The retained linter safety rules for environment-file access, privileged
+  containers, unsafe downloads, and skill descriptions.
 
 Record material decisions only. Do not record routine or small reversible
 choices. Use `.agents/decisions/{proposed,accepted,rejected,archived}/` in the
@@ -28,10 +29,10 @@ whether a choice is material.
 
 ## Why
 
-Always-on rules are suitable for behavior that must apply in every task. A skill
-can describe the judgment needed to identify a material decision without adding
-the same procedure to every rule. A linter can check structure reliably, but it
-cannot judge product importance or send a useful update during a long command.
+Always-on rules are suitable for behavior that must apply in every task. The
+decision-record convention preserves context without adding the same procedure
+to every rule. The retained linter checks mechanical safety rules, but it cannot
+judge product importance or send a useful update during a long command.
 
 The materiality threshold keeps the record useful. A record for every small
 choice would create noise and duplicate tickets, specifications, plans, and
@@ -40,7 +41,7 @@ architecture records.
 ## Alternatives
 
 **Instructions only:** This would be simple, but it would not provide a shared
-record format or automatic quality checks.
+record format.
 
 **Hook only:** A hook could inspect files, but it could not judge product impact
 or provide a useful live progress update. It would also risk interrupting work.
@@ -58,7 +59,8 @@ searching conversation history.
 ## Risks
 
 An agent may still miss a decision that should have a note because materiality
-requires judgment. The linter reduces format errors but does not replace review.
+requires judgment. The convention reduces lost context but does not replace
+review.
 The process adds a small documentation step for material work.
 
 ## Approval

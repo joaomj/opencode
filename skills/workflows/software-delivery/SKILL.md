@@ -5,37 +5,29 @@ description: Orchestrate an approved feature, refactor, configuration, or infras
 
 # Software Delivery
 
-Use this workflow when the user wants a repository change delivered. The
-request may be a direct change, a ticket, an approved specification, or an
-approved plan. The workflow chooses preparation depth from uncertainty, risk,
-reversibility, impact, scope, and evidence.
+Use this workflow after the user approves the behavior and implementation plan,
+or for a small clear change that does not need those artifacts. It delivers the
+approved change through verification, commit, and push. Pull-request creation is
+the only final confirmation point.
 
 ## Ordered Steps
 
-1. State the product goal, intended deliverable, work stages, reason for the
-   chosen path, and any user decision required.
-2. Announce the investigation scope, then read the request, acceptance
-   criteria, current code, relevant glossary, ADRs, `tech-context.md`, and
-   available remote behavior.
-3. Classify the route:
-   - Direct: behavior and implementation are clear, local, and reversible.
-   - Planned: behavior is clear but implementation is complex.
-   - Discovery: behavior, terms, feasibility, or architecture is unresolved.
-4. For Discovery, invoke only the needed `focused-exploration`, `research`,
-    `domain-modeling`, `grill-with-docs`, or `prototype` workflow or skill.
-   Invoke `decision-notes` when a material decision needs a durable record.
-5. Create or update a specification only when accepted behavior needs a durable
-   contract. Obtain approval before treating it as the delivery contract.
-6. For complex work, invoke `implementation-planning`. Obtain approval before
-   editing code.
-7. Announce the exact files and behavior, then invoke `implement` for the
-   approved scope.
-8. Load `coding-standards`, `error-handling`, `python-tooling`, and
+1. Confirm the approved PRD, behavior specification, ADR references, tickets,
+   implementation plan, and acceptance criteria when they exist.
+2. Inspect the exact files named by the plan and the current branch state.
+3. Create a branch from `origin/<default-branch>` using repository naming
+   conventions. Do not alter the default branch.
+4. Execute the plan in order. Each step must pass its gate before the next step.
+5. Load `coding-standards`, `error-handling`, `python-tooling`, and
    `testing-best-practices` when applicable.
-9. Announce verification, then verify acceptance criteria at the highest useful
-   seam and report every failure or verification gap.
-10. Invoke `code-review` when review is requested or required by the delivery
-    path. Invoke `create-pull-request` only when the user requests a PR.
+6. Run the useful user-facing tests and the plan's verification gates. Report
+   every failure and verification gap.
+7. Review the diff against the approved behavior and repository conventions.
+8. Create commits with the repository's required naming convention. Keep each
+   commit small and explain the user-visible result.
+9. Push the source branch to `origin` and verify the remote branch exists.
+10. Ask the user once whether to create the assigned pull request against the
+    detected default branch. Do not create it without that confirmation.
 
 ## Progress Contract
 
@@ -58,16 +50,18 @@ reversibility, impact, scope, and evidence.
 - Substantial feature and architecture work needs user approval before edits.
 - A specification and implementation plan need approval before delivery when
   they define the behavior or implementation contract.
-- Do not commit or create a PR unless the user explicitly requests it.
+- Approval of the implementation plan authorizes the branch, edits, tests,
+  commits, and push for that approved scope.
+- Pull-request creation always needs a separate final prompt.
 
 ## Deliverable
 
-Return the requested change, verification evidence, and remaining gaps. If the
-workflow stops before implementation, return the discovery result or approved
-plan and state the next handoff.
+Return the requested change, verification evidence, commit, pushed branch, and
+remaining gaps. If the final prompt is not approved, stop after push and report
+the branch and the exact pull-request command or handoff.
 
 ## Side Effects
 
-Only perform side effects allowed by the user's request and the selected route.
-Do not infer permission for a branch, persistent document, commit, or PR from a
-general request to discuss a feature.
+Only perform side effects allowed by the approved plan and selected route. Do
+not push unrelated changes. Do not create a pull request without the final
+prompt.

@@ -98,7 +98,9 @@ git push -u origin <source-branch>
 gh api user --jq '.login'
 ```
 
-Generate title from commits (format: `type: description`, imperative mood, max 72 chars).
+Generate the title and branch names from repository naming conventions. If the
+repository has no documented convention, use an imperative title in the
+repository's established commit style.
 
 Ask user if draft PR, then:
 
@@ -192,6 +194,6 @@ Use when no repository-specific template exists. Remove unused sections before c
 - Never skip branch confirmation
 - Never auto-fix without user permission
 - Never leave placeholder text in description
-- Never push to default branch without explicit confirmation
+- Never push to the default branch.
 - Never use emojis in PR title or description
 - Never include secrets in PR description

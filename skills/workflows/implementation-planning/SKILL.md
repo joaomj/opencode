@@ -44,11 +44,10 @@ interesting.
     as discovery work. Include acceptance criteria, risks, dependencies, open
     decisions, out-of-scope work, the selected established pattern, its
     rationale and trade-offs, and one alternative.
-14. Create a branch from `origin/<default-branch>` only after the user approves
-    the plan and separately approves the branch. Do not fetch, rebase, or merge
-    automatically.
-15. Write only the user-approved plan file after the user separately approves
-    that file. Do not edit application code.
+14. Do not create a branch, edit application code, commit, or push while
+    planning. The approved plan authorizes those delivery actions in
+    `software-delivery`.
+15. Write only the user-approved plan file after the user approves that file.
 
 ## Plan Acceptance Gate
 
@@ -94,5 +93,5 @@ The plan is not implementation and does not create a commit or pull request.
 
 ## Side Effects
 
-The only persistent project artifact is the requested plan. A planning branch
-may be created when required by repository policy. Do not edit application code.
+The only persistent project artifact is the requested plan. Do not create a
+branch, edit application code, commit, push, or create a pull request.

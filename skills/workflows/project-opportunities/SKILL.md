@@ -13,9 +13,9 @@ general audit, roadmap, implementation plan, or code change.
 
 Use `codebase-investigation` when the user only wants current-system facts.
 Use `focused-exploration` when the user wants to compare a known set of options.
-Use `improve-codebase-architecture` when the user specifically wants structural
-code improvements. Use `implementation-planning` when the user has selected the
-work and wants repository-specific implementation steps.
+Use `codebase-design` when the user specifically wants structural code
+improvements. Use `implementation-planning` when the user has selected the work
+and wants repository-specific implementation steps.
 
 ## Ordered Steps
 
@@ -46,8 +46,8 @@ work and wants repository-specific implementation steps.
 ## Allowed Skills
 
 Invoke `codebase-design` when a candidate concerns module boundaries, seams, or
-testability. Invoke `domain-modeling` when product terms, entities, or states
-are unclear. Invoke `research` when an opportunity depends on external facts.
+testability. Use focused product discovery when product terms, entities, or
+states are unclear. Invoke `research` when an opportunity depends on external facts.
 Invoke `testing-best-practices` when verification risk materially affects the
 ranking.
 

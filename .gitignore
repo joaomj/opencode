@@ -215,6 +215,7 @@ pnpm-lock.yaml
 
 # OpenCode Global Config
 tui.jsonc
+archive/skills/
 *.backup
 *.backup.*
 
