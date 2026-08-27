@@ -11,9 +11,16 @@
     "prune": true
   },
   "agent": {
+    "title": {
+      "options": {
+        "reasoningEffort": "low"
+      }
+    },
     "compaction": {
       "model": "opencode/nemotron-3.5-lightning-free",
-      "reasoningEffort": "none"
+      "options": {
+        "reasoningEffort": "low"
+      }
     },
     "explore": {
       "model": "openai/gpt-5.6-luna-fast",
