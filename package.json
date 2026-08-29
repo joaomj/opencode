@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "@opencode-ai/plugin": "1.4.6"
+  },
+  "name": "opencode",
+  "version": "1.0.0",
+  "description": "Personal configuration for [OpenCode](https://opencode.ai).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joaomj/opencode.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joaomj/opencode/issues"
+  },
+  "homepage": "https://github.com/joaomj/opencode#readme"
+}

@@ -1,6 +1,5 @@
 """LinterRunner - Main linter orchestration."""
 
-import sys
 from pathlib import Path
 from typing import Iterator, List, Optional, Type
 
@@ -8,6 +7,13 @@ from opencode_lint.rule import Rule
 from opencode_lint.rules.no_env_file_access import NoEnvFileAccess
 from opencode_lint.rules.no_privileged_containers import NoPrivilegedContainers
 from opencode_lint.rules.no_unsafe_downloads import NoUnsafeDownloads
+from opencode_lint.rules.policy_checks import (
+    AgentArtifactCommit,
+    MechanicalWriting,
+    SuppressionPolicy,
+    TestSuppressionPolicy,
+)
+from opencode_lint.rules.python_budgets import PythonBudgets
 from opencode_lint.rules.skill_descriptions import SkillDescriptions
 from opencode_lint.violation import Violation
 
@@ -28,20 +34,89 @@ DEFAULT_EXCLUDED_DIRS = frozenset(
     }
 )
 
+DEFAULT_LINTABLE_EXTENSIONS = [
+    ".md",
+    ".py",
+    ".rst",
+    ".sh",
+    ".txt",
+    ".toml",
+    ".yml",
+    ".yaml",
+]
+
 RULE_REGISTRY: List[Type[Rule]] = [
     NoEnvFileAccess,
     NoPrivilegedContainers,
     NoUnsafeDownloads,
     SkillDescriptions,
+    SuppressionPolicy,
+    TestSuppressionPolicy,
+    MechanicalWriting,
+    AgentArtifactCommit,
+    PythonBudgets,
 ]
+
+
+def find_project_root(targets: List[Path]) -> Path | None:
+    """Find the nearest repository or project root for the targets."""
+    for target in targets:
+        candidate = target.resolve()
+        if candidate.is_file():
+            candidate = candidate.parent
+
+        for parent in (candidate, *candidate.parents):
+            if (parent / ".git").exists() or (parent / "pyproject.toml").exists():
+                return parent
+
+    if targets:
+        fallback = targets[0].resolve()
+        return fallback if fallback.is_dir() else fallback.parent
+    return None
+
+
+def load_config(project_root: Path | None) -> dict:
+    """Load the optional project configuration and fail on invalid config."""
+    if project_root is None:
+        return {}
+
+    config_path = next(
+        (
+            project_root / filename
+            for filename in (".opencode-lint.yaml", ".opencode-lint.yml")
+            if (project_root / filename).exists()
+        ),
+        None,
+    )
+    if config_path is None:
+        return {}
+
+    try:
+        import yaml
+    except ImportError as error:
+        raise RuntimeError("PyYAML is required to read linter configuration") from error
+
+    try:
+        data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, yaml.YAMLError) as error:
+        raise RuntimeError(
+            f"linter configuration could not be parsed: {config_path.name}"
+        ) from error
+
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise RuntimeError("linter configuration must contain a mapping")
+    return data
 
 
 class LinterRunner:
     """Main linter runner that orchestrates all rules."""
 
-    def __init__(self, config: Optional[dict] = None):
+    def __init__(self, config: Optional[dict] = None, profile: str = "coding"):
         """Initialize linter with optional configuration."""
         self.config = config or {}
+        self.profile = profile
         self.rules: List[Rule] = []
         self._initialize_rules()
 
@@ -51,10 +126,25 @@ class LinterRunner:
 
         for rule_class in RULE_REGISTRY:
             rule_id = rule_class.rule_id
-            rule_config = rule_configs.get(rule_id, {})
+            rule_config = dict(rule_configs.get(rule_id, {}))
+            rule_config.setdefault("profile", self.profile)
 
             if rule_config.get("enabled", True):
                 self.rules.append(rule_class(config=rule_config))
+
+    def _failure(self, file_path: Path, check: str, error: Exception) -> Violation:
+        """Return an error when a required check cannot complete."""
+        return Violation(
+            rule_id="LNT022",
+            file_path=file_path,
+            line_number=0,
+            column=0,
+            message=(
+                f"{check} could not complete ({type(error).__name__}); "
+                "policy evaluation failed closed."
+            ),
+            severity="error",
+        )
 
     def check_file(self, file_path: Path) -> List[Violation]:
         """Check a single file for violations."""
@@ -63,16 +153,15 @@ class LinterRunner:
         try:
             content = file_path.read_text(encoding="utf-8")
         except (IOError, UnicodeDecodeError) as error:
-            print(
-                f"Warning: could not read {file_path}: {error}",
-                file=sys.stderr,
-            )
-            return violations
+            return [self._failure(file_path, "file read", error)]
 
         for rule in self.rules:
-            if rule.should_check_file(file_path):
-                rule_violations = rule.check_file(file_path, content)
-                violations.extend(rule_violations)
+            try:
+                if rule.should_check_file(file_path):
+                    rule_violations = rule.check_file(file_path, content)
+                    violations.extend(rule_violations)
+            except Exception as error:
+                violations.append(self._failure(file_path, rule.rule_id, error))
 
         violations.sort(key=lambda v: (v.file_path, v.line_number))
 
@@ -94,12 +183,15 @@ class LinterRunner:
     ) -> List[Violation]:
         """Check all files in a directory recursively."""
         if extensions is None:
-            extensions = [".md", ".py", ".yml", ".yaml"]
+            extensions = DEFAULT_LINTABLE_EXTENSIONS
 
         all_violations = []
 
-        for file_path in self._iter_lintable_files(directory, extensions):
-            all_violations.extend(self.check_file(file_path))
+        try:
+            for file_path in self._iter_lintable_files(directory, extensions):
+                all_violations.extend(self.check_file(file_path))
+        except OSError as error:
+            all_violations.append(self._failure(directory, "directory scan", error))
 
         return all_violations
 
@@ -109,14 +201,7 @@ class LinterRunner:
 
         while stack:
             current = stack.pop()
-            try:
-                entries = list(current.iterdir())
-            except OSError as error:
-                print(
-                    f"Warning: could not list {current}: {error}",
-                    file=sys.stderr,
-                )
-                continue
+            entries = list(current.iterdir())
 
             for entry in entries:
                 if entry.is_dir():
@@ -124,7 +209,9 @@ class LinterRunner:
                         continue
                     stack.append(entry)
                     continue
-                if entry.is_file() and entry.suffix in extensions:
+                if entry.is_file() and (
+                    entry.suffix in extensions or entry.name.lower() in {"dockerfile", "makefile"}
+                ):
                     yield entry
 
     def run(
@@ -147,10 +234,13 @@ class LinterRunner:
             elif target.is_dir():
                 all_violations.extend(self.check_directory(target))
 
-        project_root = self._find_project_root(targets)
+        project_root = find_project_root(targets)
         if project_root:
             for rule in self.rules:
-                all_violations.extend(rule.check_project(project_root))
+                try:
+                    all_violations.extend(rule.check_project(project_root))
+                except Exception as error:
+                    all_violations.append(self._failure(project_root, rule.rule_id, error))
 
         error_count = sum(1 for v in all_violations if v.severity == "error")
         exit_code = 1 if error_count > 0 else 0
@@ -159,16 +249,4 @@ class LinterRunner:
 
     def _find_project_root(self, targets: List[Path]) -> Path | None:
         """Find the project root directory from targets."""
-        for target in targets:
-            if target.is_dir():
-                pyproject = target / "pyproject.toml"
-                if pyproject.exists():
-                    return target
-            else:
-                parent = target.parent
-                pyproject = parent / "pyproject.toml"
-                if pyproject.exists():
-                    return parent
-        if targets:
-            return targets[0].parent if targets[0].is_file() else targets[0]
-        return None
+        return find_project_root(targets)

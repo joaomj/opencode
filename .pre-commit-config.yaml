@@ -3,10 +3,10 @@ repos:
     hooks:
       - id: opencode-lint
         name: opencode-lint
-        entry: uv run --no-project python -m opencode_lint.cli --pre-commit
+        entry: uv run --no-project python -m opencode_lint.cli --pre-commit --profile fast
         language: system
-        pass_filenames: false
-        files: '\.(md|py|ya?ml)$'
+        pass_filenames: true
+        files: ''
         stages: [pre-commit]
         require_serial: true
 
@@ -19,7 +19,7 @@ repos:
 
       - id: ruff-check
         name: ruff-check
-        entry: uvx ruff check --select E,W,F,I,S --fix
+        entry: uvx ruff check --select E,W,F,I,S,B
         language: system
         types: [python]
         stages: [pre-commit]

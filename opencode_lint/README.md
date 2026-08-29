@@ -25,12 +25,19 @@ opencode-lint
 # Check specific files
 opencode-lint src/main.py tests/
 
+# Run the coding profile
+opencode-lint --profile coding
+
+# Run the fast profile on staged files
+opencode-lint --profile fast --staged
+
 # Pre-commit mode (exit code 1 on any violation)
-opencode-lint --pre-commit
+opencode-lint --pre-commit path/to/file.py
 ```
 
 ### As Pre-commit Hook
-The linter runs automatically on `.md`, `.py`, `.yml`, and `.yaml` files when committing.
+The hook passes staged filenames to the fast profile. The linter checks
+supported text, Python, shell, and YAML files without changing them.
 
 ## Rules
 
@@ -39,6 +46,12 @@ The linter runs automatically on `.md`, `.py`, `.yml`, and `.yaml` files when co
 | OC002 | Never read/print `.env` values | Error | `opencode_lint` |
 | OC003 | No privileged containers | Error | `opencode_lint` |
 | OC012 | No shell-piped remote install scripts; use explicit verified steps | Error | `opencode_lint` |
+| LNT004 | Broad checker suppressions | Error | `opencode_lint` |
+| LNT005 | Test skips and expected failures need reasons | Error | `opencode_lint` |
+| LNT020 | Mechanical writing rules | Warning | `opencode_lint` |
+| LNT022 | Required checks fail closed | Error | `opencode_lint` |
+| LNT025 | Local agent artifacts and plan files stay unstaged | Error | `opencode_lint` |
+| LNT-PY-BUDGET | Changed Python code budgets | Error | `opencode_lint` |
 | OC-SKILL-CHECK | Skill descriptions use valid trigger-oriented frontmatter | Warning | `opencode_lint` |
 
 ## Configuration

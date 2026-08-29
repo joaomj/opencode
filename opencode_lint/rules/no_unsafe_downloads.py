@@ -23,7 +23,9 @@ class NoUnsafeDownloads(Rule):
     severity = "error"
     categories = ["supply-chain", "security"]
 
-    UNSAFE_DOWNLOAD_RE = re.compile(r"curl\s+.*\|\s*(?:bash|sh|zsh|python[23]?|perl|ruby)")
+    UNSAFE_DOWNLOAD_RE = re.compile(
+        r"(?:curl|wget)\s+[^|\n]*\|\s*(?:bash|sh|zsh|python[23]?|perl|ruby)"
+    )
 
     def check_file(self, file_path: Path, content: str) -> List[Violation]:
         violations = []

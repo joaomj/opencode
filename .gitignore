@@ -208,8 +208,6 @@ __marimo__/
 
 # Node/Bun
 node_modules/
-bun.lock
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
@@ -224,8 +222,7 @@ local.json
 antigravity-accounts.json
 *.credentials.json
 
-# Package manager (not needed for install script)
-package.json
+# npm owns the OpenCode plugin dependency and package-lock.json records it.
 mcp/
 
 # Other

@@ -3,7 +3,7 @@
   "instructions": ["AGENTS.md"],
   "autoupdate": "notify",
   "snapshot": false,
-  "plugin": ["~/projects/opencode-cache-hit"],
+  "plugin": ["./plugins/policy-gate.ts", "~/projects/opencode-cache-hit"],
   "subagent_depth": 2,
   "model": "openai/gpt-5.6-luna-fast",
   "small_model": "openrouter/z-ai/glm-5.3-flash",
