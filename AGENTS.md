@@ -14,6 +14,9 @@ the relevant skill or command; do not duplicate them here.
 - Keep side effects within the user's request. Do not create commits, branches,
   tickets, pull requests, or remote writes without explicit authorization.
 - Surface failures and verification gaps. Do not silently skip them.
+- Run commands that may outlive the shell timeout in detached mode, such as with
+  `nohup`, redirected logs, and background execution. Monitor the process and
+  report its final status so the user can close the agent or shell safely.
 - Do not inspect `.env` values or expose secrets. Use the application's
   supported configuration interface.
 - Use native Git for local state, history, and remote transport operations such
