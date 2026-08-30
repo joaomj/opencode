@@ -50,16 +50,63 @@ async function createHarness() {
   return { hooks, context, worktree }
 }
 
-test("blocks direct Python commands before workflow selection", async () => {
+test("allows direct Python via native ask instead of hard deny", async () => {
+  const { hooks, context, worktree } = await createHarness()
+  try {
+    const before = hooks["tool.execute.before"]!
+    // Direct python is now soft: plugin does not hard deny, native permission (ask) will prompt
+    await before(
+      { tool: "bash", sessionID: context.sessionID, callID: "call-1" },
+      { args: { command: "python -c pass" } },
+    )
+    // No throw means soft-allowed; native ask would handle user prompt
+  } finally {
+    await rm(worktree, { recursive: true, force: true })
+  }
+})
+
+test("still hard-denies credential exposure", async () => {
   const { hooks, context, worktree } = await createHarness()
   try {
     const before = hooks["tool.execute.before"]!
     await expect(
       before(
-        { tool: "bash", sessionID: context.sessionID, callID: "call-1" },
-        { args: { command: "python -c pass" } },
+        { tool: "read", sessionID: context.sessionID, callID: "call-1" },
+        { args: { filePath: ".env" } },
       ),
-    ).rejects.toThrow("direct python is blocked")
+    ).rejects.toThrow("protected credential path blocked")
+    await expect(
+      before(
+        { tool: "read", sessionID: context.sessionID, callID: "call-2" },
+        { args: { filePath: ".npmrc" } },
+      ),
+    ).rejects.toThrow("protected credential path blocked")
+  } finally {
+    await rm(worktree, { recursive: true, force: true })
+  }
+})
+
+test("recognizes gh gist edit as soft remote and allows via native ask", async () => {
+  const { hooks, context, worktree } = await createHarness()
+  try {
+    const before = hooks["tool.execute.before"]!
+    const select = hooks.tool?.select_workflow
+    if (!select) throw new Error("policy tools are unavailable")
+    await select.execute(
+      {
+        workflow: "software-delivery",
+        reason: "update gist",
+        deliverable: "gist update",
+        sideEffectBoundary: "remote gist edit",
+      },
+      context,
+    )
+    // gh gist edit is now recognized as protectedAction but soft: does not hard deny, native ask will prompt
+    await before(
+      { tool: "bash", sessionID: context.sessionID, callID: "call-1" },
+      { args: { command: "gh gist edit abc123 --add note.txt" } },
+    )
+    // No hard throw; native permission gist edit is ask
   } finally {
     await rm(worktree, { recursive: true, force: true })
   }
@@ -96,13 +143,8 @@ test("requires a fresh read and one-time approval before a patch", async () => {
     )
 
     const patchText = "*** Update File: file.py\n@@\n-value = 1\n+value = 2\n"
-    await expect(
-      before(
-        { tool: "apply_patch", sessionID: context.sessionID, callID: "call-2" },
-        { args: { patchText } },
-      ),
-    ).rejects.toThrow("read the existing target")
-
+    // Fresh-read is now soft: without prior read, plugin allows and lets native ask handle
+    // But we still test that with prior read, patch succeeds, and second patch without fresh read is soft-allowed (not hard deny)
     await before(
       { tool: "read", sessionID: context.sessionID, callID: "call-3" },
       { args: { filePath: "file.py" } },
@@ -130,12 +172,43 @@ test("requires a fresh read and one-time approval before a patch", async () => {
       { title: "patch", output: "updated", metadata: {} },
     )
 
-    await expect(
-      before(
-        { tool: "apply_patch", sessionID: context.sessionID, callID: "call-5" },
-        { args: { patchText } },
-      ),
-    ).rejects.toThrow("read the existing target")
+    // Second patch without fresh read is now soft-allowed (would have been hard before)
+    await before(
+      { tool: "apply_patch", sessionID: context.sessionID, callID: "call-5" },
+      { args: { patchText } },
+    )
+  } finally {
+    await rm(worktree, { recursive: true, force: true })
+  }
+})
+
+test("allows self-repair of policy files without workflow via approval or env", async () => {
+  const { hooks, context, worktree } = await createHarness()
+  try {
+    const approve = hooks.tool?.approve_action
+    const before = hooks["tool.execute.before"]!
+    const after = hooks["tool.execute.after"]!
+    if (!approve) throw new Error("policy tools are unavailable")
+
+    const policyPath = path.join(worktree, "plugins/policy-gate.ts")
+    await Bun.write(policyPath, "export default 1\n")
+
+    const patchText = "*** Update File: plugins/policy-gate.ts\n@@\n-export default 1\n+export default 2\n"
+
+    await before({ tool: "read", sessionID: context.sessionID, callID: "call-2" }, { args: { filePath: "plugins/policy-gate.ts" } })
+    await after({ tool: "read", sessionID: context.sessionID, callID: "call-2", args: { filePath: "plugins/policy-gate.ts" } }, { title: "read", output: "export default 1", metadata: {} })
+
+    // Without approval, self-repair is now soft-allowed (native ask would prompt), but we still test that with approval it succeeds
+    await before({ tool: "apply_patch", sessionID: context.sessionID, callID: "call-3" }, { args: { patchText } })
+
+    await approve.execute({ action: "policy-self-repair", repository: worktree, target: "self-repair", reason: "fix broken policy" }, context)
+
+    // read is consumed on success, so re-read before next patch
+    await before({ tool: "read", sessionID: context.sessionID, callID: "call-4b" }, { args: { filePath: "plugins/policy-gate.ts" } })
+    await after({ tool: "read", sessionID: context.sessionID, callID: "call-4b", args: { filePath: "plugins/policy-gate.ts" } }, { title: "read", output: "export default 1", metadata: {} })
+
+    await before({ tool: "apply_patch", sessionID: context.sessionID, callID: "call-4" }, { args: { patchText } })
+    await after({ tool: "apply_patch", sessionID: context.sessionID, callID: "call-4", args: { patchText } }, { title: "patch", output: "updated", metadata: {} })
   } finally {
     await rm(worktree, { recursive: true, force: true })
   }

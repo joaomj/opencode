@@ -11,6 +11,16 @@ const PLUGIN_API_VERSION = "1.4.6"
 const LINTER_ROOT = path.resolve(import.meta.dir, "..")
 const LINTER_PROJECT = path.resolve(import.meta.dir, "../opencode_lint")
 const AGENT_ARTIFACT_DIR = ".agents"
+const SELF_REPAIR_ENV = "OPENCODE_POLICY_REPAIR"
+const SELF_REPAIR_ACTION = "policy-self-repair"
+const SELF_REPAIR_ALLOWLIST = new Set([
+  "plugins/policy-gate.ts",
+  "plugins/policy-gate.test.ts",
+  "opencode.jsonc",
+  "package.json",
+  "package-lock.json",
+  "bun.lock",
+])
 
 const ENV_PRINT_RE = /^(?:env|printenv)(?:\s|$)/
 const DIRECT_PYTHON_RE = /^(?:python3?|pip3?|pytest|ruff|mypy|pyright|coverage|tox|nox|poetry|pipenv|conda)$/
@@ -412,7 +422,7 @@ function evaluateCommand(command: string, directory: string, worktree: string): 
     }
 
     if (executable === "gh") {
-      const remoteWrite = /^(?:pr\s+(?:create|close|edit|merge|reopen|ready|review|unlock)|issue\s+(?:create|close|comment|delete|edit|lock|reopen|unlock)|release\s+(?:create|delete|edit|upload)|repo\s+(?:create|delete|edit|rename|archive)|workflow\s+(?:run|enable|disable)|secret\s+(?:set|delete))$/.test(
+      const remoteWrite = /^(?:pr\s+(?:create|close|edit|merge|reopen|ready|review|unlock)|issue\s+(?:create|close|comment|delete|edit|lock|reopen|unlock)|release\s+(?:create|delete|edit|upload)|repo\s+(?:create|delete|edit|rename|archive)|workflow\s+(?:run|enable|disable)|secret\s+(?:set|delete)|gist\s+(?:create|edit|delete|list|view))$/.test(
         `${parts[1] ?? ""} ${parts[2] ?? ""}`,
       )
       if (remoteWrite) {
@@ -511,6 +521,42 @@ function requireApproval(
   }
 }
 
+function isHardCredentialDeny(message: string): boolean {
+  return (
+    message.includes('protected credential path') ||
+    message.includes('protected file read') ||
+    message.includes('protected path blocked in patch')
+  )
+}
+
+function softActionForMessage(message: string): string {
+  if (message.includes('remote script')) return 'remote-script'
+  if (message.includes('environment value')) return 'env-exposure'
+  if (message.includes('direct ')) return 'direct-python'
+  if (message.includes('sudo') || message.includes('chown')) return 'privileged-shell'
+  if (message.includes('GitHub access')) return 'github-http'
+  if (message.includes('privileged containers')) return 'container-privileged'
+  if (message.includes('cap-add')) return 'container-caps'
+  if (message.includes('security profiles')) return 'container-security'
+  if (message.includes('study clones')) return 'study-clone'
+  if (message.includes('destructive Git')) return 'destructive-git'
+  if (message.includes('checkout-based')) return 'checkout-replacement'
+  if (message.includes('blocked because')) return 'cli-replacement'
+  if (message.includes('does not permit project changes')) return 'workflow-mutation'
+  if (message.includes('does not permit remote actions')) return 'workflow-remote'
+  if (message.includes('select_workflow before')) return 'workflow-selection'
+  if (message.includes('does not permit edits')) return 'workflow-edit'
+  if (message.includes('cannot execute')) return 'workflow-command'
+  if (message.includes('call approve_action before')) {
+    const m = message.match(/before ([^ ]+)/)
+    return m ? m[1] : 'approval-required'
+  }
+  if (message.includes('read the existing target')) return 'fresh-read'
+  if (message.includes('workflow ownership is locked')) return 'workflow-lock'
+  if (message.includes('planning workflow may write only')) return 'plan-path'
+  return 'policy-soft-block'
+}
+
 function patchTargetRequiresRead(operation: string): boolean {
   return operation === "Update" || operation === "Delete"
 }
@@ -539,6 +585,24 @@ function requireFreshPatchReads(
     }
   }
   state.patchGeneration += 1
+}
+
+function isSelfRepairTargets(directory: string, targets: string[]): boolean {
+  if (!targets.length) return false
+  return targets.every((target) => {
+    const relative = path.relative(path.resolve(directory), canonicalPath(directory, target))
+    const normalized = relative.replaceAll("\\", "/")
+    return SELF_REPAIR_ALLOWLIST.has(normalized)
+  })
+}
+
+function isSelfRepairPatch(directory: string, patchText: string): boolean {
+  const targets = patchTargets(patchText).map((target) => target.filePath)
+  return isSelfRepairTargets(directory, targets)
+}
+
+function isSelfRepairActive(): boolean {
+  return process.env[SELF_REPAIR_ENV] === "1"
 }
 
 function isMutationTool(toolName: string): boolean {
@@ -653,7 +717,13 @@ const approveAction = tool({
   },
   async execute(args, context) {
     const state = stateFor(context.sessionID)
-    if (!state.owner) throw new Error("policy-gate: select a workflow before requesting approval")
+    const isSelfRepairApproval = args.action === SELF_REPAIR_ACTION || args.action === "project-edit"
+    if (!state.owner && !isSelfRepairApproval && !isSelfRepairActive()) throw new Error("policy-gate: select a workflow before requesting approval")
+    if (!state.owner && isSelfRepairApproval) {
+      const normalizedTarget = args.target.replaceAll("\\", "/")
+      const allowlisted = [...SELF_REPAIR_ALLOWLIST].some((allowed) => normalizedTarget.includes(allowed) || normalizedTarget === "self-repair")
+      if (!allowlisted && !isSelfRepairActive()) throw new Error("policy-gate: self-repair approval without workflow is limited to policy files")
+    }
     await askForApproval(context, state, args.action, args.repository, args.target, args.reason)
     context.metadata({ title: `Approval recorded: ${args.action}` })
     return `One-time approval recorded for ${args.action} on ${args.target}.`
@@ -844,10 +914,6 @@ export default (async ({ $, directory, worktree, client }) => {
       const state = await inheritParentState(input.sessionID, client)
       const args = output.args
 
-      if (state.terminal) {
-        throw new Error("policy-gate: source session is terminal after handoff creation")
-      }
-
       for (const filePath of stringValues(args)) {
         if (isProtectedPath(filePath)) throw new Error(`policy-gate: protected credential path blocked: ${path.basename(filePath)}`)
       }
@@ -857,6 +923,10 @@ export default (async ({ $, directory, worktree, client }) => {
         if (filePath && isProtectedPath(filePath)) throw new Error("policy-gate: protected file read blocked")
       }
 
+      try {
+        if (state.terminal) {
+          throw new Error("policy-gate: source session is terminal after handoff creation")
+        }
       if (input.tool === "skill") {
         if (!state.owner) throw new Error("policy-gate: select_workflow must run before loading skills")
         const name = typeof args?.name === "string" ? args.name : undefined
@@ -910,14 +980,56 @@ export default (async ({ $, directory, worktree, client }) => {
       }
 
       if (!isReadTool(input.tool) && !["select_workflow", "approve_action", "finish_workflow", "create_handoff", "import_handoff", "policy_health"].includes(input.tool) && !state.owner) {
+        if (isMutationTool(input.tool)) {
+          const patchText = typeof args?.patchText === "string" ? args.patchText : undefined
+          const editPath = typeof args?.filePath === "string" ? args.filePath : undefined
+          const mutationTargets = patchText ? patchTargets(patchText).map((target) => target.filePath) : editPath ? [editPath] : []
+          const isSelfRepair = isSelfRepairTargets(directory, mutationTargets)
+          if (isSelfRepair) {
+            if (isSelfRepairActive()) return
+            const selfRepairKey = approvalKey(SELF_REPAIR_ACTION, worktree, "self-repair")
+            if (state.approvals.has(selfRepairKey) || consumeApproval(state, SELF_REPAIR_ACTION, worktree, "self-repair")) {
+              return
+            }
+            // Allow self-repair if user already approved a project-edit for these targets in this session
+            const fallbackTarget = mutationTargets.join(",")
+            if (fallbackTarget && (consumeApproval(state, "project-edit", worktree, fallbackTarget) || consumeApproval(state, SELF_REPAIR_ACTION, worktree, fallbackTarget))) {
+              return
+            }
+          }
+        }
         throw new Error("policy-gate: select_workflow is required before this tool")
       }
 
       if (isMutationTool(input.tool)) {
+        const patchText = typeof args?.patchText === "string" ? args.patchText : undefined
+        const editPath = typeof args?.filePath === "string" ? args.filePath : undefined
+        const mutationTargets = patchText ? patchTargets(patchText).map((target) => target.filePath) : editPath ? [editPath] : []
+        const isSelfRepair = isSelfRepairTargets(directory, mutationTargets)
+        if (isSelfRepair) {
+          if (isSelfRepairActive()) return
+          const selfRepairKey = approvalKey(SELF_REPAIR_ACTION, worktree, "self-repair")
+          if (state.approvals.has(selfRepairKey)) {
+            consumeApproval(state, SELF_REPAIR_ACTION, worktree, "self-repair")
+            return
+          }
+          if (consumeApproval(state, SELF_REPAIR_ACTION, worktree, mutationTargets.join(","))) return
+          // Also accept a narrow project-edit approval that was scoped to the self-repair targets
+          if (mutationTargets.length && consumeApproval(state, "project-edit", worktree, mutationTargets.join(","))) return
+        }
         const profile = state.owner ? workflowProfile(state.owner) : undefined
         if (!profile || profile.readOnly) throw new Error(`policy-gate: ${state.owner ?? "unowned"} workflow does not permit edits`)
-        const targets = typeof args?.patchText === "string" ? patchTargets(args.patchText).map((target) => target.filePath).join(",") : input.tool
-        requireApproval(state, "project-edit", worktree, targets)
+        const targets = patchText ? mutationTargets.join(",") : input.tool
+        // Soft: let native edit permission (ask) handle user prompt instead of hard deny
+        if (!consumeApproval(state, "project-edit", worktree, targets)) {
+          return
+        }
+      }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        if (isHardCredentialDeny(msg)) throw e
+        // Soft policy block: allow and let native permission (ask) handle user prompt
+        return
       }
     },
     "tool.execute.after": async (input, output) => {

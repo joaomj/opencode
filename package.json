@@ -7,7 +7,9 @@
   "description": "Personal configuration for [OpenCode](https://opencode.ai).",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "bun test plugins/policy-gate.test.ts",
+    "verify:policy": "bun scripts/verify-policy.ts",
+    "opencode:guarded": "bash scripts/launch-opencode.sh"
   },
   "repository": {
     "type": "git",
