@@ -10,8 +10,8 @@
     "~/projects/opencode-cache-hit"
   ],
   "subagent_depth": 2,
-  "model": "openai/gpt-5.6-luna-fast",
-  "small_model": "openrouter/z-ai/glm-5.3-flash",
+  "model": "opencode/muse-spark-1.2-contributor-free",
+  "small_model": "opencode/muse-spark-1.2-contributor-free",
   "compaction": {
     "auto": true,
     "prune": true
@@ -83,6 +83,21 @@
           },
           "options": {
             "reasoningEffort": "max"
+          }
+        }
+      }
+    },
+    "opencode": {
+      "models": {
+        "muse-spark-1.2-contributor-free": {
+          "name": "Muse Spark 1.2 Free",
+          "limit": {
+            "context": 200000,
+            "input": 200000,
+            "output": 64000
+          },
+          "options": {
+            "reasoningEffort": "high"
           }
         }
       }
