@@ -1,10 +1,11 @@
-import { Effect } from "effect"
-import { mkdtemp, rm } from "node:fs/promises"
+import { mkdtemp, readFile, rm } from "node:fs/promises"
 import path from "node:path"
 import { expect, test } from "bun:test"
 import policyPlugin from "./policy-gate"
 
-function shellResult(exitCode = 1) {
+let sessionSequence = 0
+
+function shellResult(exitCode = 0) {
   const promise = Promise.resolve({ exitCode, text: () => "" })
   return Object.assign(promise, {
     quiet() {
@@ -24,6 +25,7 @@ fakeShell.cwd = () => fakeShell
 
 async function createHarness() {
   const worktree = await mkdtemp(path.join("/tmp", "policy-gate-test-"))
+  const sessionID = `session-${++sessionSequence}`
   const hooks = await policyPlugin({
     client: {
       session: {
@@ -38,178 +40,318 @@ async function createHarness() {
     $: fakeShell as never,
   })
   const context = {
-    sessionID: "session-1",
+    sessionID,
     messageID: "message-1",
     agent: "build",
     directory: worktree,
     worktree,
     abort: new AbortController().signal,
     metadata: () => undefined,
-    ask: () => Effect.succeed(undefined),
+    ask: () => {
+      throw new Error("policy plugin must not request custom approval")
+    },
   }
   return { hooks, context, worktree }
 }
 
-test("allows direct Python via native ask instead of hard deny", async () => {
-  const { hooks, context, worktree } = await createHarness()
+async function selectSoftwareDelivery(harness: Awaited<ReturnType<typeof createHarness>>) {
+  const select = harness.hooks.tool?.select_workflow
+  if (!select) throw new Error("select_workflow is unavailable")
+  await select.execute(
+    {
+      workflow: "software-delivery",
+      reason: "test policy behavior",
+      deliverable: "verified policy",
+      sideEffectBoundary: "test fixture only",
+    },
+    harness.context,
+  )
+}
+
+test("exports workflow tools without a custom approval tool", async () => {
+  const harness = await createHarness()
   try {
-    const before = hooks["tool.execute.before"]!
-    // Direct python is now soft: plugin does not hard deny, native permission (ask) will prompt
-    await before(
-      { tool: "bash", sessionID: context.sessionID, callID: "call-1" },
-      { args: { command: "python -c pass" } },
-    )
-    // No throw means soft-allowed; native ask would handle user prompt
+    expect(harness.hooks.tool?.select_workflow).toBeDefined()
+    expect(harness.hooks.tool?.finish_workflow).toBeDefined()
+    expect(harness.hooks.tool?.approve_action).toBeUndefined()
+    const health = harness.hooks.tool?.policy_health
+    if (!health) throw new Error("policy_health is unavailable")
+    expect(JSON.parse(await health.execute({}, harness.context))).toMatchObject({
+      approvalMode: "native-permissions",
+      customApprovalTool: false,
+    })
   } finally {
-    await rm(worktree, { recursive: true, force: true })
+    await rm(harness.worktree, { recursive: true, force: true })
   }
 })
 
-test("still hard-denies credential exposure", async () => {
-  const { hooks, context, worktree } = await createHarness()
+test("hard-denies credential paths and permits the safe environment example", async () => {
+  const harness = await createHarness()
   try {
-    const before = hooks["tool.execute.before"]!
+    const before = harness.hooks["tool.execute.before"]!
+    for (const [index, filePath] of [
+      ".env",
+      ".env.local",
+      ".npmrc",
+      ".netrc",
+      "id_rsa",
+      "credentials.json",
+      "service.credentials.json",
+      "private.key",
+      "~/.docker/config.json",
+      "~/.config/gh/hosts.yml",
+    ].entries()) {
+      await expect(
+        before(
+          { tool: "read", sessionID: harness.context.sessionID, callID: `credential-${index}` },
+          { args: { filePath } },
+        ),
+      ).rejects.toThrow("protected credential path blocked")
+    }
+    await before(
+      { tool: "read", sessionID: harness.context.sessionID, callID: "safe-example" },
+      { args: { filePath: ".env.example" } },
+    )
+  } finally {
+    await rm(harness.worktree, { recursive: true, force: true })
+  }
+})
+
+test("hard-denies credential paths in shell commands and patches", async () => {
+  const harness = await createHarness()
+  try {
+    const before = harness.hooks["tool.execute.before"]!
+    await selectSoftwareDelivery(harness)
+    for (const [index, command] of [
+      "source .env",
+      'cat .e""nv',
+      "cat .e\\\nnv",
+      "cat<.env",
+      "cat credentials.json",
+      "cat ~/.docker/config.json",
+    ].entries()) {
+      await expect(
+        before(
+          { tool: "bash", sessionID: harness.context.sessionID, callID: `shell-credential-${index}` },
+          { args: { command } },
+        ),
+      ).rejects.toThrow("protected credential path blocked")
+    }
     await expect(
       before(
-        { tool: "read", sessionID: context.sessionID, callID: "call-1" },
-        { args: { filePath: ".env" } },
+        { tool: "apply_patch", sessionID: harness.context.sessionID, callID: "patch-credential" },
+        { args: { patchText: "*** Add File: .env\n+SECRET=value\n" } },
       ),
     ).rejects.toThrow("protected credential path blocked")
+  } finally {
+    await rm(harness.worktree, { recursive: true, force: true })
+  }
+})
+
+test("defers non-credential protected actions to native permissions", async () => {
+  const harness = await createHarness()
+  try {
+    const before = harness.hooks["tool.execute.before"]!
+    await selectSoftwareDelivery(harness)
+    for (const [index, command] of [
+      "python -c pass",
+      "sudo true",
+      "docker run --privileged image",
+      "git reset --hard HEAD~1",
+      'git commit -m "test commit"',
+      "git push origin test-branch",
+      "gh gist edit abc123 --add note.txt",
+      "printenv HOME",
+    ].entries()) {
+      await before(
+        { tool: "bash", sessionID: harness.context.sessionID, callID: `native-${index}` },
+        { args: { command } },
+      )
+    }
+  } finally {
+    await rm(harness.worktree, { recursive: true, force: true })
+  }
+})
+
+test("loads the router before ownership and selected workflow instructions after selection", async () => {
+  const harness = await createHarness()
+  try {
+    const before = harness.hooks["tool.execute.before"]!
+    await before(
+      { tool: "skill", sessionID: harness.context.sessionID, callID: "router" },
+      { args: { name: "workflow" } },
+    )
     await expect(
       before(
-        { tool: "read", sessionID: context.sessionID, callID: "call-2" },
-        { args: { filePath: ".npmrc" } },
+        { tool: "skill", sessionID: harness.context.sessionID, callID: "capability" },
+        { args: { name: "coding-standards" } },
       ),
-    ).rejects.toThrow("protected credential path blocked")
+    ).rejects.toThrow("call select_workflow")
+
+    const select = harness.hooks.tool?.select_workflow
+    if (!select) throw new Error("select_workflow is unavailable")
+    const output = await select.execute(
+      {
+        workflow: "direct-assistance",
+        reason: "answer one question",
+        deliverable: "one answer",
+        sideEffectBoundary: "read-only",
+      },
+      harness.context,
+    )
+    expect(output).toContain("Selected workflow instructions")
+    expect(output).toContain("# Direct Assistance")
+    await expect(
+      before(
+        { tool: "skill", sessionID: harness.context.sessionID, callID: "top-level" },
+        { args: { name: "direct-assistance" } },
+      ),
+    ).rejects.toThrow("select_workflow loads top-level workflow instructions")
   } finally {
-    await rm(worktree, { recursive: true, force: true })
+    await rm(harness.worktree, { recursive: true, force: true })
   }
 })
 
-test("recognizes gh gist edit as soft remote and allows via native ask", async () => {
-  const { hooks, context, worktree } = await createHarness()
+test("selects code review as an owning workflow", async () => {
+  const harness = await createHarness()
   try {
-    const before = hooks["tool.execute.before"]!
-    const select = hooks.tool?.select_workflow
-    if (!select) throw new Error("policy tools are unavailable")
-    await select.execute(
+    const select = harness.hooks.tool?.select_workflow
+    if (!select) throw new Error("select_workflow is unavailable")
+    const output = await select.execute(
       {
-        workflow: "software-delivery",
-        reason: "update gist",
-        deliverable: "gist update",
-        sideEffectBoundary: "remote gist edit",
+        workflow: "code-review",
+        reason: "review a change",
+        deliverable: "P0 and P1 findings",
+        sideEffectBoundary: "read-only",
       },
-      context,
+      harness.context,
     )
-    // gh gist edit is now recognized as protectedAction but soft: does not hard deny, native ask will prompt
-    await before(
-      { tool: "bash", sessionID: context.sessionID, callID: "call-1" },
-      { args: { command: "gh gist edit abc123 --add note.txt" } },
-    )
-    // No hard throw; native permission gist edit is ask
+    expect(output).toContain("# Code Review")
   } finally {
-    await rm(worktree, { recursive: true, force: true })
+    await rm(harness.worktree, { recursive: true, force: true })
   }
 })
 
-test("requires a fresh read and one-time approval before a patch", async () => {
-  const { hooks, context, worktree } = await createHarness()
+test("tracks successful unknown shell commands as project changes", async () => {
+  const harness = await createHarness()
   try {
-    const filePath = path.join(worktree, "file.py")
-    await Bun.write(filePath, "value = 1\n")
-    const select = hooks.tool?.select_workflow
-    const approve = hooks.tool?.approve_action
-    const before = hooks["tool.execute.before"]!
-    const after = hooks["tool.execute.after"]!
-    if (!select || !approve) throw new Error("policy tools are unavailable")
+    await selectSoftwareDelivery(harness)
+    const before = harness.hooks["tool.execute.before"]!
+    const after = harness.hooks["tool.execute.after"]!
+    const input = {
+      tool: "bash",
+      sessionID: harness.context.sessionID,
+      callID: "prefixed-mutation",
+      args: { command: "env FLAG=1 touch generated.txt" },
+    }
+    await before(input, { args: input.args })
+    await after(input, { title: "bash", output: "", metadata: { exit: 0 } })
 
-    await select.execute(
-      {
-        workflow: "software-delivery",
-        reason: "update the example",
-        deliverable: "updated example",
-        sideEffectBoundary: "local project edits",
-      },
-      context,
-    )
-    await approve.execute(
-      {
-        action: "project-edit",
-        repository: worktree,
-        target: "file.py",
-        reason: "the requested example change",
-      },
-      context,
-    )
-
-    const patchText = "*** Update File: file.py\n@@\n-value = 1\n+value = 2\n"
-    // Fresh-read is now soft: without prior read, plugin allows and lets native ask handle
-    // But we still test that with prior read, patch succeeds, and second patch without fresh read is soft-allowed (not hard deny)
-    await before(
-      { tool: "read", sessionID: context.sessionID, callID: "call-3" },
-      { args: { filePath: "file.py" } },
-    )
-    await after(
-      {
-        tool: "read",
-        sessionID: context.sessionID,
-        callID: "call-3",
-        args: { filePath: "file.py" },
-      },
-      { title: "read", output: "value = 1", metadata: {} },
-    )
-    await before(
-      { tool: "apply_patch", sessionID: context.sessionID, callID: "call-4" },
-      { args: { patchText } },
-    )
-    await after(
-      {
-        tool: "apply_patch",
-        sessionID: context.sessionID,
-        callID: "call-4",
-        args: { patchText },
-      },
-      { title: "patch", output: "updated", metadata: {} },
-    )
-
-    // Second patch without fresh read is now soft-allowed (would have been hard before)
-    await before(
-      { tool: "apply_patch", sessionID: context.sessionID, callID: "call-5" },
-      { args: { patchText } },
-    )
+    const finish = harness.hooks.tool?.finish_workflow
+    if (!finish) throw new Error("finish_workflow is unavailable")
+    await expect(finish.execute({}, harness.context)).resolves.toContain("opencode-lint: passed")
   } finally {
-    await rm(worktree, { recursive: true, force: true })
+    await rm(harness.worktree, { recursive: true, force: true })
   }
 })
 
-test("allows self-repair of policy files without workflow via approval or env", async () => {
-  const { hooks, context, worktree } = await createHarness()
+test("applies dependency age controls to environment-prefixed installs", async () => {
+  const harness = await createHarness()
   try {
-    const approve = hooks.tool?.approve_action
-    const before = hooks["tool.execute.before"]!
-    const after = hooks["tool.execute.after"]!
-    if (!approve) throw new Error("policy tools are unavailable")
-
-    const policyPath = path.join(worktree, "plugins/policy-gate.ts")
-    await Bun.write(policyPath, "export default 1\n")
-
-    const patchText = "*** Update File: plugins/policy-gate.ts\n@@\n-export default 1\n+export default 2\n"
-
-    await before({ tool: "read", sessionID: context.sessionID, callID: "call-2" }, { args: { filePath: "plugins/policy-gate.ts" } })
-    await after({ tool: "read", sessionID: context.sessionID, callID: "call-2", args: { filePath: "plugins/policy-gate.ts" } }, { title: "read", output: "export default 1", metadata: {} })
-
-    // Without approval, self-repair is now soft-allowed (native ask would prompt), but we still test that with approval it succeeds
-    await before({ tool: "apply_patch", sessionID: context.sessionID, callID: "call-3" }, { args: { patchText } })
-
-    await approve.execute({ action: "policy-self-repair", repository: worktree, target: "self-repair", reason: "fix broken policy" }, context)
-
-    // read is consumed on success, so re-read before next patch
-    await before({ tool: "read", sessionID: context.sessionID, callID: "call-4b" }, { args: { filePath: "plugins/policy-gate.ts" } })
-    await after({ tool: "read", sessionID: context.sessionID, callID: "call-4b", args: { filePath: "plugins/policy-gate.ts" } }, { title: "read", output: "export default 1", metadata: {} })
-
-    await before({ tool: "apply_patch", sessionID: context.sessionID, callID: "call-4" }, { args: { patchText } })
-    await after({ tool: "apply_patch", sessionID: context.sessionID, callID: "call-4", args: { patchText } }, { title: "patch", output: "updated", metadata: {} })
+    await selectSoftwareDelivery(harness)
+    const before = harness.hooks["tool.execute.before"]!
+    const input = {
+      tool: "bash",
+      sessionID: harness.context.sessionID,
+      callID: "prefixed-install",
+      args: { command: "env CI=1 bun install" },
+    }
+    await before(input, { args: input.args })
+    const output = { env: {} as Record<string, string> }
+    await harness.hooks["shell.env"]?.(input, output)
+    expect(output.env.BUN_MINIMUM_RELEASE_AGE).toBe("604800")
   } finally {
-    await rm(worktree, { recursive: true, force: true })
+    await rm(harness.worktree, { recursive: true, force: true })
   }
+})
+
+test("policy verification rejects pure mode", async () => {
+  const process = Bun.spawn(["bun", "scripts/verify-policy.ts"], {
+    cwd: path.resolve(import.meta.dir, ".."),
+    env: { ...Bun.env, OPENCODE_PURE: "1" },
+    stdout: "pipe",
+    stderr: "pipe",
+  })
+  expect(await process.exited).toBe(1)
+  expect(await new Response(process.stderr).text()).toContain("OPENCODE_PURE=1 is blocked")
+})
+
+test("requires a handoff before changing workflow ownership", async () => {
+  const harness = await createHarness()
+  try {
+    const select = harness.hooks.tool?.select_workflow
+    if (!select) throw new Error("select_workflow is unavailable")
+    await selectSoftwareDelivery(harness)
+    await expect(
+      select.execute(
+        {
+          workflow: "research",
+          reason: "change scope",
+          deliverable: "research result",
+          sideEffectBoundary: "read-only",
+        },
+        harness.context,
+      ),
+    ).rejects.toThrow("create a handoff")
+  } finally {
+    await rm(harness.worktree, { recursive: true, force: true })
+  }
+})
+
+test("creates handoffs without requesting custom approval", async () => {
+  const harness = await createHarness()
+  try {
+    await selectSoftwareDelivery(harness)
+    const create = harness.hooks.tool?.create_handoff
+    if (!create) throw new Error("create_handoff is unavailable")
+    const output = await create.execute(
+      {
+        targetWorkflow: "research",
+        goal: "verify one external fact",
+        evidence: "implementation needs a source",
+        paths: [],
+        commands: [],
+        results: [],
+        decisions: [],
+        gaps: ["source missing"],
+        allowedNextAction: "perform read-only research",
+      },
+      harness.context,
+    )
+    expect(output).toContain("Handoff created")
+    const handoffDir = path.join(harness.worktree, ".agents", "handoffs")
+    expect((await readFile(path.join(handoffDir, `${harness.context.sessionID}-research.md`), "utf8"))).toContain("target_workflow: research")
+  } finally {
+    await rm(harness.worktree, { recursive: true, force: true })
+  }
+})
+
+test("native permission configuration asks for normal edits and denies credentials", async () => {
+  const config = JSON.parse(
+    await readFile(path.resolve(import.meta.dir, "../opencode.jsonc"), "utf8"),
+  ) as {
+    permission: {
+      bash: Record<string, string>
+      read: Record<string, string>
+      edit: Record<string, string>
+    }
+  }
+  expect(config.permission.bash["*"]).toBe("ask")
+  expect(config.permission.bash["gh *"]).toBeUndefined()
+  expect(Object.keys(config.permission.bash).filter((pattern) => pattern !== "*").every((pattern) => !pattern.includes("*"))).toBe(true)
+  expect(config.permission.edit["*"]).toBe("ask")
+  expect(config.permission.edit["*.env"]).toBe("deny")
+  expect(config.permission.edit["**/.docker/config.json"]).toBe("deny")
+  expect(config.permission.read["*.env"]).toBe("deny")
+  expect(config.permission.read["*.env.example"]).toBe("allow")
 })

@@ -39,15 +39,18 @@ loaded by OpenCode.
 
 ## Policy Plugin
 
-The policy gate (`plugins/policy-gate.ts`) enforces workflow ownership,
-approval, and verification. `OPENCODE_PURE=1` is blocked.
+The policy gate (`plugins/policy-gate.ts`) protects credential paths and tracks
+workflow ownership and verification. Native OpenCode permissions ask before
+other protected actions.
+
+`policy_health` reports `approvalMode: "native-permissions"`. The plugin does
+not wrap native denials or provide a custom approval tool.
 
 - Check health: `bun scripts/verify-policy.ts`
 - Guarded launch: `bash scripts/launch-opencode.sh`
-- Narrow self-repair (no PURE): `OPENCODE_POLICY_REPAIR=1 opencode`
-  or approve `policy-self-repair` for `plugins/policy-gate.ts`,
-  `opencode.jsonc`, and related policy files. PURE is not required to fix the
-  plugin itself.
+
+The guarded launch rejects `OPENCODE_PURE=1` because pure mode disables
+credential protection. Use external Git to restore a known-good configuration.
 
 ## Releases
 

@@ -11,8 +11,8 @@ function fail(message: string): never {
   process.exit(1)
 }
 
-if (process.env.OPENCODE_PURE === "1" && process.env.OPENCODE_POLICY_REPAIR !== "1") {
-  fail("OPENCODE_PURE=1 is blocked. The policy plugin is required. Use OPENCODE_POLICY_REPAIR=1 for narrow self-repair or remove OPENCODE_PURE.")
+if (process.env.OPENCODE_PURE === "1") {
+  fail("OPENCODE_PURE=1 is blocked because it disables credential protection. Restore a known-good configuration with external Git before launch.")
 }
 
 let configText: string
@@ -41,4 +41,3 @@ if (!build.success) {
 console.log("policy-check: ok")
 console.log(`  plugin: ${path.relative(CONFIG_DIR, POLICY_PATH)}`)
 console.log(`  config: ${path.relative(CONFIG_DIR, CONFIG_PATH)} includes policy-gate`)
-if (process.env.OPENCODE_POLICY_REPAIR === "1") console.log("  repair mode: OPENCODE_POLICY_REPAIR=1 active (narrow self-repair allowed)")

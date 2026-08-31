@@ -13,6 +13,10 @@ the relevant skill or command; do not duplicate them here.
   otherwise discard them.
 - Keep side effects within the user's request. Do not create commits, branches,
   tickets, pull requests, or remote writes without explicit authorization.
+- Request native approvals one at a time. State the exact action, target, and
+  reason before each request.
+- Preserve the exact native denial reason. If the API does not return a cause,
+  state that the cause is unavailable and identify the permission layer.
 - Surface failures and verification gaps. Do not silently skip them.
 - Run commands that may outlive the shell timeout in detached mode, such as with
   `nohup`, redirected logs, and background execution. Monitor the process and
@@ -47,6 +51,8 @@ where the user asks for them or where they need to understand a risk.
   chosen path is suitable, and the decisions the user must make.
 - Report progress after every work stage. Group related reads or searches into
   one stage, then report the result before starting the next stage.
+- If a stage has no result after five minutes, report that it is still running,
+  give the latest evidence, and state the next check.
 - Send an update before a large batch of searches, edits, or checks. Send another
   update when the approach changes, a new risk appears, or the work expands.
 - Explain findings and outcomes in product terms. Use examples or analogies when

@@ -1,83 +1,66 @@
-# How our enforcements work — plain terms
+# How Enforcement Works
 
-> For product and design. No code knowledge needed.
+Two layers control an action. Both layers must allow the action.
 
-## The idea in one sentence
+## Policy Gate
 
-Every action the agent tries — editing a file, running a command, updating a Gist — goes through the same three checkpoints in the same order, and always gets the same result for the same input. No AI judgment, no randomness.
+`plugins/policy-gate.ts` selects one workflow and protects credential paths.
 
-Think of it like airport security: check-in, security gate, final boarding check. Same ticket, same bag, same result every time.
+The policy gate hard-denies access to these credential files:
 
----
+- `.env` files
+- Package-manager credential files
+- Private keys
+- Cloud credential files
+- GitHub and Docker credential files
 
-## The three checkpoints
+The denial starts with `policy-gate:` and includes the protected file name.
+The policy gate does not ask for approval. It does not export `approve_action`.
 
-### Checkpoint 1 — The front door (native prompt)
+Use `policy_health` to confirm the approval mode:
 
-**File:** `opencode.jsonc`
+```json
+{
+  "approvalMode": "native-permissions",
+  "customApprovalTool": false
+}
+```
 
-This asks: *should we even let the agent try this?*
+## Native Permissions
 
-- **Credential files like `.env` → hard stop.** No prompt, no override. This is the only hard stop left.
-- **Everything else → ask you.** `gh gist edit`, `git push --force`, `python`, `pip`, `docker`, creating or editing any normal file — you see a prompt: Allow or Deny.
-- **Safe reads → allow.** `git status`, `uv`/`uvx`, `rg` just run.
+`opencode.jsonc` controls all other actions.
 
-**Why this matters:** Before the fix, many actions were hard stops with no prompt. A Gist update could not even reach you for approval. Now you get asked.
+- Exact safe commands run without a prompt.
+- Normal file reads run without a prompt.
+- Normal file edits require a prompt.
+- Other shell commands require a prompt.
+- Credential reads and edits are denied.
 
-### Checkpoint 2 — The workflow guard (project policy)
+OpenCode owns these prompts. The policy gate does not catch or replace native
+permission errors.
 
-**File:** `plugins/policy-gate.ts`
+Ask for one protected action at a time. Include the exact action, target, and
+reason. An instruction in chat states user intent. It does not replace the
+native permission prompt.
 
-This asks: *is this action expected for the job you picked?*
+## Denial Causes
 
-1. **Pick one job per session.** Example: `doc-maintenance` for a Gist edit, `software-delivery` for a feature. Some jobs are read-only, some allow remote changes. Once you make a change, you cannot switch jobs.
-2. **Is it a credential path? → hard stop.** Same as checkpoint 1. Never ask.
-3. **Is it a normal policy rule? → ask you instead of blocking.** For example, trying a remote Gist edit inside a read-only job used to be blocked. Now the guard steps aside and lets Checkpoint 1 ask you.
-4. **Did we read before editing?** The guard remembers what you read and expects a fresh read before a patch. This is also now an ask, not a hard block.
-
-**Real example — Gist update that used to fail:**
-
-1. You or the agent pick `doc-maintenance`.
-2. Agent prepares `/tmp/opencode/.../mini-pc-minecraft-ubuntu-retro-notes.md` (draft).
-3. Agent runs `gh gist edit 9a143845bc14997da2ada202e4700abf --add note.md`.
-4. **Old behavior:** step 2 and 3 were blocked with no prompt — even though you wanted it.
-5. **New behavior:** step 2 and 3 show a prompt. You approve once, it runs, then we verify the remote Gist content.
-
-### Checkpoint 3 — The final quality check
-
-**File:** `opencode_lint` + `.pre-commit-config.yaml`
-
-This asks: *did we leave the project in good shape?*
-
-Before a job can close (`finish_workflow`), we run the linter on the whole project. It must pass. There is no prompt here — it reports pass or fail. Warnings are allowed, errors are not. Pre-commit runs a fast version of the same check on every commit.
-
----
-
-## Deterministic = same input, same outcome
-
-- Same command + same file + same job + same approvals → same prompt, same allow/deny.
-- No call to the model, no network decision.
-- Restart is required after changing `opencode.jsonc` or `plugins/policy-gate.ts`. The old session keeps the old rules in memory. Use `/reload` or restart OpenCode.
-
-## Where to look when something is blocked
-
-| You see | Why | What to do |
+| Result | Source | Cause |
 |---|---|---|
-| No prompt, message says `protected credential path blocked` | Credential file (`.env`, `.npmrc`, keys) | Do not bypass — use env vars or `pydantic-settings` |
-| Prompt appears (Allow / Deny) | Normal policy rule (`gh gist edit`, `python`, file edit) | Allow if you intended it, Deny if not |
-| `finish_workflow blocked` after edits | Linter failed | Fix the `LNT` errors it lists, then finish again |
+| Error starts with `policy-gate:` | Policy gate | The action uses a credential path or violates workflow state. |
+| OpenCode shows an Allow or Deny prompt | Native permissions | The action matches an `ask` rule. |
+| Native permission error | Native permissions | The prompt was denied or the approval service failed. |
+| `finish_workflow blocked` | Policy gate | The coding linter failed. |
 
-## Visual
+Preserve the exact native error. If OpenCode does not return a cause, report
+`cause unavailable` and identify native permissions as the source.
 
-- Interactive diagram: `docs/enforcement-flow.html` — open in a browser.
-- Static image for GitHub: `docs/enforcement-flow.svg`
+## Configuration Changes
 
-```
-![Enforcement flow](enforcement-flow.svg)
-```
+Restart OpenCode after a change to `opencode.jsonc` or `policy-gate.ts`. The
+current process keeps the old policy in memory.
 
-Open the HTML for the full interactive version with hover details.
+## Rule
 
-## One rule to remember
-
-> **Credential exposure is a hard stop. Everything else asks you.**
+Credential exposure is a hard stop. Native permissions ask for other protected
+actions.
