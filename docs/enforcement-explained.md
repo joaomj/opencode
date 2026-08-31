@@ -1,66 +1,125 @@
 # How Enforcement Works
 
-Two layers control an action. Both layers must allow the action.
+Two layers control one agent action. Both layers must allow the action.
+No AI judgment. Same input, same result. Policy version `2.0.0`.
 
 ## Policy Gate
 
-`plugins/policy-gate.ts` selects one workflow and protects credential paths.
+`plugins/policy-gate.ts` (`POLICY_VERSION 2.0.0`) does two things: it locks
+one workflow for the session and it hard-denies credential paths.
 
-The policy gate hard-denies access to these credential files:
+### Credential hard stop
 
-- `.env` files
-- Package-manager credential files
-- Private keys
-- Cloud credential files
-- GitHub and Docker credential files
+The gate tests every file path and every shell token against:
 
-The denial starts with `policy-gate:` and includes the protected file name.
-The policy gate does not ask for approval. It does not export `approve_action`.
+- `SAFE_ENV_PATH_RE`: `/.env.example` never blocks
+- `CREDENTIAL_PATH_RE`: `.env` and `.env.*`, `.npmrc`, `.pypirc`,
+  `.git-credentials`, `.netrc`, `.authinfo`, `credentials` and
+  `credentials*.json`, `*.credentials.json`, `*.pem`, `*.key`, `id_rsa`,
+  `id_ed25519`
+- `CREDENTIAL_CONFIG_PATH_RE`: `.docker/config.json`, `.config/gh/hosts.yml`
 
-Use `policy_health` to confirm the approval mode:
+A match throws `policy-gate: protected credential path blocked` with the
+base name. This is the only hard stop. The gate does not show a prompt and it
+does not export `approve_action`. Check all command tokens, not only the
+first word.
+
+### Workflow ownership
+
+One workflow per session. Request flow:
+
+1. Call `select_workflow` with `workflow`, `reason`, `deliverable`,
+   `sideEffectBoundary` (and optional `planPath`). The gate loads the
+   workflow instructions and locks the owner.
+2. Before the first side effect you can handoff to a different workflow
+   with `create_handoff` and `import_handoff`. After the first side effect
+   the owner locks. After `create_handoff` the source session becomes
+   terminal.
+
+The gate enforces `select_workflow` before:
+
+- Any non-safe `bash` command (anything not in the 17 exact safe commands)
+- `webfetch` and `websearch`
+- Mutation tools (`apply_patch`, `edit`, `write`) and other non-read tools
+
+Error when missing: `policy-gate: select_workflow before non-read shell
+actions` or `select_workflow before external reads`. Read tools
+(`read`, `glob`, `grep`, `list`) and `policy_health` run without a workflow.
+
+The gate records side effects: mutation tools and any non-safe, non-verification
+`bash` with `exit 0` set `changed=true` and `verification=stale`. Verification
+commands (`test`, `check`, `lint`, `format`, `verify`, `typecheck`, `pytest`,
+`ruff`, `pyright`, `mypy`) update `verification` to `passed` or `failed`.
+
+### Health check
+
+`policy_health` always returns:
 
 ```json
 {
+  "active": true,
+  "policyVersion": "2.0.0",
   "approvalMode": "native-permissions",
-  "customApprovalTool": false
+  "customApprovalTool": false,
+  "sessionID": "ses_..."
 }
 ```
 
 ## Native Permissions
 
-`opencode.jsonc` controls all other actions.
+`opencode.jsonc` controls all other prompts. The policy gate does not catch or
+replace native permission errors. OpenCode owns the Allow or Deny prompt.
 
-- Exact safe commands run without a prompt.
-- Normal file reads run without a prompt.
-- Normal file edits require a prompt.
-- Other shell commands require a prompt.
-- Credential reads and edits are denied.
-
-OpenCode owns these prompts. The policy gate does not catch or replace native
-permission errors.
+- `permission.bash."*": "ask"` — default for shell is ask
+- 17 exact safe commands run without a prompt: `pwd`, `date`, `whoami`, `id`,
+  `uname -a`, `arch`, `hostname`, `ps`, `tty`, `uptime`, `git status`,
+  `git status --short`, `git status --porcelain`, `git diff`,
+  `git diff --cached`, `git log`, `git branch` variants, `gh auth status`,
+  `gh status`, `docker images`, `docker info`, `docker ps`, `docker version`
+- `permission.read."*": "allow"` — normal reads allow, credential reads deny
+- `permission.edit."*": "ask"` — normal edits ask, credential edits deny
+- `permission.glob`, `grep`, `todowrite`, `question`, `websearch`, `webfetch`,
+  `skill` allow by default; `external_directory` asks except `/tmp` and
+  `/var/folders` tmp
 
 Ask for one protected action at a time. Include the exact action, target, and
-reason. An instruction in chat states user intent. It does not replace the
-native permission prompt.
+reason. A chat instruction states intent. It does not replace the native
+prompt. Preserve the exact native denial reason. If no cause is available,
+report `cause unavailable` and identify `native permissions` as the source.
+
+## Final Quality Check
+
+`finish_workflow` is required only if `changed=true`. It runs:
+
+```
+PYTHONPATH=<root> uv run --project opencode_lint --directory opencode_lint python -m opencode_lint.cli --profile coding
+```
+
+Exit `0` records `passed`. Any other exit throws
+`policy-gate: finish_workflow blocked; opencode-lint failed`. Warnings pass.
+No prompt, only a report.
 
 ## Denial Causes
 
 | Result | Source | Cause |
 |---|---|---|
-| Error starts with `policy-gate:` | Policy gate | The action uses a credential path or violates workflow state. |
-| OpenCode shows an Allow or Deny prompt | Native permissions | The action matches an `ask` rule. |
-| Native permission error | Native permissions | The prompt was denied or the approval service failed. |
-| `finish_workflow blocked` | Policy gate | The coding linter failed. |
-
-Preserve the exact native error. If OpenCode does not return a cause, report
-`cause unavailable` and identify native permissions as the source.
+| Error starts with `policy-gate: protected credential path blocked` | Policy gate | Path matched credential regex |
+| Error starts with `policy-gate: select_workflow` | Policy gate | Workflow not selected for non-read or external action |
+| Error starts with `policy-gate: finish_workflow blocked` | Policy gate | Linter failed |
+| Error `source session is terminal after handoff` | Policy gate | Action after `create_handoff` |
+| OpenCode shows Allow or Deny prompt | Native permissions | Rule matched `ask` |
+| Native permission error after prompt | Native permissions | Prompt denied or approval service failed |
 
 ## Configuration Changes
 
-Restart OpenCode after a change to `opencode.jsonc` or `policy-gate.ts`. The
-current process keeps the old policy in memory.
+Restart OpenCode (or `/reload`) after a change to `opencode.jsonc` or
+`plugins/policy-gate.ts`. The current process keeps the old policy in memory.
+External `git` restores a known-good configuration. Do not use
+`OPENCODE_PURE=1` — it disables credential protection; the guarded launch
+rejects it.
 
 ## Rule
 
 Credential exposure is a hard stop. Native permissions ask for other protected
-actions.
+actions. Same command + same file + same workflow + same approval gives the
+same prompt, same allow or deny.

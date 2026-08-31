@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Enforcement Flow — Deterministic Checkpoints</title>
+<title>Enforcement Flow — Deterministic Checkpoints — Policy 2.0.0</title>
 <style>
   :root{--bg:#0b1020;--card:#111832;--muted:#9aa3c2;--line:#24314f;--accent:#4ea8ff;--ask:#f59e0b;--hard:#ef4444;--allow:#22c55e;--pass:#22c55e}
   *{box-sizing:border-box}
@@ -33,25 +33,27 @@
 </head>
 <body>
 <header>
-  <h1>Enforcement Flow — Same input, same result. No AI judgment.</h1>
-  <p>Three deterministic checkpoints. Scope: one agent action (file edit, <code>bash</code>, or <code>gh gist edit</code>) in a selected workflow. Hover any card for plain terms.</p>
+  <h1>Enforcement Flow — Same input, same result. No AI judgment. — Policy 2.0.0</h1>
+  <p>Two layers, three checkpoints. Scope: one agent action (file edit, <code>bash</code>, <code>webfetch</code>) in a selected workflow. Policy-gate <code>2.0.0</code> (<code>native-permissions</code>) hard-stops only credential paths; everything else defers to native OpenCode prompts. Hover any card for plain terms.</p>
   <div class="chips">
+    <span class="chip">Policy 2.0.0 — native-permissions</span>
     <span class="chip">Hard stop: only credential paths (.env etc.)</span>
-    <span class="chip">Ask: everything else</span>
+    <span class="chip">Ask: everything else via native prompt</span>
+    <span class="chip">select_workflow required before non-read</span>
     <span class="chip">Restart or /reload to load new rules</span>
   </div>
   <div class="legend">
     <span><i style="background:var(--allow)"></i> Allow — proceeds</span>
-    <span><i style="background:var(--ask)"></i> Ask — prompt to you</span>
-    <span><i style="background:var(--hard)"></i> Hard stop — no prompt</span>
+    <span><i style="background:var(--ask)"></i> Ask — native Allow/Deny prompt</span>
+    <span><i style="background:var(--hard)"></i> Hard stop — no prompt (policy-gate)</span>
     <span><i style="background:#4ea8ff"></i> Deterministic gate — same result every time</span>
   </div>
 </header>
 <div class="wrap">
   <div class="panel">
     <svg viewBox="0 0 1000 760" role="img" aria-labelledby="title desc">
-      <title id="title">Enforcement Flow — Three checkpoints and outcomes</title>
-      <desc id="desc">Sequence of decisions for one agent action through native permission, plugin workflow guard, and final linter verification.</desc>
+      <title id="title">Enforcement Flow — Three checkpoints and outcomes — Policy 2.0.0</title>
+      <desc id="desc">Sequence of decisions for one agent action through workflow selection, native permission front door, policy credential guard, and final linter verification.</desc>
       <defs>
         <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4ea8ff"/></marker>
         <marker id="arrow-ask" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f59e0b"/></marker>
@@ -63,30 +65,30 @@
       <rect x="10" y="36" width="980" height="58" rx="10" fill="#0f1730" stroke="#24314f"/>
       <rect x="10" y="550" width="980" height="28" rx="10" fill="#0f1730" stroke="#24314f"/>
 
-      <text x="18" y="28" fill="#9aa3c2" font-size="11">You ask the agent. Agent proposes one action. Checkpoints run in order.</text>
-      <text x="18" y="568" fill="#9aa3c2" font-size="11">Same command + same file + same job + same approval → same prompt, same allow or deny.</text>
+      <text x="18" y="28" fill="#9aa3c2" font-size="11">You ask the agent. Agent selects one workflow (select_workflow), then proposes one action. Checkpoints run in order.</text>
+      <text x="18" y="568" fill="#9aa3c2" font-size="11">Same command + same file + same workflow + same approval → same prompt, same allow or deny. policy_health: active, 2.0.0, native-permissions.</text>
 
       <!-- Start -->
-      <g class="card" data-tip="Product intent: &quot;update the Gist&quot; or &quot;edit this file&quot;. The agent picks one workflow, e.g. doc-maintenance, then proposes one concrete action.">
+      <g class="card" data-tip="Product intent: &quot;edit this file&quot; or &quot;run this command&quot;. The agent calls select_workflow with workflow, reason, deliverable, sideEffectBoundary, then proposes one concrete action. Without that, non-read actions get policy-gate: select_workflow before non-read shell actions.">
         <rect x="200" y="60" width="600" height="42" rx="12" fill="#18244a" stroke="#2b3d6b" filter="url(#shadow)"/>
-        <text x="500" y="77" fill="#e6ebff" text-anchor="middle" font-size="12">Agent proposes: edit file / run command / gh gist edit</text>
-        <text x="500" y="91" fill="#9aa3c2" text-anchor="middle" font-size="10">Picks one workflow first: doc-maintenance, software-delivery, etc.</text>
-        <text x="500" y="103" fill="#9aa3c2" text-anchor="middle" font-size="10">Example: draft /tmp/.../mini-pc-minecraft-ubuntu-retro-notes.md then gh gist edit</text>
+        <text x="500" y="77" fill="#e6ebff" text-anchor="middle" font-size="12">Agent proposes: edit file / run command / webfetch / gh api</text>
+        <text x="500" y="91" fill="#9aa3c2" text-anchor="middle" font-size="10">Must call select_workflow first: doc-maintenance, software-delivery, etc. — locks after first side effect</text>
+        <text x="500" y="103" fill="#9aa3c2" text-anchor="middle" font-size="10">Example: select_workflow(doc-maintenance) → draft /tmp/.../note.md → gh gist edit (now inside workflow)</text>
       </g>
 
       <!-- Checkpoint 1 -->
-      <g class="card" data-tip="Checkpoint 1 — Front door (opencode.jsonc). Credential files like .env are a hard stop with no prompt. All other bash / edit / gist actions show a native Allow/Deny prompt. Safe reads like git status just allow.">
+      <g class="card" data-tip="Checkpoint 1 — Front door (opencode.jsonc). 17 exact safe commands (git status, git log, gh auth status, docker ps, etc.) and normal reads just allow. Credential paths (.env etc., except .env.example) deny with no prompt. Everything else — edit, non-safe bash, webfetch — shows a native Allow/Deny prompt.">
         <rect x="140" y="138" width="720" height="88" rx="14" fill="#102a4a" stroke="#2b5a8a" filter="url(#shadow)"/>
-        <text x="500" y="158" fill="#4ea8ff" text-anchor="middle" font-size="11" font-weight="600">CHECKPOINT 1 — FRONT DOOR  (opencode.jsonc)</text>
+        <text x="500" y="158" fill="#4ea8ff" text-anchor="middle" font-size="11" font-weight="600">CHECKPOINT 1 — FRONT DOOR  (opencode.jsonc · native permissions)</text>
         <text x="500" y="176" fill="#e6ebff" text-anchor="middle" font-size="12">Is this credential exposure?</text>
         <!-- outcomes row -->
         <g>
           <rect x="160" y="184" width="220" height="30" rx="8" fill="#1a0f14" stroke="#ef4444" opacity="0.95"/>
           <text x="270" y="202" fill="#ef4444" text-anchor="middle" font-size="11">.env etc. → HARD STOP</text>
           <rect x="390" y="184" width="220" height="30" rx="8" fill="#1a1408" stroke="#f59e0b" opacity="0.95"/>
-          <text x="500" y="202" fill="#f59e0b" text-anchor="middle" font-size="11">Gist / git / python / edit → ASK</text>
+          <text x="500" y="202" fill="#f59e0b" text-anchor="middle" font-size="11">edit / bash / webfetch → ASK</text>
           <rect x="620" y="184" width="220" height="30" rx="8" fill="#0f2416" stroke="#22c55e" opacity="0.95"/>
-          <text x="730" y="202" fill="#22c55e" text-anchor="middle" font-size="11">Safe read (git status, uv) → ALLOW</text>
+          <text x="730" y="202" fill="#22c55e" text-anchor="middle" font-size="11">Safe read (17 cmds, glob) → ALLOW</text>
         </g>
       </g>
 
@@ -94,48 +96,48 @@
       <path d="M500 226 L500 258" stroke="#4ea8ff" stroke-width="2" marker-end="url(#arrow)"/>
 
       <!-- Checkpoint 2 -->
-      <g class="card" data-tip="Checkpoint 2 — Workflow guard (plugins/policy-gate.ts). Checks the job you picked, whether the action fits that job, and whether a fresh read happened. Credential paths still hard-stop. Everything else now defers to the native prompt instead of blocking.">
+      <g class="card" data-tip="Checkpoint 2 — Workflow + credential guard (plugins/policy-gate.ts 2.0.0). Two checks: (1) credential regex on every path and shell token — hard stop if match, (2) select_workflow must be set for any non-read bash, webfetch/websearch, or mutation tool — otherwise policy-gate: select_workflow before … Everything else with a workflow defers to Checkpoint 1 ASK. No custom approve_action tool.">
         <rect x="140" y="268" width="720" height="118" rx="14" fill="#1a274a" stroke="#2b4a7a" filter="url(#shadow)"/>
-        <text x="500" y="288" fill="#4ea8ff" text-anchor="middle" font-size="11" font-weight="600">CHECKPOINT 2 — WORKFLOW GUARD  (plugins/policy-gate.ts)</text>
-        <text x="500" y="306" fill="#e6ebff" text-anchor="middle" font-size="12">Is this expected for the chosen job?</text>
-        <text x="500" y="320" fill="#9aa3c2" text-anchor="middle" font-size="10">One job per session. Read-only jobs exist. After first change the job locks. gh gist is now recognized as remote-write.</text>
+        <text x="500" y="288" fill="#4ea8ff" text-anchor="middle" font-size="11" font-weight="600">CHECKPOINT 2 — WORKFLOW + CREDENTIAL GUARD  (plugins/policy-gate.ts 2.0.0)</text>
+        <text x="500" y="306" fill="#e6ebff" text-anchor="middle" font-size="12">Is workflow selected and is path safe?</text>
+        <text x="500" y="320" fill="#9aa3c2" text-anchor="middle" font-size="10">One workflow per session. After first side effect it locks. Handoff via .agents/handoffs makes source terminal. .env.example never blocks.</text>
         <g>
           <rect x="160" y="334" width="220" height="34" rx="8" fill="#1a0f14" stroke="#ef4444"/>
           <text x="270" y="348" fill="#ef4444" text-anchor="middle" font-size="11">Credential path → HARD STOP</text>
-          <text x="270" y="360" fill="#9aa3c2" text-anchor="middle" font-size="9">.env, keys — never asks</text>
-          <rect x="390" y="334" width="220" height="34" rx="8" fill="#1a1408" stroke="#f59e0b"/>
-          <text x="500" y="348" fill="#f59e0b" text-anchor="middle" font-size="11">Otherwise → ASK</text>
-          <text x="500" y="360" fill="#9aa3c2" text-anchor="middle" font-size="9">Let the front door prompt you</text>
-          <rect x="620" y="334" width="220" height="34" rx="8" fill="#0f2416" stroke="#22c55e"/>
-          <text x="730" y="348" fill="#22c55e" text-anchor="middle" font-size="11">Already approved → ALLOW</text>
-          <text x="730" y="360" fill="#9aa3c2" text-anchor="middle" font-size="9">One-time approval consumed</text>
+          <text x="270" y="360" fill="#9aa3c2" text-anchor="middle" font-size="9">policy-gate: protected credential path blocked</text>
+          <rect x="390" y="334" width="220" height="34" rx="8" fill="#1a0f14" stroke="#ef4444"/>
+          <text x="500" y="348" fill="#ef4444" text-anchor="middle" font-size="11">No workflow → BLOCK</text>
+          <text x="500" y="360" fill="#9aa3c2" text-anchor="middle" font-size="9">select_workflow before non-read</text>
+          <rect x="620" y="334" width="220" height="34" rx="8" fill="#1a1408" stroke="#f59e0b"/>
+          <text x="730" y="348" fill="#f59e0b" text-anchor="middle" font-size="11">With workflow → ASK</text>
+          <text x="730" y="360" fill="#9aa3c2" text-anchor="middle" font-size="9">Defer to native prompt; approved → ALLOW</text>
         </g>
       </g>
 
       <path d="M500 386 L500 418" stroke="#4ea8ff" stroke-width="2" marker-end="url(#arrow)"/>
 
       <!-- Execution -->
-      <g class="card" data-tip="If you Allow, the action runs: file is patched, bash runs, or gh gist edit publishes. The guard records the change as &quot;side effect&quot; so the final check knows to run.">
+      <g class="card" data-tip="If you Allow, the action runs: file is patched, bash runs, or remote edit publishes. The guard records it as sideEffect (changed=true, verification=stale). If you Deny, nothing runs. Non-safe bash exit 0 also records side effect.">
         <rect x="240" y="428" width="520" height="40" rx="12" fill="#1b2a4a" stroke="#2b5a8a" filter="url(#shadow)"/>
-        <text x="500" y="445" fill="#e6ebff" text-anchor="middle" font-size="12">You Allow → action runs (patch / bash / gh gist edit)</text>
-        <text x="500" y="458" fill="#9aa3c2" text-anchor="middle" font-size="10">Recorded as side effect. If you Deny, nothing runs.</text>
+        <text x="500" y="445" fill="#e6ebff" text-anchor="middle" font-size="12">You Allow → action runs (patch / bash / webfetch)</text>
+        <text x="500" y="458" fill="#9aa3c2" text-anchor="middle" font-size="10">Recorded as side effect (stale). If you Deny, nothing runs.</text>
       </g>
 
       <path d="M500 468 L500 492" stroke="#4ea8ff" stroke-width="2" marker-end="url(#arrow)"/>
 
       <!-- Checkpoint 3 -->
-      <g class="card" data-tip="Checkpoint 3 — Final quality check (opencode_lint, finish_workflow). Only runs if something changed. Reports pass or fail. Warnings are ok, errors block closing the job. No prompt, just a report.">
+      <g class="card" data-tip="Checkpoint 3 — Final quality check (opencode_lint, finish_workflow). Only runs if something changed (changed=true). Runs opencode_lint --profile coding via uv. Exit 0 = passed (warnings ok), else finish_workflow blocked. No prompt, just report.">
         <rect x="140" y="502" width="720" height="40" rx="12" fill="#1a274a" stroke="#2b5a8a" filter="url(#shadow)"/>
         <text x="500" y="520" fill="#4ea8ff" text-anchor="middle" font-size="11" font-weight="600">CHECKPOINT 3 — FINAL QUALITY CHECK  (opencode_lint · finish_workflow)</text>
-        <text x="500" y="534" fill="#9aa3c2" text-anchor="middle" font-size="10">Ran only if something changed. Must pass to close the job.</text>
+        <text x="500" y="534" fill="#9aa3c2" text-anchor="middle" font-size="10">Runs only if something changed. Must pass to close the workflow.</text>
       </g>
 
       <!-- outcomes -->
       <g>
         <rect x="160" y="588" width="320" height="72" rx="12" fill="#102a1a" stroke="#1e7a45" filter="url(#shadow)"/>
         <text x="320" y="610" fill="#22c55e" text-anchor="middle" font-size="11" font-weight="600">IF LINTER PASSES</text>
-        <text x="320" y="630" fill="#e6ebff" text-anchor="middle" font-size="11">Job closes. Gist verified.</text>
-        <text x="320" y="648" fill="#9aa3c2" text-anchor="middle" font-size="10">Warnings ok. Errors fixed above.</text>
+        <text x="320" y="630" fill="#e6ebff" text-anchor="middle" font-size="11">Workflow closes. Verification current.</text>
+        <text x="320" y="648" fill="#9aa3c2" text-anchor="middle" font-size="10">Warnings ok. Errors were fixed above.</text>
         <rect x="520" y="588" width="320" height="72" rx="12" fill="#1a0f14" stroke="#7a1e1e" filter="url(#shadow)"/>
         <text x="680" y="610" fill="#ef4444" text-anchor="middle" font-size="11" font-weight="600">IF LINTER FAILS</text>
         <text x="680" y="630" fill="#e6ebff" text-anchor="middle" font-size="11">Blocked. Fix LNT errors.</text>
@@ -143,17 +145,17 @@
       </g>
 
       <!-- side note -->
-      <text x="500" y="684" fill="#9aa3c2" text-anchor="middle" font-size="10">One rule to remember: Credential exposure is a hard stop. Everything else asks you.</text>
-      <text x="500" y="698" fill="#7a86a8" text-anchor="middle" font-size="9">Change opencode.jsonc or plugins/policy-gate.ts? Quit and restart OpenCode (or /reload). Old session keeps old rules.</text>
-      <text x="990" y="756" fill="#5b6788" text-anchor="end" font-size="9">Scope: one action in a selected workflow. Evidence: ses_fb2102b05ffeG6A3a51XFAhvLj · fix 06d6e47 · opencode 1.18.25</text>
+      <text x="500" y="684" fill="#9aa3c2" text-anchor="middle" font-size="10">One rule to remember: Credential exposure is a hard stop. Everything else asks you via native permissions.</text>
+      <text x="500" y="698" fill="#7a86a8" text-anchor="middle" font-size="9">Change opencode.jsonc or plugins/policy-gate.ts? Quit and restart OpenCode (or /reload). Old session keeps old rules. Do not use OPENCODE_PURE=1.</text>
+      <text x="990" y="756" fill="#5b6788" text-anchor="end" font-size="9">Scope: one action in a selected workflow. Evidence: ses_faa14d62fffeIPfKvAWhww8wgD · 4c32673 · policy 2.0.0 native-permissions · opencode 1.18.25 · plugin 1.4.6</text>
     </svg>
   </div>
   <div class="steps">
-    <div class="step"><b>Before the fix</b><p>Gist draft and <code>gh gist edit</code> were blocked with no prompt, even though you wanted them. The front door and the guard both hard-denied.</p></div>
-    <div class="step"><b>After the fix</b><p>The same Gist sequence now shows a prompt at Checkpoint 1 and soft-defers at Checkpoint 2. Approve once and it runs and verifies.</p></div>
-    <div class="step"><b>What stays hard</b><p>Credential files only: <code>.env</code>, keys, tokens. No prompt, by design.</p></div>
+    <div class="step"><b>Policy 2.0.0 — what changed</b><p>Plugin no longer hard-denies <code>gh gist edit</code>, <code>python</code>, or normal edits. Only credential regex matches hard-stop. Missing workflow now gives <code>policy-gate: select_workflow …</code> until you pick one, then defers to the native prompt.</p></div>
+    <div class="step"><b>How a Gist edit flows now</b><p><code>select_workflow(doc-maintenance)</code> → draft <code>/tmp/…/note.md</code> → <code>gh gist edit</code>. Checkpoint 1 shows ASK, Checkpoint 2 sees workflow set and defers to same ASK. You Allow once, it runs, verified, then <code>finish_workflow</code>.</p></div>
+    <div class="step"><b>What stays hard</b><p>Credential files only: <code>.env</code> (except <code>.env.example</code>), <code>.npmrc</code>, <code>.netrc</code>, keys, <code>*.pem</code>, <code>credentials*.json</code>, <code>.docker/config.json</code>, <code>.config/gh/hosts.yml</code>. No prompt, by design. Use env vars or <code>pydantic-settings</code>.</p></div>
   </div>
-  <p class="note">Open <code>docs/enforcement-flow.svg</code> for the static image used in Markdown. Pair with <code>docs/enforcement-explained.md</code> for product text.</p>
+  <p class="note">Open <code>docs/enforcement-flow.svg</code> for the static image used in Markdown. Pair with <code>docs/enforcement-explained.md</code> for product text. Health: <code>policy_health → active, 2.0.0, native-permissions</code>.</p>
 </div>
 <div id="tip" class="tip"></div>
 <script>
