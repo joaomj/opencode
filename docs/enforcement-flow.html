@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enforcement Flow — Deterministic Checkpoints</title>
+<style>
+  :root{--bg:#0b1020;--card:#111832;--muted:#9aa3c2;--line:#24314f;--accent:#4ea8ff;--ask:#f59e0b;--hard:#ef4444;--allow:#22c55e;--pass:#22c55e}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:#e6ebff;font:14px/1.45 Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial}
+  header{max-width:1020px;margin:0 auto;padding:28px 20px 10px}
+  h1{margin:0 0 6px;font-size:22px;letter-spacing:.2px}
+  header p{margin:0;color:var(--muted);font-size:13px}
+  .chips{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  .chip{font-size:11px;letter-spacing:.4px;text-transform:uppercase;padding:5px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:#0f1730}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;color:var(--muted);font-size:12px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:999px;vertical-align:middle;margin-right:6px}
+  .wrap{max-width:1020px;margin:0 auto;padding:10px 20px 28px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 14px 10px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  svg{display:block;width:100%;height:auto}
+  .note{margin-top:10px;color:var(--muted);font-size:11.5px}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .step{background:#0f1730;border:1px solid var(--line);border-radius:12px;padding:10px 11px}
+  .step b{font-size:12px;letter-spacing:.2px}
+  .step p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.4}
+  @media(max-width:820px){.steps{grid-template-columns:1fr}}
+  a{color:var(--accent)}
+  .tip{position:fixed;pointer-events:none;background:#0f1730;border:1px solid #2b3a64;color:#e6ebff;font-size:12px;padding:8px 9px;border-radius:8px;max-width:320px;transform:translate(-50%, -100%);display:none;z-index:10;box-shadow:0 10px 24px rgba(0,0,0,.4)}
+  svg [data-tip]{cursor:help}
+  svg .card{transition:filter .15s, transform .15s}
+  svg .card:hover{filter:brightness(1.06)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Enforcement Flow — Same input, same result. No AI judgment.</h1>
+  <p>Three deterministic checkpoints. Scope: one agent action (file edit, <code>bash</code>, or <code>gh gist edit</code>) in a selected workflow. Hover any card for plain terms.</p>
+  <div class="chips">
+    <span class="chip">Hard stop: only credential paths (.env etc.)</span>
+    <span class="chip">Ask: everything else</span>
+    <span class="chip">Restart or /reload to load new rules</span>
+  </div>
+  <div class="legend">
+    <span><i style="background:var(--allow)"></i> Allow — proceeds</span>
+    <span><i style="background:var(--ask)"></i> Ask — prompt to you</span>
+    <span><i style="background:var(--hard)"></i> Hard stop — no prompt</span>
+    <span><i style="background:#4ea8ff"></i> Deterministic gate — same result every time</span>
+  </div>
+</header>
+<div class="wrap">
+  <div class="panel">
+    <svg viewBox="0 0 1000 760" role="img" aria-labelledby="title desc">
+      <title id="title">Enforcement Flow — Three checkpoints and outcomes</title>
+      <desc id="desc">Sequence of decisions for one agent action through native permission, plugin workflow guard, and final linter verification.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4ea8ff"/></marker>
+        <marker id="arrow-ask" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f59e0b"/></marker>
+        <marker id="arrow-hard" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ef4444"/></marker>
+        <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="6" flood-opacity="0.35"/></filter>
+      </defs>
+
+      <!-- lane backgrounds -->
+      <rect x="10" y="36" width="980" height="58" rx="10" fill="#0f1730" stroke="#24314f"/>
+      <rect x="10" y="550" width="980" height="28" rx="10" fill="#0f1730" stroke="#24314f"/>
+
+      <text x="18" y="28" fill="#9aa3c2" font-size="11">You ask the agent. Agent proposes one action. Checkpoints run in order.</text>
+      <text x="18" y="568" fill="#9aa3c2" font-size="11">Same command + same file + same job + same approval → same prompt, same allow or deny.</text>
+
+      <!-- Start -->
+      <g class="card" data-tip="Product intent: &quot;update the Gist&quot; or &quot;edit this file&quot;. The agent picks one workflow, e.g. doc-maintenance, then proposes one concrete action.">
+        <rect x="200" y="60" width="600" height="42" rx="12" fill="#18244a" stroke="#2b3d6b" filter="url(#shadow)"/>
+        <text x="500" y="77" fill="#e6ebff" text-anchor="middle" font-size="12">Agent proposes: edit file / run command / gh gist edit</text>
+        <text x="500" y="91" fill="#9aa3c2" text-anchor="middle" font-size="10">Picks one workflow first: doc-maintenance, software-delivery, etc.</text>
+        <text x="500" y="103" fill="#9aa3c2" text-anchor="middle" font-size="10">Example: draft /tmp/.../mini-pc-minecraft-ubuntu-retro-notes.md then gh gist edit</text>
+      </g>
+
+      <!-- Checkpoint 1 -->
+      <g class="card" data-tip="Checkpoint 1 — Front door (opencode.jsonc). Credential files like .env are a hard stop with no prompt. All other bash / edit / gist actions show a native Allow/Deny prompt. Safe reads like git status just allow.">
+        <rect x="140" y="138" width="720" height="88" rx="14" fill="#102a4a" stroke="#2b5a8a" filter="url(#shadow)"/>
+        <text x="500" y="158" fill="#4ea8ff" text-anchor="middle" font-size="11" font-weight="600">CHECKPOINT 1 — FRONT DOOR  (opencode.jsonc)</text>
+        <text x="500" y="176" fill="#e6ebff" text-anchor="middle" font-size="12">Is this credential exposure?</text>
+        <!-- outcomes row -->
+        <g>
+          <rect x="160" y="184" width="220" height="30" rx="8" fill="#1a0f14" stroke="#ef4444" opacity="0.95"/>
+          <text x="270" y="202" fill="#ef4444" text-anchor="middle" font-size="11">.env etc. → HARD STOP</text>
+          <rect x="390" y="184" width="220" height="30" rx="8" fill="#1a1408" stroke="#f59e0b" opacity="0.95"/>
+          <text x="500" y="202" fill="#f59e0b" text-anchor="middle" font-size="11">Gist / git / python / edit → ASK</text>
+          <rect x="620" y="184" width="220" height="30" rx="8" fill="#0f2416" stroke="#22c55e" opacity="0.95"/>
+          <text x="730" y="202" fill="#22c55e" text-anchor="middle" font-size="11">Safe read (git status, uv) → ALLOW</text>
+        </g>
+      </g>
+
+      <!-- arrow -->
+      <path d="M500 226 L500 258" stroke="#4ea8ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- Checkpoint 2 -->
+      <g class="card" data-tip="Checkpoint 2 — Workflow guard (plugins/policy-gate.ts). Checks the job you picked, whether the action fits that job, and whether a fresh read happened. Credential paths still hard-stop. Everything else now defers to the native prompt instead of blocking.">
+        <rect x="140" y="268" width="720" height="118" rx="14" fill="#1a274a" stroke="#2b4a7a" filter="url(#shadow)"/>
+        <text x="500" y="288" fill="#4ea8ff" text-anchor="middle" font-size="11" font-weight="600">CHECKPOINT 2 — WORKFLOW GUARD  (plugins/policy-gate.ts)</text>
+        <text x="500" y="306" fill="#e6ebff" text-anchor="middle" font-size="12">Is this expected for the chosen job?</text>
+        <text x="500" y="320" fill="#9aa3c2" text-anchor="middle" font-size="10">One job per session. Read-only jobs exist. After first change the job locks. gh gist is now recognized as remote-write.</text>
+        <g>
+          <rect x="160" y="334" width="220" height="34" rx="8" fill="#1a0f14" stroke="#ef4444"/>
+          <text x="270" y="348" fill="#ef4444" text-anchor="middle" font-size="11">Credential path → HARD STOP</text>
+          <text x="270" y="360" fill="#9aa3c2" text-anchor="middle" font-size="9">.env, keys — never asks</text>
+          <rect x="390" y="334" width="220" height="34" rx="8" fill="#1a1408" stroke="#f59e0b"/>
+          <text x="500" y="348" fill="#f59e0b" text-anchor="middle" font-size="11">Otherwise → ASK</text>
+          <text x="500" y="360" fill="#9aa3c2" text-anchor="middle" font-size="9">Let the front door prompt you</text>
+          <rect x="620" y="334" width="220" height="34" rx="8" fill="#0f2416" stroke="#22c55e"/>
+          <text x="730" y="348" fill="#22c55e" text-anchor="middle" font-size="11">Already approved → ALLOW</text>
+          <text x="730" y="360" fill="#9aa3c2" text-anchor="middle" font-size="9">One-time approval consumed</text>
+        </g>
+      </g>
+
+      <path d="M500 386 L500 418" stroke="#4ea8ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- Execution -->
+      <g class="card" data-tip="If you Allow, the action runs: file is patched, bash runs, or gh gist edit publishes. The guard records the change as &quot;side effect&quot; so the final check knows to run.">
+        <rect x="240" y="428" width="520" height="40" rx="12" fill="#1b2a4a" stroke="#2b5a8a" filter="url(#shadow)"/>
+        <text x="500" y="445" fill="#e6ebff" text-anchor="middle" font-size="12">You Allow → action runs (patch / bash / gh gist edit)</text>
+        <text x="500" y="458" fill="#9aa3c2" text-anchor="middle" font-size="10">Recorded as side effect. If you Deny, nothing runs.</text>
+      </g>
+
+      <path d="M500 468 L500 492" stroke="#4ea8ff" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- Checkpoint 3 -->
+      <g class="card" data-tip="Checkpoint 3 — Final quality check (opencode_lint, finish_workflow). Only runs if something changed. Reports pass or fail. Warnings are ok, errors block closing the job. No prompt, just a report.">
+        <rect x="140" y="502" width="720" height="40" rx="12" fill="#1a274a" stroke="#2b5a8a" filter="url(#shadow)"/>
+        <text x="500" y="520" fill="#4ea8ff" text-anchor="middle" font-size="11" font-weight="600">CHECKPOINT 3 — FINAL QUALITY CHECK  (opencode_lint · finish_workflow)</text>
+        <text x="500" y="534" fill="#9aa3c2" text-anchor="middle" font-size="10">Ran only if something changed. Must pass to close the job.</text>
+      </g>
+
+      <!-- outcomes -->
+      <g>
+        <rect x="160" y="588" width="320" height="72" rx="12" fill="#102a1a" stroke="#1e7a45" filter="url(#shadow)"/>
+        <text x="320" y="610" fill="#22c55e" text-anchor="middle" font-size="11" font-weight="600">IF LINTER PASSES</text>
+        <text x="320" y="630" fill="#e6ebff" text-anchor="middle" font-size="11">Job closes. Gist verified.</text>
+        <text x="320" y="648" fill="#9aa3c2" text-anchor="middle" font-size="10">Warnings ok. Errors fixed above.</text>
+        <rect x="520" y="588" width="320" height="72" rx="12" fill="#1a0f14" stroke="#7a1e1e" filter="url(#shadow)"/>
+        <text x="680" y="610" fill="#ef4444" text-anchor="middle" font-size="11" font-weight="600">IF LINTER FAILS</text>
+        <text x="680" y="630" fill="#e6ebff" text-anchor="middle" font-size="11">Blocked. Fix LNT errors.</text>
+        <text x="680" y="648" fill="#9aa3c2" text-anchor="middle" font-size="10">Then re-run finish_workflow.</text>
+      </g>
+
+      <!-- side note -->
+      <text x="500" y="684" fill="#9aa3c2" text-anchor="middle" font-size="10">One rule to remember: Credential exposure is a hard stop. Everything else asks you.</text>
+      <text x="500" y="698" fill="#7a86a8" text-anchor="middle" font-size="9">Change opencode.jsonc or plugins/policy-gate.ts? Quit and restart OpenCode (or /reload). Old session keeps old rules.</text>
+      <text x="990" y="756" fill="#5b6788" text-anchor="end" font-size="9">Scope: one action in a selected workflow. Evidence: ses_fb2102b05ffeG6A3a51XFAhvLj · fix 06d6e47 · opencode 1.18.25</text>
+    </svg>
+  </div>
+  <div class="steps">
+    <div class="step"><b>Before the fix</b><p>Gist draft and <code>gh gist edit</code> were blocked with no prompt, even though you wanted them. The front door and the guard both hard-denied.</p></div>
+    <div class="step"><b>After the fix</b><p>The same Gist sequence now shows a prompt at Checkpoint 1 and soft-defers at Checkpoint 2. Approve once and it runs and verifies.</p></div>
+    <div class="step"><b>What stays hard</b><p>Credential files only: <code>.env</code>, keys, tokens. No prompt, by design.</p></div>
+  </div>
+  <p class="note">Open <code>docs/enforcement-flow.svg</code> for the static image used in Markdown. Pair with <code>docs/enforcement-explained.md</code> for product text.</p>
+</div>
+<div id="tip" class="tip"></div>
+<script>
+  const tip=document.getElementById('tip');
+  document.querySelectorAll('[data-tip]').forEach(el=>{
+    el.addEventListener('mousemove',e=>{
+      const r=el.getBoundingClientRect();
+      tip.textContent=el.getAttribute('data-tip');
+      tip.style.left=(e.clientX)+'px';
+      tip.style.top=(r.top-6)+'px';
+      tip.style.display='block';
+    });
+    el.addEventListener('mouseleave',()=>tip.style.display='none');
+  });
+</script>
+</body>
+</html>

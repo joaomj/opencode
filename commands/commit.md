@@ -41,9 +41,10 @@ Commit recent changes. Do not fetch, rebase, or merge.
    - `test:` - test files, testing infrastructure
    - `chore:` - dependencies, build process, configuration
 
-8. Generate a concise commit message that follows the repository convention.
-   Use an imperative subject and include a body only when the convention needs
-   context. Do not replace repository rules with a global length or scope rule.
+8. Generate a concise commit message that follows ASD-STE100 and the
+    repository and organization conventions per `AGENTS.md` field table.
+    Use an imperative subject and include a body only when the convention needs
+    context. Do not replace repository rules with a global length or scope rule.
 
 9. Show summary and commit:
    - Display: "Committing with message: [message]"

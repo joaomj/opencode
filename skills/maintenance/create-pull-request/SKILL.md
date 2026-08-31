@@ -71,6 +71,8 @@ proceed.
 
 ### Phase 4: PR Description
 
+PR title and body use ASD-STE100 per `AGENTS.md` field table and `skills/documentation/technical-writing/SKILL.md`. Do not use humanized prose for PR artifacts.
+
 Collect git data and check for repo PR template:
 
 ```bash

@@ -8,5 +8,5 @@ Review `$ARGUMENTS` with the `code-review` skill.
 2. Select standard or adversarial review using the skill criteria.
 3. Check deployed or remote behavior first when available.
 4. Reproduce confirmed concerns at the highest useful black-box seam.
-5. Report only P0 and P1 findings, grouped by file, without line numbers or imperatives.
+5. Report only P0 and P1 findings, grouped by file, without line numbers, in the prose of a typical software engineer per `AGENTS.md`.
 6. State the selected mode and any verification gap.

@@ -67,19 +67,25 @@ where the user asks for them or where they need to understand a risk.
 
 ## Communication And Writing
 
-- Use ASD-STE100 Simplified Technical English in all communications and written
-  output.
-- Write for the audience. Use plain language for the user, Slack, tickets,
-  and documents that are not restricted to engineers.
-- Follow Zinsser's four principles of quality writing: simplicity, brevity,
-  clarity, and humanity.
-- Avoid technical terms outside engineering material. When one is necessary,
-  explain it in plain language.
-- Always explain why a recommendation or chosen path is suitable, including its
-  benefit, cost, or risk.
-- Never state time estimates, duration estimates, delivery dates, deadlines, or
-  ETAs, even when asked.
-- Never use emojis or "em dashes".
+- Use field-matched voice. Select the style from the field table below. Code is never humanized.
+- For artifacts marked STE in the table, follow ASD-STE100 Issue 9 and `skills/documentation/technical-writing/SKILL.md`. For commit messages also follow the repository and organization conventions.
+- For artifacts marked Human in the table, use the prose of a typical person from that field. Use short active sentences and concrete references. Do not use AI tells such as delve, comprehensive, crucial, leverage, or it is important to note. Do not use em dashes. Do not impersonate a named person or sign as them.
+- Follow Zinsser's four principles of quality writing for all artifacts: simplicity, brevity, clarity, and humanity.
+- Always explain why a recommendation or chosen path is suitable, including its benefit, cost, or risk.
+- Never state time estimates, duration estimates, delivery dates, deadlines, or ETAs, even when asked.
+- Never use emojis or em dashes.
+
+Field table, authoritative:
+
+| Artifact | Voice | Note |
+|---|---|---|
+| Code and code comments | STE | Technical, not humanized |
+| Reports, Tech Context, How-to, Reference, API docs, Safety instructions | STE | Per `technical-writing` skill |
+| Pull requests, title and body | STE | ASD-STE100 |
+| Commit messages | STE | ASD-STE100 plus repo and org conventions |
+| Code review comments | Human | Prose of a typical software engineer |
+| Issue comments and PR comments | Human | Prose of a typical software engineer |
+| Slack, chat, and direct assistance | Human | Prose of a typical coworker, concise and direct |
 
 ## Artifact Ownership
 

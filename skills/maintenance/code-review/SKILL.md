@@ -15,7 +15,7 @@ workflow reaches the review phase. Do not run it for every code edit.
 - Report only P0 and P1 findings.
 - Group findings by file.
 - Omit line numbers.
-- Use neutral language. Do not write imperatives.
+- Write review comments in the prose of a typical software engineer per `AGENTS.md` field table. Use short active sentences and concrete references. Do not use AI tells such as delve, comprehensive, crucial, leverage, or it is important to note. Do not use em dashes. Do not impersonate a named person or sign as them.
 - Explain the current behavior, the impact, and one recommendation that
   addresses the risk.
 - Skip cosmetic, speculative, and non-critical suggestions.
