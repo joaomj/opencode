@@ -35,11 +35,8 @@ DEFAULT_EXCLUDED_DIRS = frozenset(
 )
 
 DEFAULT_LINTABLE_EXTENSIONS = [
-    ".md",
     ".py",
-    ".rst",
     ".sh",
-    ".txt",
     ".toml",
     ".yml",
     ".yaml",

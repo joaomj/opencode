@@ -17,15 +17,20 @@ function shellResult(exitCode = 0) {
   })
 }
 
-function fakeShell(_strings: TemplateStringsArray, ..._expressions: unknown[]) {
-  return shellResult()
+function createFakeShell(exitCode: number, commands: string[]) {
+  function fakeShell(_strings: TemplateStringsArray, ..._expressions: unknown[]) {
+    commands.push(_expressions.map(String).join(""))
+    return shellResult(exitCode)
+  }
+
+  fakeShell.cwd = () => fakeShell
+  return fakeShell
 }
 
-fakeShell.cwd = () => fakeShell
-
-async function createHarness() {
+async function createHarness(shellExitCode = 0) {
   const worktree = await mkdtemp(path.join("/tmp", "policy-gate-test-"))
   const sessionID = `session-${++sessionSequence}`
+  const shellCommands: string[] = []
   const hooks = await policyPlugin({
     client: {
       session: {
@@ -37,7 +42,7 @@ async function createHarness() {
     worktree,
     experimental_workspace: {} as never,
     serverUrl: new URL("http://localhost"),
-    $: fakeShell as never,
+    $: createFakeShell(shellExitCode, shellCommands) as never,
   })
   const context = {
     sessionID,
@@ -51,7 +56,7 @@ async function createHarness() {
       throw new Error("policy plugin must not request custom approval")
     },
   }
-  return { hooks, context, worktree }
+  return { hooks, context, worktree, shellCommands }
 }
 
 async function selectSoftwareDelivery(harness: Awaited<ReturnType<typeof createHarness>>) {
@@ -250,6 +255,58 @@ test("tracks successful unknown shell commands as project changes", async () => 
     const finish = harness.hooks.tool?.finish_workflow
     if (!finish) throw new Error("finish_workflow is unavailable")
     await expect(finish.execute({}, harness.context)).resolves.toContain("opencode-lint: passed")
+  } finally {
+    await rm(harness.worktree, { recursive: true, force: true })
+  }
+})
+
+test("skips coding lint for documentation-only changes", async () => {
+  const harness = await createHarness(1)
+  try {
+    await selectSoftwareDelivery(harness)
+    const before = harness.hooks["tool.execute.before"]!
+    const after = harness.hooks["tool.execute.after"]!
+    const input = {
+      tool: "apply_patch",
+      sessionID: harness.context.sessionID,
+      callID: "documentation-change",
+      args: { patchText: "*** Add File: docs/guide.md\n+# Guide\n" },
+    }
+    await before(input, { args: input.args })
+    await after(input, { title: "apply_patch", output: "", metadata: { exit: 0 } })
+
+    const finish = harness.hooks.tool?.finish_workflow
+    if (!finish) throw new Error("finish_workflow is unavailable")
+    await expect(finish.execute({}, harness.context)).resolves.toContain("Documentation-only")
+  } finally {
+    await rm(harness.worktree, { recursive: true, force: true })
+  }
+})
+
+test("excludes documentation targets from mixed coding lint", async () => {
+  const harness = await createHarness()
+  try {
+    await Bun.write(path.join(harness.worktree, "source.py"), "value = 1\n")
+    await selectSoftwareDelivery(harness)
+    const before = harness.hooks["tool.execute.before"]!
+    const after = harness.hooks["tool.execute.after"]!
+    const input = {
+      tool: "apply_patch",
+      sessionID: harness.context.sessionID,
+      callID: "mixed-change",
+      args: {
+        patchText: "*** Update File: docs/guide.md\n@@\n- old\n+ new\n*** Update File: source.py\n@@\n- old\n+ new\n",
+      },
+    }
+    await before(input, { args: input.args })
+    await after(input, { title: "apply_patch", output: "", metadata: { exit: 0 } })
+
+    const finish = harness.hooks.tool?.finish_workflow
+    if (!finish) throw new Error("finish_workflow is unavailable")
+    await finish.execute({}, harness.context)
+    expect(harness.shellCommands).toHaveLength(1)
+    expect(harness.shellCommands[0]).toContain("source.py")
+    expect(harness.shellCommands[0]).not.toContain("docs/guide.md")
   } finally {
     await rm(harness.worktree, { recursive: true, force: true })
   }

@@ -3,10 +3,10 @@ repos:
     hooks:
       - id: opencode-lint
         name: opencode-lint
-        entry: uv run --no-project python -m opencode_lint.cli --pre-commit --profile fast
+        entry: uv run --project opencode_lint opencode-lint --pre-commit --profile fast
         language: system
         pass_filenames: true
-        files: ''
+        files: '(^|/)([^/]+\.(py|sh|toml|ya?ml)|Dockerfile|Makefile)$'
         stages: [pre-commit]
         require_serial: true
 

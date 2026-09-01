@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs"
 import { mkdir, readFile, unlink } from "node:fs/promises"
 import path from "node:path"
 import { tool, type Plugin } from "@opencode-ai/plugin"
@@ -5,13 +6,13 @@ import { tool, type Plugin } from "@opencode-ai/plugin"
 const z = tool.schema
 
 const POLICY_VERSION = "2.0.0"
-const LINTER_ROOT = path.resolve(import.meta.dir, "..")
 const LINTER_PROJECT = path.resolve(import.meta.dir, "../opencode_lint")
 const AGENT_ARTIFACT_DIR = ".agents"
 const SAFE_ENV_PATH_RE = /(?:^|[\\/])\.env\.example$/i
 const CREDENTIAL_PATH_RE = /(?:^|[\\/])(?:\.env(?:\.[^\\/]*)?|\.npmrc|\.pypirc|\.git-credentials|\.netrc|\.authinfo|credentials(?:\.json)?|.*\.credentials\.json|.*\.pem|.*\.key|id_(?:rsa|ed25519))$/i
 const CREDENTIAL_CONFIG_PATH_RE = /(?:^|\/)(?:\.docker\/config\.json|\.config\/gh\/hosts\.yml)$/i
 const EMOJI_RE = /[\p{Emoji_Presentation}\p{Extended_Pictographic}]/u
+const DOCUMENTATION_SUFFIXES = new Set([".md", ".mdx", ".rst", ".txt"])
 
 const WORKFLOW_FILES = {
   "direct-assistance": "skills/workflows/direct-assistance/SKILL.md",
@@ -49,6 +50,8 @@ type SessionState = {
   planPath?: string
   sideEffects: number
   changed: boolean
+  changedPaths: Set<string>
+  unknownChanges: boolean
   loadedSkills: Set<string>
   verification: Verification
   dependencyCalls: Set<string>
@@ -62,6 +65,8 @@ function newSessionState(): SessionState {
   return {
     sideEffects: 0,
     changed: false,
+    changedPaths: new Set(),
+    unknownChanges: false,
     loadedSkills: new Set(),
     verification: { status: "unknown" },
     dependencyCalls: new Set(),
@@ -170,6 +175,37 @@ function isReadTool(toolName: string): boolean {
   return ["read", "glob", "grep", "list"].includes(toolName)
 }
 
+function mutationPaths(toolName: string, args: unknown): string[] {
+  if (toolName === "apply_patch") {
+    if (!args || typeof args !== "object") return []
+    const patchText = (args as { patchText?: unknown }).patchText
+    return typeof patchText === "string"
+      ? patchTargets(patchText).map((target) => target.filePath)
+      : []
+  }
+  return stringPaths(args)
+}
+
+function isDocumentationPath(filePath: string): boolean {
+  return DOCUMENTATION_SUFFIXES.has(path.extname(filePath).toLowerCase())
+}
+
+function isDocumentationOnly(state: SessionState): boolean {
+  return !state.unknownChanges && state.changedPaths.size > 0 &&
+    [...state.changedPaths].every(isDocumentationPath)
+}
+
+function lintTargets(state: SessionState, worktree: string, directory: string): string[] {
+  if (state.unknownChanges) return [directory]
+
+  const targets = [...state.changedPaths]
+    .filter((target) => !isDocumentationPath(target))
+    .map((target) => path.isAbsolute(target) ? target : path.resolve(worktree, target))
+    .filter((target) => existsSync(target))
+
+  return targets.length > 0 ? targets : [directory]
+}
+
 async function readWorkflowInstructions(workflow: WorkflowName): Promise<string> {
   const filePath = path.resolve(import.meta.dir, "..", WORKFLOW_FILES[workflow])
   try {
@@ -215,6 +251,8 @@ async function inheritParentState(
     state.planPath = parent.planPath
     state.sideEffects = parent.sideEffects
     state.changed = parent.changed
+    state.changedPaths = new Set(parent.changedPaths)
+    state.unknownChanges = parent.unknownChanges
     state.verification = parent.verification
   }
   return state
@@ -341,6 +379,9 @@ const importHandoff = tool({
     state.owner = targetMatch[1]
     state.sideEffects = 0
     state.changed = false
+    state.changedPaths.clear()
+    state.unknownChanges = false
+    state.verification = { status: "unknown" }
     state.terminal = false
     await unlink(handoffPath)
     return content
@@ -367,21 +408,24 @@ const finishWorkflow = tool({
     const state = stateFor(context.sessionID)
     if (!state.owner) throw new Error("policy-gate: select a workflow before finishing")
     if (!state.changed) return "No project change was recorded; coding verification was not required."
+    if (isDocumentationOnly(state)) {
+      state.verification = {
+        status: "passed",
+        command: "documentation-only change",
+        reason: "coding lint skipped",
+      }
+      return "Documentation-only change; coding lint was skipped."
+    }
 
     const command = [
-      `PYTHONPATH=${shellQuote(LINTER_ROOT)}`,
       "uv",
       "run",
       "--project",
       shellQuote(LINTER_PROJECT),
-      "--directory",
-      shellQuote(LINTER_PROJECT),
-      "python",
-      "-m",
-      "opencode_lint.cli",
+      "opencode-lint",
       "--profile",
       "coding",
-      shellQuote(context.directory),
+      ...lintTargets(state, context.worktree, context.directory).map(shellQuote),
     ].join(" ")
     const result = await contextShell(context.directory, command)
     state.verification = {
@@ -471,6 +515,9 @@ export default (async ({ $, directory, client }) => {
     "tool.execute.after": async (input, output) => {
       const state = stateFor(input.sessionID)
       if (isMutationTool(input.tool)) {
+        const targets = mutationPaths(input.tool, input.args)
+        if (targets.length === 0) state.unknownChanges = true
+        for (const target of targets) state.changedPaths.add(target)
         state.sideEffects += 1
         state.changed = true
         state.verification = { status: "stale", reason: "project change" }
@@ -481,6 +528,7 @@ export default (async ({ $, directory, client }) => {
       const exit = output.metadata?.exit
       const verification = isVerificationCommand(command)
       if (!isSafeLocalCommand(command) && !verification && exit === 0) {
+        state.unknownChanges = true
         state.sideEffects += 1
         state.changed = true
         state.verification = { status: "stale", reason: "non-read shell command" }

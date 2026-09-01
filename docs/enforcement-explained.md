@@ -89,15 +89,20 @@ report `cause unavailable` and identify `native permissions` as the source.
 
 ## Final Quality Check
 
-`finish_workflow` is required only if `changed=true`. It runs:
+`finish_workflow` is required only if `changed=true`. It excludes documentation
+files (`.md`, `.mdx`, `.rst`, and `.txt`) from automatic coding lint. When all
+recorded changes are documentation files, it skips the linter. For other known
+changes it passes only non-document targets; unknown shell changes use the
+project directory. The command is:
 
 ```
-PYTHONPATH=<root> uv run --project opencode_lint --directory opencode_lint python -m opencode_lint.cli --profile coding
+uv run --project opencode_lint opencode-lint --profile coding <changed-targets-or-project-directory>
 ```
 
 Exit `0` records `passed`. Any other exit throws
 `policy-gate: finish_workflow blocked; opencode-lint failed`. Warnings pass.
-No prompt, only a report.
+No prompt, only a report. Run `opencode-lint <paths>` explicitly when a
+documentation change needs lint coverage.
 
 ## Denial Causes
 

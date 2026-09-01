@@ -35,9 +35,14 @@ opencode-lint --profile fast --staged
 opencode-lint --pre-commit path/to/file.py
 ```
 
+Directory scans cover source and configuration files. Documentation is checked
+only when its path is passed explicitly.
+
 ### As Pre-commit Hook
-The hook passes staged filenames to the fast profile. The linter checks
-supported text, Python, shell, and YAML files without changing them.
+The hook passes staged source and configuration filenames to the fast profile.
+Documentation files are excluded from the default hook. Run the CLI explicitly
+when documentation lint coverage is needed. The linter checks files without
+changing them.
 
 ## Rules
 
