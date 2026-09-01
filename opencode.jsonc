@@ -10,7 +10,7 @@
     "~/projects/opencode-cache-hit"
   ],
   "subagent_depth": 0,
-  "model": "openrouter/muse-spark-1.2-contributor",
+  "model": "openrouter/meta/muse-spark-1.2-contributor",
   "small_model": "opencode/muse-spark-1.2-contributor-free",
   "compaction": {
     "auto": true,
@@ -23,7 +23,7 @@
       }
     },
     "explore": {
-      "model": "openrouter/muse-spark-1.2-contributor",
+      "model": "openrouter/meta/muse-spark-1.2-contributor",
       "reasoningEffort": "high",
       "permission": {
         "edit": "deny",
@@ -78,8 +78,8 @@
     },
     "openrouter": {
       "models": {
-        "muse-spark-1.2-contributor": {
-          "name": "Muse Spark 1.2",
+        "meta/muse-spark-1.2-contributor": {
+          "name": "Muse Spark 1.2 Contributor",
           "limit": {
             "context": 200000,
             "input": 200000,
