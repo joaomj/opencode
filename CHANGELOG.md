@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Make coding-workflow lint reports non-blocking while returning complete rule,
+  location, and message diagnostics. Make P0 and P1 code review optional in the
+  software-delivery workflow. Treat successful Git operations as complete and
+  report quality lint findings on non-code content as warnings.
+
 ## [8.0.0] - 2026-08-31
 
 This release simplifies policy enforcement to a deterministic credential-only hard stop

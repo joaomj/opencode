@@ -10,7 +10,7 @@
     "~/projects/opencode-cache-hit"
   ],
   "subagent_depth": 0,
-  "model": "openrouter/meta/muse-spark-1.2-contributor",
+  "model": "opencode/muse-spark-1.2-contributor-free",
   "small_model": "opencode/muse-spark-1.2-contributor-free",
   "compaction": {
     "auto": true,

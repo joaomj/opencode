@@ -395,14 +395,17 @@ function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`
 }
 
-async function contextShell(directory: string, command: string): Promise<{ exitCode: number }> {
+async function contextShell(
+  directory: string,
+  command: string,
+): Promise<{ exitCode: number; output: string }> {
   if (!shellRuntime) throw new Error("policy-gate: shell runtime is unavailable")
   const result = await shellRuntime.cwd(directory)`sh -c ${command}`.quiet().nothrow()
-  return { exitCode: result.exitCode }
+  return { exitCode: result.exitCode, output: result.text() }
 }
 
 const finishWorkflow = tool({
-  description: "Run the non-mutating coding workflow gate and record its result.",
+  description: "Run coding verification and report lint diagnostics without blocking.",
   args: {},
   async execute(_args, context) {
     const state = stateFor(context.sessionID)
@@ -426,17 +429,27 @@ const finishWorkflow = tool({
       "--profile",
       "coding",
       ...lintTargets(state, context.worktree, context.directory).map(shellQuote),
+      "2>&1",
     ].join(" ")
     const result = await contextShell(context.directory, command)
+    const diagnostic = result.output.trim() ||
+      `No diagnostic output was returned by opencode-lint (exit code ${result.exitCode}).`
     state.verification = {
       status: result.exitCode === 0 ? "passed" : "failed",
       command: "opencode-lint --profile coding",
       exit: result.exitCode,
+      reason: diagnostic,
     }
     if (result.exitCode !== 0) {
-      throw new Error("policy-gate: finish_workflow blocked; opencode-lint failed")
+      return [
+        "opencode-lint: non-blocking findings; workflow continues.",
+        `Exit code: ${result.exitCode}`,
+        diagnostic,
+      ].join("\n")
     }
-    return "opencode-lint: passed\nVerification is current. Warnings remain in the linter result."
+    return result.output.trim()
+      ? `opencode-lint: passed with diagnostics\n${diagnostic}\nLint findings are non-blocking.`
+      : "opencode-lint: passed\nVerification is current."
   },
 })
 

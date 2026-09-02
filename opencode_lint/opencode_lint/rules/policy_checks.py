@@ -160,7 +160,8 @@ class AgentArtifactCommit(Rule):
             text=True,
         )
         if result.returncode != 0:
-            raise RuntimeError("could not inspect staged paths")
+            detail = result.stderr.strip() or f"git exited with code {result.returncode}"
+            raise RuntimeError(f"could not inspect staged paths: {detail}")
         return [Path(path) for path in result.stdout.splitlines() if path]
 
     def _is_protected_path(self, staged_path: Path) -> bool:

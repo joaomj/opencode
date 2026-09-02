@@ -126,22 +126,22 @@
       <path d="M500 468 L500 492" stroke="#4ea8ff" stroke-width="2" marker-end="url(#arrow)"/>
 
       <!-- Checkpoint 3 -->
-      <g class="card" data-tip="Checkpoint 3 — Final quality check (opencode_lint, finish_workflow). Only runs if something changed (changed=true). Runs opencode_lint --profile coding via uv. Exit 0 = passed (warnings ok), else finish_workflow blocked. No prompt, just report.">
+       <g class="card" data-tip="Checkpoint 3 — Final quality check (opencode_lint, finish_workflow). Only runs if something changed (changed=true). Runs opencode_lint --profile coding via uv. It returns the full rule, location, and message output. Findings never block the workflow.">
         <rect x="140" y="502" width="720" height="40" rx="12" fill="#1a274a" stroke="#2b5a8a" filter="url(#shadow)"/>
         <text x="500" y="520" fill="#4ea8ff" text-anchor="middle" font-size="11" font-weight="600">CHECKPOINT 3 — FINAL QUALITY CHECK  (opencode_lint · finish_workflow)</text>
-        <text x="500" y="534" fill="#9aa3c2" text-anchor="middle" font-size="10">Runs only if something changed. Must pass to close the workflow.</text>
+         <text x="500" y="534" fill="#9aa3c2" text-anchor="middle" font-size="10">Runs only if something changed. Reports diagnostics without blocking the workflow.</text>
       </g>
 
       <!-- outcomes -->
       <g>
         <rect x="160" y="588" width="320" height="72" rx="12" fill="#102a1a" stroke="#1e7a45" filter="url(#shadow)"/>
         <text x="320" y="610" fill="#22c55e" text-anchor="middle" font-size="11" font-weight="600">IF LINTER PASSES</text>
-        <text x="320" y="630" fill="#e6ebff" text-anchor="middle" font-size="11">Workflow closes. Verification current.</text>
-        <text x="320" y="648" fill="#9aa3c2" text-anchor="middle" font-size="10">Warnings ok. Errors were fixed above.</text>
+         <text x="320" y="630" fill="#e6ebff" text-anchor="middle" font-size="11">Workflow continues. Verification passed.</text>
+         <text x="320" y="648" fill="#9aa3c2" text-anchor="middle" font-size="10">No lint diagnostics were reported.</text>
         <rect x="520" y="588" width="320" height="72" rx="12" fill="#1a0f14" stroke="#7a1e1e" filter="url(#shadow)"/>
-        <text x="680" y="610" fill="#ef4444" text-anchor="middle" font-size="11" font-weight="600">IF LINTER FAILS</text>
-        <text x="680" y="630" fill="#e6ebff" text-anchor="middle" font-size="11">Blocked. Fix LNT errors.</text>
-        <text x="680" y="648" fill="#9aa3c2" text-anchor="middle" font-size="10">Then re-run finish_workflow.</text>
+         <text x="680" y="610" fill="#f59e0b" text-anchor="middle" font-size="11" font-weight="600">IF LINTER REPORTS FINDINGS</text>
+         <text x="680" y="630" fill="#e6ebff" text-anchor="middle" font-size="11">Workflow continues with exact diagnostics.</text>
+         <text x="680" y="648" fill="#9aa3c2" text-anchor="middle" font-size="10">Fix findings when useful, then re-run finish_workflow.</text>
       </g>
 
       <!-- side note -->

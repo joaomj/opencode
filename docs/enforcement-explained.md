@@ -99,10 +99,20 @@ project directory. The command is:
 uv run --project opencode_lint opencode-lint --profile coding <changed-targets-or-project-directory>
 ```
 
-Exit `0` records `passed`. Any other exit throws
-`policy-gate: finish_workflow blocked; opencode-lint failed`. Warnings pass.
-No prompt, only a report. Run `opencode-lint <paths>` explicitly when a
-documentation change needs lint coverage.
+The result never blocks the workflow. Exit `0` records `passed`. Any other exit
+records `failed` and returns the complete linter output to the agent. The output
+includes the rule ID, file path, line, column, and specific message. If the
+linter returns no output, the agent receives the exit code and an explicit
+no-diagnostics reason. Run `opencode-lint <paths>` explicitly when a
+documentation change needs lint coverage or a blocking exit code.
+
+Quality lint rules report warnings for non-code content such as Markdown,
+reStructuredText, plain text, TOML, and YAML. Security and supply-chain rules
+keep error severity for these files.
+
+A successful Git operation is complete. The workflow does not run a redundant
+status or diff inspection after success. It inspects again after an error or
+when the next action needs unresolved state.
 
 ## Denial Causes
 
@@ -110,7 +120,7 @@ documentation change needs lint coverage.
 |---|---|---|
 | Error starts with `policy-gate: protected credential path blocked` | Policy gate | Path matched credential regex |
 | Error starts with `policy-gate: select_workflow` | Policy gate | Workflow not selected for non-read or external action |
-| Error starts with `policy-gate: finish_workflow blocked` | Policy gate | Linter failed |
+| `opencode-lint: non-blocking findings` | Policy gate | Linter returned a nonzero exit and included its diagnostics |
 | Error `source session is terminal after handoff` | Policy gate | Action after `create_handoff` |
 | OpenCode shows Allow or Deny prompt | Native permissions | Rule matched `ask` |
 | Native permission error after prompt | Native permissions | Prompt denied or approval service failed |

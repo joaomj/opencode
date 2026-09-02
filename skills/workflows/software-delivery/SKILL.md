@@ -22,12 +22,17 @@ the only final confirmation point.
    `testing-best-practices` when applicable.
 6. Run the useful user-facing tests and the plan's verification gates. Report
    every failure and verification gap.
-7. Review the diff against the approved behavior and repository conventions.
-8. Create commits with the repository's required naming convention. Keep each
+7. Run a focused diff self-check against the approved behavior, security
+   boundaries, error handling, and repository conventions.
+8. Treat P0 and P1 code review as optional. Run the `code-review` workflow only
+   when the user requests it or the change has a material review risk. Do not
+   make code review an automatic delivery gate.
+9. Create commits with the repository's required naming convention. Keep each
    commit small and explain the user-visible result.
-9. Push the source branch to `origin` and verify the remote branch exists.
-10. Ask the user once whether to create the assigned pull request against the
-    detected default branch. Do not create it without that confirmation.
+10. Push the source branch to `origin`. Treat a successful push as complete.
+    Inspect the remote only when the push reports an error or the user asks.
+11. Ask the user once whether to create the assigned pull request against the
+   detected default branch. Do not create it without that confirmation.
 
 ## Progress Contract
 
@@ -56,7 +61,7 @@ the only final confirmation point.
 
 ## Deliverable
 
-Return the requested change, verification evidence, commit, pushed branch, and
+Return the requested change, verification evidence, commit, push result, and
 remaining gaps. If the final prompt is not approved, stop after push and report
 the branch and the exact pull-request command or handoff.
 

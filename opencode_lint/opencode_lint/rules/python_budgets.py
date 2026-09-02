@@ -65,7 +65,8 @@ class PythonBudgets(Rule):
             text=True,
         )  # noqa: S603
         if result.returncode != 0:
-            raise RuntimeError("could not inspect changed Python files")
+            detail = result.stderr.strip() or f"git exited with code {result.returncode}"
+            raise RuntimeError(f"could not inspect changed Python files: {detail}")
 
         paths = {project_root / line for line in result.stdout.splitlines() if line}
         if self.config.get("profile") != "fast":
@@ -77,7 +78,8 @@ class PythonBudgets(Rule):
                 text=True,
             )  # noqa: S603
             if untracked.returncode != 0:
-                raise RuntimeError("could not inspect untracked Python files")
+                detail = untracked.stderr.strip() or f"git exited with code {untracked.returncode}"
+                raise RuntimeError(f"could not inspect untracked Python files: {detail}")
             paths.update(project_root / line for line in untracked.stdout.splitlines() if line)
         return sorted(path for path in paths if path.is_file())
 

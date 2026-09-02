@@ -51,6 +51,5 @@ Commit recent changes. Do not fetch, rebase, or merge.
    - Show list of files being committed
    - Execute: !`git commit -S -m "[message]"`
 
-10. If commit succeeds: "Committed [hash] - [message]"
-
-    If unstaged changes remain, ask the user if they want a second commit.
+10. If commit succeeds: "Committed [hash] - [message]". Treat the commit as
+    complete. Do not run a post-commit status inspection.

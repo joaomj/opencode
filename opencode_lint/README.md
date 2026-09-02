@@ -44,6 +44,12 @@ Documentation files are excluded from the default hook. Run the CLI explicitly
 when documentation lint coverage is needed. The linter checks files without
 changing them.
 
+### In the coding workflow
+
+`finish_workflow` runs the coding profile and reports the complete linter output.
+Lint findings do not block the workflow. The explicit CLI and pre-commit hook
+keep their exit-code behavior, so they can remain blocking checks when required.
+
 ## Rules
 
 | Rule ID | Description | Severity | Enforced By |
@@ -51,13 +57,21 @@ changing them.
 | OC002 | Never read/print `.env` values | Error | `opencode_lint` |
 | OC003 | No privileged containers | Error | `opencode_lint` |
 | OC012 | No shell-piped remote install scripts; use explicit verified steps | Error | `opencode_lint` |
-| LNT004 | Broad checker suppressions | Error | `opencode_lint` |
+| LNT004 | Broad checker suppressions | Error for code; Warning for non-code content | `opencode_lint` |
 | LNT005 | Test skips and expected failures need reasons | Error | `opencode_lint` |
 | LNT020 | Mechanical writing rules | Warning | `opencode_lint` |
 | LNT022 | Required checks fail closed | Error | `opencode_lint` |
 | LNT025 | Local agent artifacts and plan files stay unstaged | Error | `opencode_lint` |
 | LNT-PY-BUDGET | Changed Python code budgets | Error | `opencode_lint` |
 | OC-SKILL-CHECK | Skill descriptions use valid trigger-oriented frontmatter | Warning | `opencode_lint` |
+
+Each reported violation includes the rule ID, file path, line, column, and
+specific message. It can also include a suggested fix. Fail-closed checks add
+the exception type and detail to the message.
+
+Quality lint rules report warnings for non-code content such as Markdown,
+reStructuredText, plain text, TOML, and YAML. Security and supply-chain rules
+keep error severity for these files.
 
 ## Configuration
 

@@ -96,8 +96,10 @@ def load_config(project_root: Path | None) -> dict:
     try:
         data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, yaml.YAMLError) as error:
+        detail = str(error).strip() or "no additional detail"
         raise RuntimeError(
-            f"linter configuration could not be parsed: {config_path.name}"
+            f"linter configuration could not be parsed: {config_path.name} "
+            f"({type(error).__name__}: {detail})"
         ) from error
 
     if data is None:
@@ -131,13 +133,14 @@ class LinterRunner:
 
     def _failure(self, file_path: Path, check: str, error: Exception) -> Violation:
         """Return an error when a required check cannot complete."""
+        detail = str(error).strip() or "no additional detail"
         return Violation(
             rule_id="LNT022",
             file_path=file_path,
             line_number=0,
             column=0,
             message=(
-                f"{check} could not complete ({type(error).__name__}); "
+                f"{check} could not complete ({type(error).__name__}: {detail}); "
                 "policy evaluation failed closed."
             ),
             severity="error",

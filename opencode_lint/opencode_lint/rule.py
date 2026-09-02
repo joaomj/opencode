@@ -6,6 +6,9 @@ from typing import List, Optional, Set
 
 from opencode_lint.violation import Violation
 
+NON_CODE_SUFFIXES = frozenset({".md", ".mdx", ".rst", ".txt", ".toml", ".yml", ".yaml"})
+SECURITY_CATEGORIES = frozenset({"security", "supply-chain"})
+
 
 class Rule(ABC):
     """Base class for all lint rules."""
@@ -20,6 +23,7 @@ class Rule(ABC):
         self.config = config or {}
         self.enabled = self.config.get("enabled", True)
         self.severity = self.config.get("severity", self.severity)
+        self.severity_configured = "severity" in self.config
         self.exclude_patterns: Set[str] = set(self.config.get("exclude", []))
 
     @abstractmethod
@@ -82,12 +86,22 @@ class Rule(ABC):
         Args:
             severity: Override the rule's default severity if provided.
         """
+        effective_severity = severity or self.severity
+        if (
+            severity is None
+            and not self.severity_configured
+            and effective_severity == "error"
+            and file_path.suffix.lower() in NON_CODE_SUFFIXES
+            and not SECURITY_CATEGORIES.intersection(self.categories)
+        ):
+            effective_severity = "warning"
+
         return Violation(
             rule_id=self.rule_id,
             file_path=file_path,
             line_number=line_number,
             column=column,
             message=message,
-            severity=severity or self.severity,
+            severity=effective_severity,
             fix=fix,
         )

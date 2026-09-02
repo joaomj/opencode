@@ -5,9 +5,10 @@ import policyPlugin from "./policy-gate"
 
 let sessionSequence = 0
 
-function shellResult(exitCode = 0) {
-  const promise = Promise.resolve({ exitCode, text: () => "" })
+function shellResult(exitCode = 0, output = "") {
+  const promise = Promise.resolve({ exitCode, text: () => output })
   return Object.assign(promise, {
+    text: () => output,
     quiet() {
       return this
     },
@@ -17,17 +18,17 @@ function shellResult(exitCode = 0) {
   })
 }
 
-function createFakeShell(exitCode: number, commands: string[]) {
+function createFakeShell(exitCode: number, commands: string[], output = "") {
   function fakeShell(_strings: TemplateStringsArray, ..._expressions: unknown[]) {
     commands.push(_expressions.map(String).join(""))
-    return shellResult(exitCode)
+    return shellResult(exitCode, output)
   }
 
   fakeShell.cwd = () => fakeShell
   return fakeShell
 }
 
-async function createHarness(shellExitCode = 0) {
+async function createHarness(shellExitCode = 0, shellOutput = "") {
   const worktree = await mkdtemp(path.join("/tmp", "policy-gate-test-"))
   const sessionID = `session-${++sessionSequence}`
   const shellCommands: string[] = []
@@ -42,7 +43,7 @@ async function createHarness(shellExitCode = 0) {
     worktree,
     experimental_workspace: {} as never,
     serverUrl: new URL("http://localhost"),
-    $: createFakeShell(shellExitCode, shellCommands) as never,
+    $: createFakeShell(shellExitCode, shellCommands, shellOutput) as never,
   })
   const context = {
     sessionID,
@@ -62,7 +63,7 @@ async function createHarness(shellExitCode = 0) {
 async function selectSoftwareDelivery(harness: Awaited<ReturnType<typeof createHarness>>) {
   const select = harness.hooks.tool?.select_workflow
   if (!select) throw new Error("select_workflow is unavailable")
-  await select.execute(
+  return select.execute(
     {
       workflow: "software-delivery",
       reason: "test policy behavior",
@@ -255,6 +256,43 @@ test("tracks successful unknown shell commands as project changes", async () => 
     const finish = harness.hooks.tool?.finish_workflow
     if (!finish) throw new Error("finish_workflow is unavailable")
     await expect(finish.execute({}, harness.context)).resolves.toContain("opencode-lint: passed")
+  } finally {
+    await rm(harness.worktree, { recursive: true, force: true })
+  }
+})
+
+test("keeps code review optional in the software delivery workflow", async () => {
+  const harness = await createHarness()
+  try {
+    const output = await selectSoftwareDelivery(harness)
+    expect(output).toContain("Treat P0 and P1 code review as optional")
+  } finally {
+    await rm(harness.worktree, { recursive: true, force: true })
+  }
+})
+
+test("reports lint failures without blocking and includes the linter reason", async () => {
+  const harness = await createHarness(
+    1,
+    "Found 1 violation(s):\nsource.py\n  ✗ Line 1:0 - LNT004\n     Broad checker suppression detected.\n",
+  )
+  try {
+    await selectSoftwareDelivery(harness)
+    const before = harness.hooks["tool.execute.before"]!
+    const after = harness.hooks["tool.execute.after"]!
+    const input = {
+      tool: "apply_patch",
+      sessionID: harness.context.sessionID,
+      callID: "lint-failure",
+      args: { patchText: "*** Add File: source.py\n+value = 1\n" },
+    }
+    await before(input, { args: input.args })
+    await after(input, { title: "apply_patch", output: "", metadata: { exit: 0 } })
+
+    const finish = harness.hooks.tool?.finish_workflow
+    if (!finish) throw new Error("finish_workflow is unavailable")
+    await expect(finish.execute({}, harness.context)).resolves.toContain("Broad checker suppression detected")
+    expect(harness.shellCommands[0]).toContain("2>&1")
   } finally {
     await rm(harness.worktree, { recursive: true, force: true })
   }

@@ -18,6 +18,9 @@ the relevant skill or command; do not duplicate them here.
 - Preserve the exact native denial reason. If the API does not return a cause,
   state that the cause is unavailable and identify the permission layer.
 - Surface failures and verification gaps. Do not silently skip them.
+- Treat a successful Git operation as complete. Do not run a redundant
+  post-operation status or diff inspection. Inspect again only after an error,
+  or when the next action needs unresolved state.
 - Run commands that may outlive the shell timeout in detached mode, such as with
   `nohup`, redirected logs, and background execution. Monitor the process and
   report its final status so the user can close the agent or shell safely.
