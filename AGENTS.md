@@ -77,8 +77,9 @@ where the user asks for them or where they need to understand a risk.
 ## Communication And Writing
 
 - Use field-matched voice. Select the style from the field table below. Code is never humanized.
-- For artifacts marked STE in the table, follow ASD-STE100 Issue 9 and `skills/documentation/technical-writing/SKILL.md`. For commit messages also follow the repository and organization conventions.
+- For artifacts marked STE in the table, follow ASD-STE100 Issue 9 and `skills/documentation/technical-writing/SKILL.md`. The `technical-writing` skill owns file artifacts only. It does not own chat.
 - For artifacts marked Human in the table, use the prose of a typical person from that field. Use short active sentences and concrete references. Do not use AI tells such as delve, comprehensive, crucial, leverage, or it is important to note. Do not use em dashes. Do not impersonate a named person or sign as them.
+- For chat, progress updates, and direct assistance, follow the Communication Contract below. When the contract and a skill conflict in chat, the contract wins.
 - Follow Zinsser's four principles of quality writing for all artifacts: simplicity, brevity, clarity, and humanity.
 - Always explain why a recommendation or chosen path is suitable, including its benefit, cost, or risk.
 - Never state time estimates, duration estimates, delivery dates, deadlines, or ETAs, even when asked.
@@ -89,12 +90,27 @@ Field table, authoritative:
 | Artifact | Voice | Note |
 |---|---|---|
 | Code and code comments | STE | Technical, not humanized |
-| Reports, Tech Context, How-to, Reference, API docs, Safety instructions | STE | Per `technical-writing` skill |
+| Reports, Tech Context, How-to, Reference, API docs, Safety instructions | STE | Per `technical-writing` skill, files only |
 | Pull requests, title and body | STE | ASD-STE100 |
 | Commit messages | STE | ASD-STE100 plus repo and org conventions |
-| Code review comments | Human | Prose of a typical software engineer |
-| Issue comments and PR comments | Human | Prose of a typical software engineer |
-| Slack, chat, and direct assistance | Human | Prose of a typical coworker, concise and direct |
+| Code review comments | Human | Prose of a typical software engineer; chat explanations of reviews still follow the Communication Contract |
+| Issue comments and PR comments | Human | Prose of a typical software engineer; chat explanations of issues still follow the Communication Contract |
+| Slack, chat, and direct assistance | Human | Follows the Communication Contract, concise and direct |
+
+### Communication Contract (chat and progress updates)
+
+Lead with the product result. State what the user can see or do. Put implementation details last.
+
+- Assume the reader does not know the internal system. Define an unfamiliar technical term before you use it. Reuse the exact term. Do not swap synonyms.
+- When you introduce a new component or failure, explain what it is, where it lives, who uses it, why they use it, whether it runs automatically or manually, and what normal behavior looks like. Keep this to two or three sentences for known systems.
+- Then explain the problem in this order: what is wrong, the exact trigger, a numbered example with real objects, the user-visible result, how likely the path is, the smallest permanent fix, and one focused check after the fix.
+- Preserve code, commands, paths, identifiers, numbers, error messages, and quoted material verbatim. Never rewrite them for style.
+- Use short active sentences. Use one idea per sentence. Target 15 to 20 words. Keep prose under 25 words per sentence. Code, paths, commands, errors, tables, and headings are exempt.
+- Do not use hollow openers such as Great question, Let us dive in, When it comes to, In recent years, or In today’s fast paced world.
+- Do not use filler such as delve, moreover, furthermore, robust, seamless, leverage as a verb, unlock, empower, game changer, cutting edge, deep dive, paradigm shift, synergy, holistic, tapestry, or a testament to.
+- Do not use contrast frames such as it is not X, it is Y or not X but Y. State the one claim plainly.
+- When prose stays abstract, use the smallest visual from the `show-me` skill. Prefer inline pseudocode, call trees, file trees, Mermaid, or diffs. Do not create HTML or SVG files for chat unless the user asks for a diagram file.
+- Example. Avoid: The cache invalidation hook has a race during asynchronous compaction. Prefer: OpenCode keeps a short stored copy of earlier conversation details. This copy helps the agent continue after a long session. Two operations can update that copy at the same time. One update can replace newer information with older information.
 
 ## Artifact Ownership
 

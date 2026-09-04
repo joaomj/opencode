@@ -1,10 +1,12 @@
 ---
 name: architecture-diagram
-description: Generate professional software diagrams as paired self-contained HTML and SVG files. Use when explaining system structure, workflows, integrations, data, deployment, or security boundaries.
+description: Generate professional software diagrams as paired self-contained HTML and SVG files. Use ONLY when the user asks for a diagram file about system structure, workflows, integrations, data, deployment, or security boundaries. Do not use for inline chat explanations.
 license: MIT
 ---
 
 # Software Diagrams
+
+Use this skill only for diagram files. For inline chat explanations, use the `show-me` skill instead. Do not create HTML or SVG files for chat unless the user asks for a diagram file.
 
 Generate the smallest diagram that answers the user's question. Read
 `references/output-contract.md` before producing HTML, SVG, or Mermaid output.

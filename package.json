@@ -7,7 +7,7 @@
   "description": "Personal configuration for [OpenCode](https://opencode.ai).",
   "main": "index.js",
   "scripts": {
-    "test": "bun test plugins/policy-gate.test.ts",
+    "test": "bun test plugins/policy-gate.test.ts plugins/plain-language.test.ts",
     "verify:policy": "bun scripts/verify-policy.ts",
     "opencode:guarded": "bash scripts/launch-opencode.sh"
   },

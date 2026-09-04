@@ -1,12 +1,14 @@
 ---
 name: technical-writing
-description: Write and edit technical reports, README files, API docs, architecture explanations, and implementation summaries. All output must comply with ASD-STE100 Issue 9 (Simplified Technical English, January 2025). Use when producing project documentation, reports, technical explanations, or user-facing written material.
+description: Write and edit file-based technical reports, README files, API docs, architecture explanations, and implementation summaries. All output must comply with ASD-STE100 Issue 9 (Simplified Technical English, January 2025). Use ONLY when producing project documentation files. Do not use for chat, progress updates, or direct assistance.
 license: MIT
 ---
 
 # Technical Writing
 
-Use this skill for clear, factual technical writing: reports, READMEs, API docs, architecture explanations, issue records, issue writeups, and implementation summaries.
+Use this skill for clear, factual technical writing in files: reports, READMEs, API docs, architecture explanations, issue records, issue writeups, and implementation summaries.
+
+This skill does not own chat. For chat, progress updates, and direct assistance, follow the Communication Contract in `AGENTS.md`. When the contract and this skill conflict in chat, the contract wins.
 
 All output MUST comply with **ASD-STE100 Simplified Technical English Issue 9 (January 2025)**, the international standard for technical documentation. STE is a controlled natural language with 53 writing rules and a controlled dictionary of approximately 900 approved words. Use the official standard at [asd-ste100.org](https://www.asd-ste100.org) as the definitive reference. The rules below capture the most critical requirements.
 
@@ -172,6 +174,6 @@ These rules derive from STE. When they conflict with the STE Compliance Rules ab
 ## Cross-Skill Use
 
 - Load `doc-maintenance` for auditing existing documentation for staleness.
-- Load `architecture-diagram` for architecture tradeoffs or system design decisions.
-- Load `architecture-diagram` only when the user asks for a diagram (supports general architecture, C4 model, and ASCII output).
+- Load `architecture-diagram` only when the user asks for a diagram file (supports general architecture, C4 model, and ASCII output).
+- Use the `show-me` skill for inline visual explanations in chat. Do not create HTML or SVG files for chat.
 - Use the `research` workflow before documenting unfamiliar external APIs.
